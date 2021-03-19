@@ -16,8 +16,8 @@ SUBROUTINE posdin()
 
 	! velocidades corrigidas
 
-	aux1 = dt / dx 
-	aux2 = dt / dy 
+	aux1 = dt / dx
+	aux2 = dt / dy
 
 	call interpx_cf(rho,nx,ny,nz,rhox) !(nx1,ny,nz)
 	call interpy_cf(rho,nx,ny,nz,rhoy) !(nx,ny1,nz)
@@ -95,3 +95,7 @@ SUBROUTINE posdin()
 
 
 END SUBROUTINE posdin
+
+!!! Estou fazendo alterações no código
+!!! Estas alterações vão para o branch python
+!!! Estas alterações não devem aparecer no código da branch main
