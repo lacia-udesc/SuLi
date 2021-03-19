@@ -102,4 +102,3 @@ SUBROUTINE iniciais()
 
 	END SUBROUTINE iniciais
 
-!!! Testando alteração de código para o GitHub !!!
