@@ -3,19 +3,7 @@ module disc
 
 ! tempo de simulação (segundos)
 integer,parameter 
-real(8),parameter :: uinicial = 0.
-
-integer,parameter :: der = 1 ! 1 = upwind, 2 = centrado (centrado só para advectivo clássico)
-integer,parameter :: adv_type = 1 ! 0 = lagrangiano, 1 = advectivo clássico, 2 = rotacional, 3 = antissimétrico
-
-integer,parameter :: obst_t = 0 ! 0 = sem obst, 1 = dunas, 2 = dunas2, 3 = gaussiano3D, 4 = beji, 5 = delft degrau, 6 = delft 1_2, 7 = SBRH calombos e buracos, 8 = Rigotti
-
-integer,parameter :: m_turb = 0 ! 0 = sem modelo, 1 = LES Smagorinsky-Lilly Clássico, 2 = LES Smagorinsky-Lilly Direcional
-
-
-integer,parameter :: esp_type = 0 ! 0 = sem camada esponja, 1 = leva em consideração a profundidade, 2 = não leva em consideração a profundidade, 3 = Método da Tangente Hiperbólica
-
-integer,parameter :: wave_t = 0 ! 0 = sem onda, 1 = Stokes I, 2 = Stokes II, 5 = Stokes V
+real(8),parameter :: uina, 1 = Stokes I, 2 = Stokes II, 5 = Stokes V
 
 integer,parameter :: mms_t = 2 ! 0 = sem MMS, 1 = MMS permanente, 2 = MMS não permanente
 
