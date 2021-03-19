@@ -1,25 +1,8 @@
 ! características básicas do domínio, escoamento e método numérico SuLi-IT
 module disc
 
-! definição do número pi
-real(8),parameter :: pi = acos(-1.)   
-
-! discretizações espacial em x, y e z (metros); discretização temporal (segundos)
-real(8),parameter :: dx = 2.*pi/50., dy = 2.*pi/50., dz1 = pi/25., dztopo = pi/25., dt = 0.001*pi
-
-! número de tempo por arquivo plotado
-real(8),parameter :: dt_frame = 0.1*pi
-
-
-! número de célular para x, y e z (-)
-integer,parameter :: nx=ceiling(2.*pi/dx) , ny=ceiling(2.*pi/dy), nz=ceiling(pi/dz1)!int((0.055-dztopo+dz1)/dz1) !6 para baixo  + 1.5 para cima
-
-!nz=int(10./dz1-0.1+0.5) porque a última célula é maior (0.5)
-
 ! tempo de simulação (segundos)
-integer,parameter :: ts = ceiling(0.1*pi/dt)
-
-
+integer,parameter 
 real(8),parameter :: uinicial = 0.
 
 integer,parameter :: der = 1 ! 1 = upwind, 2 = centrado (centrado só para advectivo clássico)
