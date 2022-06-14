@@ -23,8 +23,10 @@ SUBROUTINE plot_i()
 
 	real(8), dimension(nx1,ny1,nz1) :: uaux, vaux, waux, x11, y11, z11
 	real(8), dimension(nx,ny,nz) :: dudy, dudz, dvdx, dvdz, dwdx, dwdy
-	real(8), dimension(nx,ny,nz)    ::nutaux, prdaux, div, kaux, vorti, vortj, vortk
-	real(8), dimension(nx,ny,nz) :: xnuta,ynuta,znuta, lsaux
+	real(8), dimension(nx,ny,nz)    ::nutaux, prdaux, div, kaux, vorti, vortj, vortk, lsaux
+	real(8), dimension(nx1,ny,nz) :: xnuta
+	real(8), dimension(nx,ny1,nz) :: ynuta	
+	real(8), dimension(nx,ny,nz1) :: znuta
 	real(8), dimension(nx1,ny,nz1) :: auxy
 	real(8), dimension(nx1,ny1,nz) :: auxz
 	real(8), dimension(0:nx1,0:ny1,0:nz1) :: x1, y1, z1
@@ -66,7 +68,7 @@ do j = 1, ny
 enddo
 enddo
 enddo
-! close (unit=99998799)
+ close (unit=99998799)
 !*********************************************************************
 
 !perfil longitudinal do desnível *************************************
@@ -96,8 +98,8 @@ do k = nz, 2, -1
  endif
 enddo
 
-! close (unit=99998800)
-! close (unit=99998801)
+ close (unit=99998800)
+ close (unit=99998801)
 !*********************************************************************
 
 
@@ -106,11 +108,14 @@ enddo
 !conservação de massa ************************************************
 open (unit=100002, action= 'write', file= 'dados//conservacao_massa.txt', status= 'unknown')
 write(100002,*) "it*dt", " ", "vol_ini", " ", "vol_ins", " ","vol_ini-vol_ins", " ","divergencia"
+ close(unit=100002)
+
 !*********************************************************************
 
 !número de courant ***************************************************
 open (unit=9999991, action= 'write', file= 'dados//courant.txt', status= 'unknown')
 write(9999991,*) "it*dt", "  ", "ntal", "  ", "tal", "  ", "maxval(a)", " ", "maxval(d)", "  ", "loca", "  ", "locd"
+ close(unit=9999991)
 !*********************************************************************
 
 !contagem temporal ***************************************************
@@ -124,7 +129,7 @@ call cpu_time(t_i)
 !contagem temporal ***************************************************
 write(200000,*) it, it*dt, agora, t_i - t_i
 !*********************************************************************
-
+ close(unit=200000)
 
 !perfil longitudinal do desnível *************************************
 open (unit=9999999, action= 'write', file= 'dados//resul.txt', status= 'unknown')
@@ -219,7 +224,7 @@ enddo
 
 call interpx_cf(nut,nx,ny,nz,xnuta) !(nx1,ny,nz)
 call interpy_cf(nut,nx,ny,nz,ynuta) !(nx,ny1,nz)
-call interpz_cf(nut,nx,ny,nz,znuta) !(nx,ny1,nz)
+call interpz_cf(nut,nx,ny,nz,znuta) !(nx,ny,nz1)
 
 !*********************************************************************
 open (unit=cont, file='arquivos//campos_00010',form='unformatted',status='unknown')
@@ -257,8 +262,10 @@ SUBROUTINE plot_f()
 
 	real(8), dimension(nx1,ny1,nz1) :: uaux, vaux, waux, x11, y11, z11
 	real(8), dimension(nx,ny,nz) :: dudy, dudz, dvdx, dvdz, dwdx, dwdy
-	real(8), dimension(nx,ny,nz)    ::nutaux, prdaux, div, kaux, vorti, vortj, vortk
-	real(8), dimension(nx,ny,nz) :: xnuta,ynuta,znuta, lsaux
+	real(8), dimension(nx,ny,nz)    ::nutaux, prdaux, div, kaux, vorti, vortj, vortk, lsaux
+	real(8), dimension(nx1,ny,nz) :: xnuta
+	real(8), dimension(nx,ny1,nz) :: ynuta	
+	real(8), dimension(nx,ny,nz1) :: znuta
 	real(8), dimension(nx1,ny,nz1) :: auxy
 	real(8), dimension(nx1,ny1,nz) :: auxz
 	real(8), dimension(0:nx1,0:ny1,0:nz1) :: x1, y1, z1
