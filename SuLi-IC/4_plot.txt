@@ -72,13 +72,7 @@ enddo
 !perfil longitudinal do desnível *************************************
 open (unit=99998800, action= 'write', file= 'dados//h2.txt', status= 'unknown') ! o status deveria ser para escrever em cima deste primeiro ..z
 ii = 0
-i = int(1.0/dx) 
-j = int(0.5/dy) 
-do k = nz, 2, -1
- if (ii == 0) then
-  if (ls(i,j,k-1)*ls(i,j,k) <= 0.) then
-   write(99998800,*) dt*it, dz*(k-0.5) + ls(i,j,k)
-   ii = 1 ! fará com que saida de todos os loops
+i = int(1.0/dx)  = 1 ! fará com que saida de todos os loops
   endif
  endif
 enddo
