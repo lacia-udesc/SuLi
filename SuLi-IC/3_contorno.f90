@@ -96,6 +96,8 @@ if ((nlock == 1).or.(nlock == 2)) then
 		 v(:,ny1,:)   = v(:,1,:) + dpdy(:,ny1,:)
 		 v(:,ny1+1,:) = v(:,2,:) + dpdy(:,ny1+1,:)
 		 w(:,ny+1,:)  = w(:,1,:) + dpdz(:,ny+1,:)
+			!do i = 0, 1
+			!enddo
 		endif
 
 		if (ccyf.eq.1) then ! free-slip condition
@@ -153,7 +155,6 @@ if ((nlock == 1).or.(nlock == 2)) then
 		if (ccx0.eq.4) then !!para validacao
                  v(0,:,:) = bxy0(:,:) + dpdy(0,:,:)
                  w(0,:,:) = w(1,:,:)
-		! do i = 0, 1
 		!u(i,:,11+1) =	0.15946 + dpdx(i,:,12)
 		!u(i,:,12+1) =	0.2873  + dpdx(i,:,13)
 		!u(i,:,13+1) =	0.328   + dpdx(i,:,14)
@@ -164,7 +165,6 @@ if ((nlock == 1).or.(nlock == 2)) then
 		!u(i,:,18+1) =	0.46318 + dpdx(i,:,19)
 		!u(i,:,19+1) =	0.48141 + dpdx(i,:,20)
 		!u(i,:,20+1) =	0.4867  + dpdx(i,:,21)
-		! enddo
                 endif
 
 
