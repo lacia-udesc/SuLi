@@ -552,70 +552,69 @@ SUBROUTINE obstaculo()
 
 	  auxx(i,j) = sqrt(-(x-7.)**2. +(raio**2.))
 	
-	 else !resto
-	       auxx(i,j) = raio
-	 endif
+	else !Resto
+	   auxx(i,j) = raio
+ endif
 
 	enddo
 	enddo
 
-	elseif (obst_t == 8) then ! (fennema1990)
+elseif (obst_t == 8) then !(fennema, 1990)
 
+	do j = -1,nyy+2
+	do i = -1, nxx+2
+	x = (i-1.)*dx*0.5
+	y = (j-1.)*dy*0.5
+
+	if ((x >= 90.) .and. (x <= 100.)) then !Criando a parede
+		auxx(i,j) = (nz+1)*dz
+	endif
 	
-        do j = -1,nyy+2
-	 do i = -1, nxx+2
-	 x = (i-1.)*dx*0.5
-	 y = (j-1.)*dy*0.5
-
-	 if ((x >= 90.) .and. (x <= 100.)) then !criando a parede
-	  auxx(i,j) = (nz+1)*dz
-	 endif
-	 if ((y > 95.) .and. (y < 170.)) then!criando a parede
-	  auxx(i,j) = -dz
-	 endif
-
-	enddo
-	enddo
-
-	elseif (obst_t == 9) then ! (aureli2008)
-
+	if ((y > 95.) .and. (y < 170.)) then !Criando a parede
+		auxx(i,j) = -dz
+	endif
 	
-        do j = -1,nyy+2
-	 do i = -1, nxx+2
-	 x = (i-1.)*dx*0.5
-	 y = (j-1.)*dy*0.5
-
-	 if ((x >= 0.8) .and. (x <= 0.825)) then !criando a parede
-	  auxx(i,j) = (nz+1)*dz
-	 endif
-	 if ((y > 0.45) .and. (y < 0.75)) then!criando a parede
-	  auxx(i,j) = -dz
-	 endif
-
 	enddo
 	enddo
 
-	elseif (obst_t == 10) then ! (bd_koshizuka 1995 e Kleefsman 2005)
+elseif (obst_t == 9) then !(aureli, 2008)
 
-	auxx = -dz
+	do j = -1,nyy+2
+	do i = -1, nxx+2
+	x = (i-1.)*dx*0.5
+	y = (j-1.)*dy*0.5
+
+	if ((x >= 0.8) .and. (x <= 0.825)) then !Criando a parede
+		auxx(i,j) = (nz+1)*dz
+	endif
 	
-        do j = -1,nyy+2
-	 do i = -1, nxx+2
-	 x = (i-1.)*dx*0.5
-	 y = (j-1.)*dy*0.5
-
-	 if ((x >= (0.75-0.16*0.5) ) .and. (x <=(0.75+0.16*0.5) )) then !criando a parede
-	  auxx(i,j) = 0.16!(nz+1)*dz
-	 endif
-	 if ((y > (0.5-0.4*0.5)) .and. (y < (0.5+0.4*0.5))) then!criando a parede
-	 else
-	  auxx(i,j) = -dz
-	 endif
-
-	enddo
-	enddo
+	if ((y > 0.45) .and. (y < 0.75)) then !Criando a parede
+		auxx(i,j) = -dz
 	endif
 
+	enddo
+	enddo
+
+elseif (obst_t == 10) then !(bd_koshizuka, 1995 e Kleefsman, 2005)
+
+	auxx = -dz
+
+	do j = -1,nyy+2
+	do i = -1, nxx+2
+	x = (i-1.)*dx*0.5
+	y = (j-1.)*dy*0.5
+
+	if ((x >= (0.75-0.16*0.5) ) .and. (x <=(0.75+0.16*0.5) )) then !Criando a parede
+		auxx(i,j) = 0.16!(nz+1)*dz
+	endif
+	
+	if ((y > (0.5-0.4*0.5)) .and. (y < (0.5+0.4*0.5))) then !Criando a parede
+		auxx(i,j) = -dz
+	endif
+
+	enddo
+	enddo
+endif
 
 
 do j = 0, ny+1
@@ -639,56 +638,48 @@ do i = 0, nx+1
 enddo
 enddo
 
-
 END SUBROUTINE obstaculo
-
-
-!################################################################################################
 
 SUBROUTINE sponge_layer(epis_z)
 
-! subrotina para representar a camada esponja, quando se quer um domínio com saída livre. 
-!Não funciona com escoamentos, porque a velocidade é forçada a zero ...
+!Subrotina para representar a camada esponja, quando se quer um domínio com saída livre. 
+!Não funciona com escoamentos, porque a velocidade é forçada a zero.
 
-	USE velpre
-	USE ls_param
-	IMPLICIT NONE
+USE velpre
+USE ls_param
+IMPLICIT NONE
 
-	!===================================================================================================================
-	!DECLARADO TAMBÉM NO PROGRAMA
+!Declarado também no programa
 
-	real(8), intent(out), dimension(nx,ny,nz1) :: epis_z
+real(8), intent(out), dimension(nx,ny,nz1) :: epis_z
 
-	!DECLARADO APENAS DA SUBROTINA
+!Declarado apenas na rotina
 
-	!Profundidade do domínio
-	real(8), dimension(nx,ny,0:nz1) :: z_x
-	real(8), dimension(nx) :: zpfs
-	real(8), dimension(nx) :: xp,zpt
-	! Parâmetro da camada esponja (permeabilidade)
-	real(8) :: alfa, alfa0, alfa1, aux1, alt1, alt2
+!Profundidade do domínio
+real(8), dimension(nx,ny,0:nz1) :: z_x
+real(8), dimension(nx) :: zpfs
+real(8), dimension(nx) :: xp,zpt
 
-	! Comprimento da camada esponja e posição do seu começo
-	real(8) :: l_sponge, x_inicial
-	integer :: i, j, k
+!Parâmetro da camada esponja (permeabilidade)
+real(8) :: alfa, alfa0, alfa1, aux1, alt1, alt2
 
-	! Inicialização do código
-	epis_z = 0.
-	z_x(:,:,0) = -dz
-	l_sponge  = 1.  !comprimento da camada esponja
-	x_inicial = nx*dx - l_sponge
+!Comprimento da camada esponja e posição do seu começo
+real(8) :: l_sponge, x_inicial
+integer :: i, j, k
 
-	alfa = 60.     !a ser calibrado
-	alfa0 = 0.       !a ser calibrado
-	alfa1 = 30.!2.*alfa !a ser calibrado
+!Inicialização do código
+epis_z = 0.
+z_x(:,:,0) = -dz
+l_sponge  = 1. !Comprimento da camada esponja
+x_inicial = nx*dx - l_sponge
 
+alfa = 60. !A ser calibrado
+alfa0 = 0. !A ser calibrado
+alfa1 = 30. !2.*alfa !A ser calibrado
 
-	!===================================================================================================================
-	!RESOLUÇÃO DO PROBLEMA
-	!===================================================================================================================
+!Resolução do problema
 
-
-	if (esp_type == 1) then
+if (esp_type == 1) then
 
 	do j = 1, ny
 	do i = nint(x_inicial/dx)+1, nx
@@ -696,6 +687,7 @@ SUBROUTINE sponge_layer(epis_z)
 	zpt(i)  = dz*nz  ! altura total
 
 	do k = 1, nz-1
+	
 	if (ls(i,j,k)*ls(i,j,k+1) <= 0) then
 		alt1 = dz*(k-0.5) + ls(i,j,k)
 		alt2 = dz*(k+0.5) + ls(i,j,k+1)
@@ -704,57 +696,55 @@ SUBROUTINE sponge_layer(epis_z)
 	enddo
 	enddo
 	enddo
-	!Camada esponja para a direção x
+	
+!Camada esponja para a direção x
 	do k = 1, nz
 	do j = 1, ny
 	do i = nint(x_inicial/dx)+1, nx
-		xp(i) = real(i-0.5)*dx
-		z_x(i,j,k) = z_x(i,j,k-1) + dz !altura atual em w
-		aux1 = (xp(i)-x_inicial)/l_sponge
+	
+	xp(i) = real(i-0.5)*dx
+	z_x(i,j,k) = z_x(i,j,k-1) + dz !Altura atual em w
+	aux1 = (xp(i)-x_inicial)/l_sponge
 
-		if (ls(i,j,k) >= 0.) then ! na água 
-			epis_z(i,j,k) = alfa * aux1 * aux1 * (0.-z_x(i,j,k))     / (0.-zpfs(i)    )
-		else
-			epis_z(i,j,k) = alfa * aux1 * aux1 * (z_x(i,j,k)-zpt(i)) / (zpfs(i)-zpt(i))
-		endif
-
-	enddo
-	enddo
-	enddo
-
-	elseif (esp_type == 2) then
-
-
-	do k = 1, nz
-	do j = 1, ny
-	do i = nint(x_inicial/dx)+1, nx
-		xp(i) = real(i-0.5)*dx
-		aux1 = (xp(i)-x_inicial)/l_sponge
-
-		epis_z(i,j,k) = alfa0 + aux1 * (alfa1 - alfa0)
-
-	enddo
-	enddo
-	enddo
-
-	elseif (esp_type == 3) then !Método da Tangente Hiperbólica
-
-
-	do k = 1, nz
-	do j = 1, ny
-	do i = nint(x_inicial/dx)+1, nx
-		xp(i) = real(i-0.5)*dx
-		aux1 = (xp(i)-x_inicial)/l_sponge
-
-		epis_z(i,j,k) = alfa* tanh(aux1*pi)
-
-	enddo
-	enddo
-	enddo
-
+	if (ls(i,j,k) >= 0.) then !Na água 
+		epis_z(i,j,k) = alfa * aux1 * aux1 * (0.-z_x(i,j,k))     / (0.-zpfs(i)    )
+	else
+		epis_z(i,j,k) = alfa * aux1 * aux1 * (z_x(i,j,k)-zpt(i)) / (zpfs(i)-zpt(i))
 	endif
 
-	!===============================================================================================================
+	enddo
+	enddo
+	enddo
+
+elseif (esp_type == 2) then
+
+	do k = 1, nz
+	do j = 1, ny
+	do i = nint(x_inicial/dx)+1, nx
+	xp(i) = real(i-0.5)*dx
+	aux1 = (xp(i)-x_inicial)/l_sponge
+
+	epis_z(i,j,k) = alfa0 + aux1 * (alfa1 - alfa0)
+
+	enddo
+	enddo
+	enddo
+
+elseif (esp_type == 3) then !Método da Tangente Hiperbólica
+
+	do k = 1, nz
+	do j = 1, ny
+	do i = nint(x_inicial/dx)+1, nx
+	xp(i) = real(i-0.5)*dx
+	aux1 = (xp(i)-x_inicial)/l_sponge
+
+	epis_z(i,j,k) = alfa* tanh(aux1*pi)
+
+	enddo
+	enddo
+	enddo
+
+endif
 
 END SUBROUTINE sponge_layer
 
