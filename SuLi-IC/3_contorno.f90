@@ -802,59 +802,75 @@ SUBROUTINE prd_corr(dpdx,dpdy,dpdz)
 	dpdy(:,:,0) = dpdy(:,:,1) 
 	dpdz(:,:,0) = dpdz(:,:,1) 
 
-	dpdz(:,:,nz1+1) = dpdz(:,:,nz1) 
 
+dpdx(0,:,:) = dpdx(1,:,:) 
+dpdy(0,:,:) = dpdy(1,:,:) 
+dpdz(0,:,:) = dpdz(1,:,:) 
+
+dpdx(nx1+1,:,:) = dpdx(nx1,:,:) 
+dpdx(:,ny+1,:) = dpdx(:,ny,:) 
+dpdx(:,:,nz+1) = dpdx(:,:,nz) 
+
+dpdx(:,0,:) = dpdx(:,1,:) 
+dpdy(:,0,:) = dpdy(:,1,:) 
+dpdz(:,0,:) = dpdz(:,1,:) 
+
+dpdy(nx+1,:,:) = dpdy(nx,:,:) 
+dpdy(:,ny1+1,:) = dpdy(:,ny1,:) 
+dpdy(:,:,nz+1) = dpdy(:,:,nz) 
+
+dpdx(:,:,0) = dpdx(:,:,1) 
+dpdy(:,:,0) = dpdy(:,:,1) 
+dpdz(:,:,0) = dpdz(:,:,1) 
+
+dpdz(nx+1,:,:) = dpdz(nx,:,:) 
+dpdz(:,ny+1,:) = dpdz(:,ny,:) 
+dpdz(:,:,nz1+1) = dpdz(:,:,nz1) 
 
 END SUBROUTINE prd_corr
 
-
-
-
-
-!######################################################################################
-
 SUBROUTINE boundary_waves()
-	USE wave_c
-	USE parametros
-	USE velpre
-	USE ls_param
 
-	IMPLICIT NONE
+USE wave_c
+USE parametros
+USE velpre
+USE ls_param
 
-	integer :: i, j, k
-	real(8) :: aux1, aux2, aux3, aux4, aux5, h_fa, l_wa
+IMPLICIT NONE
 
-	real(8), dimension(0:nx) :: h_f
+integer :: i, j, k
+real(8) :: aux1, aux2, aux3, aux4, aux5, h_fa, l_wa
 
-	real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: u1
-	real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: v1
-	real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: w1
+real(8), dimension(0:nx) :: h_f
 
-	real(4),dimension(0:nx+1,0:ny+1,0:nz+1) :: ls1
+real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: u1
+real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: v1
+real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: w1
 
-
-	! Reference: Coubilla 2015 (Thesis)
-
-	ls1(1:nx,1:ny,1:nz) = ls(:,:,:)
-
-	ls1(0,:,:)    = ls1(1,:,:)
-	ls1(nx+1,:,:) = ls1(nx,:,:)
-
-	ls1(:,0,:)    = ls1(:,1,:)
-	ls1(:,ny+1,:) = ls1(:,ny,:)
-
-	ls1(:,:,0)    = ls1(:,:,1)
-	ls1(:,:,nz+1) = ls1(:,:,nz)
+real(4),dimension(0:nx+1,0:ny+1,0:nz+1) :: ls1
 
 
-	!Stokes I
-	if (wave_t == 1) then
+!Reference: Coubilla, 2015 (Thesis)
+
+ls1(1:nx,1:ny,1:nz) = ls(:,:,:)
+
+ls1(0,:,:)    = ls1(1,:,:)
+ls1(nx+1,:,:) = ls1(nx,:,:)
+
+ls1(:,0,:)    = ls1(:,1,:)
+ls1(:,ny+1,:) = ls1(:,ny,:)
+
+ls1(:,:,0)    = ls1(:,:,1)
+ls1(:,:,nz+1) = ls1(:,:,nz)
+
+
+!Stokes I
+if (wave_t == 1) then
 
 	do k = 0, nz+1
 	do j = 0, ny+1
 	do i = 0, 1
 	h_f(i)     = h0_f   + a_w*cos(n_w*dx*(i-0.5)-f_w*t)
-
 	ls1(i,j,k) = h_f(i) - kp(k)
 
 	if (ls1(i,j,k) >= 0.) then
@@ -869,17 +885,17 @@ SUBROUTINE boundary_waves()
 	enddo
 	enddo
 
-	!Stokes II
-	elseif (wave_t == 2 ) then
+!Stokes II
+elseif (wave_t == 2 ) then
 
-	aux1 = tanh(n_w*h0_f) !sigma
+	aux1 = tanh(n_w*h0_f) !Sigma
 
 	do k = 0, nz+1
 	do j = 0, ny+1
 	do i = 0, 1
 
-	aux2 = n_w*dx*(i-0.5)-f_w*t !omega para w e eta
-	aux3 = n_w*dx*(i-1.)-f_w*t !omega para u
+	aux2 = n_w*dx*(i-0.5)-f_w*t !Ômega para w e eta
+	aux3 = n_w*dx*(i-1.)-f_w*t !Ômega para u
 
 	h_f(i)     = h0_f + a_w*cos(aux2) +n_w*a_w*a_w*(3.-aux1*aux1)/(4.*aux1*aux1*aux1)*cos(2.*aux2)
 	ls1(i,j,k) = h_f(i) - kp(k)
@@ -894,115 +910,99 @@ SUBROUTINE boundary_waves()
 		u1(i,j,k) = 0.
 		w1(i,j,k) = 0.	
 	endif
-		
+	
 	enddo
 	enddo
 	enddo
 
-
-	!Stokes V
-	elseif (wave_t == 5 ) then
+!Stokes V
+elseif (wave_t == 5 ) then
 
 	do k = 0, nz+1
 	do j = 0, ny+1
 	do i = 0, 1
 
-	aux2 = n_w*dx*(i-0.5)-f_w*t !omega para w e eta
-	aux3 = n_w*dx*(i-1.)-f_w*t !omega para u
+	aux2 = n_w*dx*(i-0.5)-f_w*t !Ômega para w e eta
+	aux3 = n_w*dx*(i-1.)-f_w*t !Ômega para u
 
-	aux4 = n_w*kp(k) ! para u
-	aux5 = n_w*(kp(k)-0.5*dz) ! para w
+	aux4 = n_w*kp(k) !Para u
+	aux5 = n_w*(kp(k)-0.5*dz) !Para w
 
 	h_f(i) = h0_f +aeta1*cos(aux2) +aeta2*cos(2.*aux2) +aeta3*cos(3.*aux2) +aeta4*cos(4.*aux2) +aeta5*cos(5.*aux2)
 
 	ls1(i,j,k) = h_f(i) - kp(k)
 
 	if (ls1(i,j,k) >= 0.) then
+		u1(i,j,k) = avel1*cosh(aux4)*cos(aux3) +avel2*cosh(2*aux4)*cos(2*aux3) +avel3*cosh(3*aux4)*cos(3*aux3) &
+		+ avel4*cosh(4*aux4)*cos(4*aux3) +avel5*cosh(5*aux4)*cos(5*aux3)
 
-	u1(i,j,k) = avel1*cosh(aux4)*cos(aux3) +avel2*cosh(2*aux4)*cos(2*aux3) +avel3*cosh(3*aux4)*cos(3*aux3) &
-	+ avel4*cosh(4*aux4)*cos(4*aux3) +avel5*cosh(5*aux4)*cos(5*aux3)
-
-	w1(i,j,k) = avel1*sinh(aux5)*sin(aux2) +avel2*sinh(2*aux5)*sin(2*aux2) +avel3*sinh(3*aux5)*sin(3*aux2) &
-	+ avel4*sinh(4*aux5)*sin(4*aux2) +avel5*sinh(5*aux5)*sin(5*aux2)
-
+		w1(i,j,k) = avel1*sinh(aux5)*sin(aux2) +avel2*sinh(2*aux5)*sin(2*aux2) +avel3*sinh(3*aux5)*sin(3*aux2) &
+		+ avel4*sinh(4*aux5)*sin(4*aux2) +avel5*sinh(5*aux5)*sin(5*aux2)
 	else
 		u1(i,j,k) = 0.
 		w1(i,j,k) = 0.	
 	endif
 
-
 	enddo
 	enddo
 	enddo
 
-	endif
+endif
 
-	ls(:,:,:) = ls1(1:nx,1:ny,1:nz)
-	bxx0(:,:) = u1(0,:,:)
-	bxy0(:,:) = v1(0,:,:)
-	bxz0(:,:) = w1(0,:,:)
+ls(:,:,:) = ls1(1:nx,1:ny,1:nz)
+bxx0(:,:) = u1(0,:,:)
+bxy0(:,:) = v1(0,:,:)
+bxz0(:,:) = w1(0,:,:)
+bxx1(:,:) = u1(1,:,:)
 
-	bxx1(:,:) = u1(1,:,:)
+!Streamfunction
 
-	!Streamfunction
-
-	!Solitary wave
-
+!Solitary wave
 
 END SUBROUTINE boundary_waves
 
-!===============================================================================================================
-
-!######################################################################################
-
 SUBROUTINE waves_coef()
-	USE wave_c
-	USE parametros
-	IMPLICIT NONE
+USE wave_c
+USE parametros
+IMPLICIT NONE
 
-	integer :: i, k, ii, nxii
-	real(8) :: aux1, aux2, aux3, aux4, aux5, h_fa, l_wa, lamb, lamb1, lamb2, erro, erro0, l_w1
-	real(8) :: s, c, a11, a13, a15, a22, a24, a33, a35, a44, a55, b22, b24, b33, b35, b44, b55, c1, c2
+integer :: i, k, ii, nxii
+real(8) :: aux1, aux2, aux3, aux4, aux5, h_fa, l_wa, lamb, lamb1, lamb2, erro, erro0, l_w1
+real(8) :: s, c, a11, a13, a15, a22, a24, a33, a35, a44, a55, b22, b24, b33, b35, b44, b55, c1, c2
 
-	real(8), dimension(nx) :: h_f
+real(8), dimension(nx) :: h_f
 
-	! Reference: Coubilla 2015 (Thesis)
-	do k = 0, nz+1
-		kp(k) = (k-0.5)*dz
+!Reference: Coubilla, 2015 (Thesis)
+do k = 0, nz+1
+	kp(k) = (k-0.5)*dz
+enddo
+
+a_w  = 0.03 !Amplitude da onda
+p_w  = 2.5  !Período da onda 
+h0_f = 1.   !Profundidade do escoamento sem onda
+h_f  = h0_f
+
+l0_w = gz * p_w * p_w / (2.*pi)
+
+!Stokes I e Stokes II
+if (wave_t <= 2) then
+
+	l_w = gz * p_w * p_w / (2.*pi)
+	do i = 1, 1000
+	l_w = gz * p_w * p_w / (2.*pi) * tanh(2.*pi*h0_f /l_w)
 	enddo
+	c_w = l_w   / p_w !Celeridade
+	f_w = 2.*pi / p_w !Frequencia angular
+	n_w = 2.*pi / l_w !Número de onda
+	
+elseif (wave_t == 5 ) then
 
-	a_w  = 0.03 ! amplitude da onda
-	p_w  = 2.5  ! período da onda 
-	h0_f = 1.   ! profundidade do escoamento sem onda
-	h_f  = h0_f
-
-	l0_w = gz * p_w * p_w / (2.*pi)
-	!Stokes I e Stokes II
-	if (wave_t <= 2) then
-
-		l_w = gz * p_w * p_w / (2.*pi)
-
-		do i = 1, 1000
-			l_w = gz * p_w * p_w / (2.*pi) * tanh(2.*pi*h0_f /l_w)
-		enddo
-
-		c_w = l_w   / p_w !celeridade
-		f_w = 2.*pi / p_w !frequencia angular
-		n_w = 2.*pi / l_w !número de onda
-
-
-	elseif (wave_t == 5 ) then
-
-		erro0 = 999.
-		nxii = 10000. ! número de intervalos
-
+	erro0 = 999.
+	nxii = 10000. ! número de intervalos
 	do ii = 1, nxii
-
 	lamb1 = 0.
 	lamb2 = 0.
-
 	l_w1 = l0_w* 0.5 +l0_w*(real(ii)/nxii) *2.5
-
 	s = sinh(2.*pi*h0_f/l_w1)
 	c = cosh(2.*pi*h0_f/l_w1)
 
@@ -1015,11 +1015,11 @@ SUBROUTINE waves_coef()
 	c1 = (8.*c**4. -8.*c*c +9.)/(8.*s**4.)
 	c2 = (3840.*c**12. -4096.*c**10. +2592.*c**8. -1008.*c**6. +5944.*c**4. -1830.*c*c +147.)/(512.*s**10. * (6.*c*c -1.))
 
-	! isolado1
+	!Isolado1
 	do i = 1, 10000
 	lamb1 = pi*a_w*2. / l_w1  - lamb1**3.*b33 -lamb1**5.*(b35+b55) 
 	enddo
-	! isolado2
+	!Isolado2
 	do i = 1, 10000
 	lamb2 = sqrt((l_w1 /(l0_w*tanh(2.*pi*h0_f/l_w1)) -1.) / (c1 +lamb2**2.*c2))
 	enddo
@@ -1027,14 +1027,13 @@ SUBROUTINE waves_coef()
 	erro = abs(lamb1 - lamb2)
 
 	if (erro < erro0) then
-	erro0 = erro
-	lamb = lamb1
-	l_w = l_w1
+		erro0 = erro
+		lamb = lamb1
+		l_w = l_w1
 	endif
-
 	enddo
 
-	! aqui já temos lamb e l_w
+	!Aqui já temos lamb e l_w
 	c_w = l_w   / p_w !celeridade
 	f_w = 2.*pi / p_w !frequencia angular
 	n_w = 2.*pi / l_w !número de onda
@@ -1076,15 +1075,12 @@ SUBROUTINE waves_coef()
 	avel4 = 4.*2.*pi/(p_w*n_w) * (lamb**4.*a44)
 	avel5 = 5.*2.*pi/(p_w*n_w) * (lamb**5.*a55)
 
-	endif
+endif
 
-	!write(*,*) erro0, lamb, h0_f/l_w
-	!write(*,*) b22, b24
-
-	!Streamfunction
-
-	!Solitary wave
-
+!write(*,*) erro0, lamb, h0_f/l_w
+!write(*,*) b22, b24
+!Streamfunction
+!Solitary wave
 
 END SUBROUTINE waves_coef
 
