@@ -50,9 +50,6 @@ write(*,*) "ccx0 = ", ccx0 ,"ccxf = ", ccxf, "ccy0 = ", ccy0, "ccyf = ", ccyf, "
 
 !Perfil longitudinal do desnível
 
-!###! PLOTAGENS CONDIÇÂO INICIAL !###!
-!perfil longitudinal do desnível *************************************
-open (unit=99998799, action= 'write', file= 'dados//frente.txt', status= 'unknown') ! o status deveria ser para escrever em cima deste primeiro ..z
 ii = 0
 do i = nx, 2, -1 !Tem que ser o último a variar
 do k = 1, nz
@@ -200,6 +197,9 @@ elseif (t_plot == 1) then
 	vorti(i,j,k) = dwdy(i,j,k) - dvdz(i,j,k)
 	vortj(i,j,k) = dudz(i,j,k) - dwdx(i,j,k)
 	vortk(i,j,k) = dvdx(i,j,k) - dudy(i,j,k)
+	enddo
+	enddo
+	enddo
 
 	call interpx_cf(nut,nx,ny,nz,xnuta) !(nx1,ny,nz)
 	call interpy_cf(nut,nx,ny,nz,ynuta) !(nx,ny1,nz)
@@ -212,28 +212,31 @@ elseif (t_plot == 1) then
 endif
  close (unit=cont)
 
-!! chama paraview
+!Chama paraview
 CALL visu ()
-!!
 
 END SUBROUTINE plot_i
 
-
-!###################################################################################
-
-
 SUBROUTINE plot_f()
 
-	USE ls_param
-	USE velpre
-	USE tempo
-	USE smag
-	USE obst
-	USE mms_m
+USE ls_param
+USE velpre
+USE tempo
+USE smag
+USE obst
+USE mms_m
 
-	IMPLICIT NONE
-	!===================================================================================================================
-	!DECLARADO TAMBÉM NO PROGRAMA
+IMPLICIT NONE
+!Declarado também no programa
+
+SUBROUTINE plot_f()
+integer :: ifile, nfil, i, j, k, ii
+
+!Número do arquivo de saída
+integer :: dig1, dig2, dig3, dig4, dig5
+
+!Nome do arquivo de saída
+ character(5) chits
 
 	real(8), dimension(nx1,ny1,nz1) :: uaux, vaux, waux, x11, y11, z11
 	real(8), dimension(nx,ny,nz) :: dudy, dudz, dvdx, dvdz, dwdx, dwdy
@@ -244,23 +247,16 @@ SUBROUTINE plot_f()
 	real(8), dimension(nx1,ny,nz1) :: auxy
 	real(8), dimension(nx1,ny1,nz) :: auxz
 	real(8), dimension(0:nx1,0:ny1,0:nz1) :: x1, y1, z1
-	integer :: ifile, nfil, i, j, k, ii
 
-	! número do arquivo de saída
-	integer :: dig1, dig2, dig3, dig4, dig5
+!Cálculo para o a estimativa do tempo restante
+ciclo = (agora(5)-agora1(5)) * 60 * 60 + (agora(6)-agora1(6)) * 60 + (agora(7)-agora1(7)) + real(agora(8)-agora1(8))/1000
+prev = (prev*6 + (ts-it)*ciclo*1./(60.*60.))/(7.)
+agora1 = agora
+call date_and_time(values = agora)
+call cpu_time(t_a)
+nfil=it
 
-	! nome do arquivo de saída
-	 character(5) chits
-
-
-	! Cálculo para o a estimativa do tempo restante
-	ciclo = (agora(5)-agora1(5)) * 60 * 60 + (agora(6)-agora1(6)) * 60 + (agora(7)-agora1(7)) + real(agora(8)-agora1(8))/1000
-	prev = (prev*6 + (ts-it)*ciclo*1./(60.*60.))/(7.)
-	agora1 = agora
-	call date_and_time(values = agora)
-	call cpu_time(t_a)
-	nfil=it
-	if(mod(it, ceiling(dt_frame/dt)).eq.0) then
+if(mod(it, ceiling(dt_frame/dt)).eq.0) then
 
 	cont = cont + 1
 
@@ -286,13 +282,9 @@ SUBROUTINE plot_f()
 	enddo
 	enddo
 	enddo
-
-
-
 	if (obst_t == 0) then
 	kaux = 0
 	else
-
 	kaux=0.
 	do j = 1, ny
 		do i = 1, nx
@@ -303,8 +295,6 @@ SUBROUTINE plot_f()
                 enddo
         enddo
 	endif
-
-
 	do ifile = 1, cont
 		dig1 =    ifile/10000 + 48
 	 	dig2 = ( ifile - 10000*( ifile/10000 ) )/1000 + 48
@@ -313,32 +303,23 @@ SUBROUTINE plot_f()
 		dig5 = ( ifile - 10*( ifile/10 ) )/1 + 48
 		chits(1:5) = char(dig1)//char(dig2)//char(dig3)//char(dig4)//char(dig5)
 	enddo
-
-
 	prdaux(1:nx,1:ny,1:nz) = prd1(1:nx,1:ny,1:nz)
-
 	if (mms_t > 0) then
 	CALL interpy_cf(sqrt(erro_u),nx1,ny,nz,auxz)
 	CALL interpz_cf(auxz,nx1,ny1,nz,uaux)
-
 	CALL interpx_cf(sqrt(erro_v),nx,ny1,nz,auxz)
 	CALL interpz_cf(auxz,nx1,ny1,nz,vaux)
-
 	CALL interpx_cf(sqrt(erro_w),nx,ny,nz1,auxy)
 	CALL interpy_cf(auxy,nx1,ny,nz1,waux)
-
 	prdaux = sqrt(erro_p)
 	endif	
-
 if (t_plot == 0) then
 !*********************************************************************
 open (unit=cont, action= 'write', file= 'arquivos//campos_'//chits,form='unformatted',status='unknown')
 write(cont) real(x11,4),real(y11,4),real(z11,4),real(uaux,4), & 
 real(vaux,4),real(waux,4),real(ls,4),real(kaux,4)!,real(prdaux,4)
 !*********************************************************************
-
 elseif (t_plot == 1) then
-
 do k = 1, nz
 do j = 1, ny
 do i = 1, nx
@@ -348,36 +329,36 @@ do i = 1, nx
 	dvdz(i,j,k) = ((v(i,j,k+1)-v(i,j,k))/dz)
 	dwdx(i,j,k) = ((w(i+1,j,k)-w(i,j,k))/dx)
 	dwdy(i,j,k) = ((w(i,j+1,k)-w(i,j,k))/dy) 
-
 	vorti(i,j,k) = dwdy(i,j,k) - dvdz(i,j,k)
 	vortj(i,j,k) = dudz(i,j,k) - dwdx(i,j,k)
 	vortk(i,j,k) = dvdx(i,j,k) - dudy(i,j,k)
 enddo
 enddo
 enddo
-
 call interpx_cf(nut,nx,ny,nz,xnuta) !(nx1,ny,nz)
 call interpy_cf(nut,nx,ny,nz,ynuta) !(nx,ny1,nz)
 call interpz_cf(nut,nx,ny,nz,znuta) !(nx,ny1,nz)
-
 !*********************************************************************
 open (unit=cont, action= 'write', file= 'arquivos//campos_'//chits,form='unformatted',status='unknown')
 write(cont) real(x11,4),real(y11,4),real(z11,4),real(uaux,4), & 
 real(vaux,4),real(waux,4),real(ls,4),real(kaux,4),real(prdaux,4), &
 real(vorti,4),real(vortj,4),real(vortk,4),real(xnuta,4),real(ynuta,4),real(znuta,4)
 !*********************************************************************
-
 endif
-
  close (unit=cont)
 
-!contagem temporal ***************************************************
-write(*,*) "it,", " ", "it*dt,", " ", "ciclo,", " ","tempo restante aproximado (horas),", " ","duração da simulação (min)"
-write(*,*) it, it*dt, ciclo, prev, (t_a-t_i)/60.
-!*********************************************************************
 
+
+
+
+
+
+		!*********************************************************************
+
+	!Contagem temporal
+	write(*,*) "it,", " ", "it*dt,", " ", "ciclo,", " ","tempo restante aproximado (horas),", " ","duração da simulação (min)"
+	write(*,*) it, it*dt, ciclo, prev, (t_a-t_i)/60.
 endif
-!**************************************************************************************
 
 write(200000,*) it, it*dt, agora, (t_a-t_i)/60.
 
