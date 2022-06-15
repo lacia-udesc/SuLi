@@ -693,6 +693,16 @@ else
 	!endif
 endif
 
+if (t_hs == 0) then
+	rho(i,j,k) = rho_f1 * (1.-hs(i,j,k)) + rho_f2 * hs(i,j,k)
+	ls_nu(i,j,k) = mi_f1  * (1.-hs(i,j,k)) + mi_f2  * hs(i,j,k)
+else
+	rho(i,j,k) = rho_f1**(1.-hs(i,j,k)) + rho_f2**hs(i,j,k) -1.
+	ls_nu(i,j,k) = (aux1** (1.-hs(i,j,k)) + aux2**hs(i,j,k) -1.)/10000.
+endif
+enddo
+enddo
+enddo
 
 END SUBROUTINE heaviside
 
