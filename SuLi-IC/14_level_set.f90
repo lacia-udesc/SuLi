@@ -1,11 +1,11 @@
 !Subrotina que implementa o método level set
-! Referências:
+!Referenciado por seção
 
-!!! Implementação /06/2014
-! Leonardo Romero Monteiro
+!Implementação 06/2014
+!Leonardo Romero Monteiro
 
-!!! Modificações
-! Leonardo Romero Monteiro - 
+!Modificações
+!Leonardo Romero Monteiro 
 
 SUBROUTINE level_set_ini()
 	USE ls_param
@@ -68,16 +68,16 @@ SUBROUTINE level_set_ini()
 		z(k) = (k-0.5) * dz
 	enddo
 
-	!!#!! tipos
-	!#! 1 = onda
-	!#! 2 = onda2
-	!#! 3 = barragem
-	!#! 4 = gota
-	!#! 5 = fennema1990 ou aureli2008
-	!#! 6 = MMS
-	!#! 7 = Koshizuka et al., 1995
 	tipo = 1
 
+!Tipos
+!1 = Onda
+!2 = Onda 2 
+!3 = Barragem
+!4 = Gota
+!5 = fennema1990 ou aureli2008
+!6 = MMS
+!7 = Koshizuka et al., 1995
 
 	if (tipo == 1) then
 
@@ -152,14 +152,12 @@ SUBROUTINE level_set_ini()
 
 	!##CONDIÇÃO INICIAL DE BOLHA QUADRADA/ELIPSOIDAL##!
 	m = 2
-
 	do k = 1, nz
 	do j = 1, ny
 	do i = 1, nx
-		lsaux = (x(i)-0.03)**m/2. + (y(j)-0.03)**m/2.  + (z(k)-0.01)**m/2.
-		ls(i,j,k) = -lsaux**(1./m)
-
-		ls(i,j,k) = ls(i,j,k) + 0.005 
+	lsaux = (x(i)-0.03)**m/2. + (y(j)-0.03)**m/2.  + (z(k)-0.01)**m/2.
+	ls(i,j,k) = -lsaux**(1./m)
+	ls(i,j,k) = ls(i,j,k) + 0.005 
 	enddo
 	enddo
 	enddo
@@ -317,28 +315,26 @@ SUBROUTINE level_set()
 	CALL heaviside()
 
 	vol_ins = 0.
-	do k = 1, nz
-	do j = 1, ny
-	do i = 1, nx
 		vol_ins = vol_ins + (1.-(1.-hs(i,j,k)))*dx*dy*dz
-	enddo
-	enddo
-	enddo
+do k = 1, nz
+do j = 1, ny
+do i = 1, nx
+enddo
+enddo
+enddo
 
 	enddo
 
 
-	CALL mod_ls1() ! função para plotagem e cálculo da curvatura
+CALL mod_ls1() !Função para plotagem e cálculo da curvatura
 
-	CALL heaviside()
+CALL heaviside()
 
 
 END SUBROUTINE level_set
 
-!===============================================================================================================
-
-!######################################################################################
 SUBROUTINE intt_ls(hx,gx,ta1,itrl,ls1)
+
 USE ls_param
 
 implicit none
@@ -346,36 +342,30 @@ implicit none
 integer :: i,j,k,itrl
 real(8),dimension(nx,ny,nz) :: hx,gx,ta1,ls1
 
-! RK3 TVD
+!RK3 TVD
 if (adtl(itrl)==1.) then
-! precisa ser ls0 para todos os subtempos
+	!Precisa ser ls0 para todos os subtempos
 	ta1 = ls1
 endif
 
-	gx = ls1 !ls1 e ls2 para os subtempos ....
-
-
-	ls1 = adtl(itrl)*ta1+bdtl(itrl)*gx+gdtl(itrl)*dt1*hx
-
+gx = ls1 !ls1 e ls2 para os subtempos
+ls1 = adtl(itrl)*ta1+bdtl(itrl)*gx+gdtl(itrl)*dt1*hx
 
 
 END SUBROUTINE intt_ls
 
-!********************************************************************
-!
-subroutine conv_weno(sy7)
-! 
-!********************************************************************
+SUBROUTINE conv_weno(sy7)
+
 USE ls_param
 USE velpre
-!
+
 implicit none
-!
+
 integer :: i,j,k,ihs
 
 real(8),dimension(nx,ny,nz) :: ta1,tb1,tc1,td1,te1,tf1,sy7
 real(8) :: apos, aneg, bpos, bneg, cpos, cneg
-!
+
 
 !ihs = 1
 CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
@@ -399,57 +389,48 @@ enddo
 
 end subroutine conv_weno
 
+SUBROUTINE der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
 
-
-!********************************************************************
-!
-subroutine der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
-! 
-!********************************************************************
 USE disc
 USE cond
-!
+
 implicit none
-!
+
 integer :: i,j,k,ihs
 real(8),dimension(nx,ny,nz) :: ls,ta1,tb1,tc1,td1,te1,tf1
 
-
 if (ccx0 == 0) then
- ihs = 0
+	ihs = 0
 else
- ihs = 2
+	ihs = 2
 endif
 
 do k = 1, nz
 do j = 1, ny
-   call weno1(ta1(:,j,k),td1(:,j,k),nx,dx,ls(:,j,k),ihs)
+call weno1(ta1(:,j,k),td1(:,j,k),nx,dx,ls(:,j,k),ihs)
 enddo
 enddo
 
 if (ccy0 == 0) then
- ihs = 0
+	ihs = 0
 else
- ihs = 2
+	ihs = 2
 endif
 
 do k = 1, nz
 do i = 1, nx
-   call weno1(tb1(i,:,k),te1(i,:,k),ny,dy,ls(i,:,k),ihs)
+call weno1(tb1(i,:,k),te1(i,:,k),ny,dy,ls(i,:,k),ihs)
 enddo
 enddo
 
 ihs = 1
 do j = 1, ny
 do i = 1, nx
-   call weno1(tc1(i,j,:),tf1(i,j,:),nz,dz,ls(i,j,:),ihs)
+call weno1(tc1(i,j,:),tf1(i,j,:),nz,dz,ls(i,j,:),ihs)
 enddo
 enddo
 
 end subroutine der_weno
-
-
-!######################################################################################
 
 SUBROUTINE reinic_weno(sy7_ls1,gx_ls1,ta1_ls1)
 	USE ls_param
@@ -568,9 +549,7 @@ SUBROUTINE reinic_weno(sy7_ls1,gx_ls1,ta1_ls1)
 	elseif (il < 1) then ! número mínimo de iterações
 
 	error = 999.
-
-	else
-
+else
 	error = 0.
 	nr = 0
 	do k = 1, nz
@@ -673,14 +652,12 @@ phi1(nx1+3) = 1./11. * (18.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
 
 endif
 
-
-
 do i=-3,nx1
-   up(i)=(phi1(i+3)-phi1(i+2))/dx1
+up(i)=(phi1(i+3)-phi1(i+2))/dx1
 enddo
 
 do i=1,nx1+4
-   un(i)=(phi1(i-2)-phi1(i-3))/dx1
+un(i)=(phi1(i-2)-phi1(i-3))/dx1
 enddo
 
 do i=1,nx1
@@ -716,8 +693,6 @@ enddo
 
 
 END SUBROUTINE weno1
-
-!######################################################################################
 
 SUBROUTINE heaviside()
 	USE ls_param
@@ -792,13 +767,11 @@ SUBROUTINE heaviside()
 		hsy(i,j,k) = 0.5*tb1(i,j,k)*(1. + cos(pi*ls(i,j,k)/(alpha1*dx1)))/(alpha1*dx1)
 		hsz(i,j,k) = 0.5*tc1(i,j,k)*(1. + cos(pi*ls(i,j,k)/(alpha1*dx1)))/(alpha1*dx1)
 
-		!if (t_hs == 0) then
 		!drhodx(i,j,1) =  0.5* (rho_f2-rho_f1)*sy60(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1) 
 		!drhody(i,j,1) =  0.5* (rho_f2-rho_f1)*sy61(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1)
-	
 		!dmidx(i,j,1) =  0.5* (mi_f2-mi_f1)*sy60(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1) 
 		!dmidy(i,j,1) =  0.5* (mi_f2-mi_f1)*sy61(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1)
-		!else
+	!else
 		!drhodx(i,j,1) = (-rho_f1**(1.-hs(i,j,1))*log(rho_f1) + rho_f2**hs(i,j,1)*log(rho_f2)) * &
 		!	        sy60(i,j,1)/(alpha1*dx1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) 
 		!drhody(i,j,1) = (-rho_f1**(1.-hs(i,j,1))*log(rho_f1) + rho_f2**hs(i,j,1)*log(rho_f2)) * &
@@ -808,17 +781,8 @@ SUBROUTINE heaviside()
 		!	        sy60(i,j,1)/(alpha1*dx1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) 
 		!dmidy(i,j,1) = (-mi_f1**(1.-hs(i,j,1))*log(mi_f1) + mi_f2**hs(i,j,1)*log(mi_f2)) * &
 		!	        sy61(i,j,1)/(alpha1*dx1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) 
-		!endif
-		endif
-
-		if (t_hs == 0) then
-		rho(i,j,k) = rho_f1 * (1.-hs(i,j,k)) + rho_f2 * hs(i,j,k)
-		ls_nu(i,j,k) = mi_f1  * (1.-hs(i,j,k)) + mi_f2  * hs(i,j,k)
-		else
-		rho(i,j,k) = rho_f1**(1.-hs(i,j,k)) + rho_f2**hs(i,j,k) -1.
-		ls_nu(i,j,k) = (aux1** (1.-hs(i,j,k)) + aux2**hs(i,j,k) -1.)/10000.
-		endif
-
+	!endif
+endif
 
 	enddo
 	enddo
@@ -827,7 +791,6 @@ SUBROUTINE heaviside()
 END SUBROUTINE heaviside
 
 
-!######################################################################################
 
 SUBROUTINE mod_ls1()
 	USE ls_param
@@ -888,19 +851,19 @@ SUBROUTINE mod_ls1()
 
 do k = 1, nz
 do j = 1, ny
-   call weno1(ta1(:,j,k),td1(:,j,k),nx,dx,dlsdxa(:,j,k),ihs)
+call weno1(ta1(:,j,k),td1(:,j,k),nx,dx,dlsdxa(:,j,k),ihs)
 enddo
 enddo
 
 do k = 1, nz
 do i = 1, nx
-   call weno1(tb1(i,:,k),te1(i,:,k),ny,dy,dlsdya(i,:,k),ihs)
+call weno1(tb1(i,:,k),te1(i,:,k),ny,dy,dlsdya(i,:,k),ihs)
 enddo
 enddo
 
 do j = 1, ny
 do i = 1, nx
-   call weno1(tc1(i,j,:),tf1(i,j,:),nz,dz,dlsdza(i,j,:),ihs)
+call weno1(tc1(i,j,:),tf1(i,j,:),nz,dz,dlsdza(i,j,:),ihs)
 enddo
 enddo
 
@@ -933,6 +896,3 @@ enddo
 
 
 END SUBROUTINE mod_ls1
-
-!===============================================================================================================
-
