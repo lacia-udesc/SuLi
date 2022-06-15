@@ -62,6 +62,7 @@ if ((nlock == 1).or.(nlock == 2)) then
 		 v(:,0,:) = v(:,ny1-1,:) + dpdy(:,0,:)
 		 v(:,1,:) = v(:,ny1,:)   + dpdy(:,1,:)
 		 w(:,0,:) = w(:,ny,:)    + dpdz(:,0,:)
+		!Free-slip condition
 		endif
 
 		if (ccy0.eq.1) then ! free-slip condition
