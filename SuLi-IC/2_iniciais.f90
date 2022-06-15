@@ -56,6 +56,13 @@ else
 	write(*,*) "Sem entrada de onda."
 	bxx1(:,:) = uinicial
 	bxx0(:,:) = uinicial
+	
+	if (obst_t .ne. 0) then
+		do j = 0, ny+1
+		bxx1(:,0:ku(1,j)) = 0.
+		bxx0(:,0:ku(0,j)) = 0.
+		enddo
+	endif	
 	bxy0 = 0.
 	bxz0 = 0.
 endif
