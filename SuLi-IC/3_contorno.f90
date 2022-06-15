@@ -714,19 +714,17 @@ elseif (obst_t == 6) then !(canal 1_2 - delft 1980)
 elseif (obst_t == 7) then !(SBRH - Buracos e calombos)
 
 
-	raio = 2.5
+	do j = -1,nyy+2
+	do i = -1, nxx+2
+	x = (i-1.)*dx*0.5
 
-        do j = -1,nyy+2
-	 do i = -1, nxx+2
-	 x = (i-1.)*dx*0.5
+	if (x < (1.-raio)) then !Antes de descer
+		auxx(i,j) = 0.
 
-	 if (x < (7.-raio)) then !antes de subir
-	  auxx(i,j) = 0.
+	elseif (x < 1.) then !Final da descida
 
-	 elseif (x < 7.) then !final da subida
+		auxx(i,j) = sqrt(-(x-1.)**2. +(raio**2.))
 
-	  auxx(i,j) = sqrt(-(x-7.)**2. +(raio**2.))
-	
 	else !Resto
 	   auxx(i,j) = raio
  endif
@@ -939,38 +937,42 @@ real(8), dimension(nx1,ny,nz) :: rhox
 real(8), dimension(nx,ny1,nz) :: rhoy
 real(8), dimension(nx,ny,nz1) :: rhoz
 
-	real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: dpdx
-	real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: dpdy
-	real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: dpdz
-	integer :: i, j, k
+integer :: i, j, k
 
-	do k = 1, nz+1
-	do j = 1, ny+1
-	do i = 1, nx+1
+call interpx_cf(rho,nx,ny,nz,rhox) !(nx1,ny,nz)
+call interpy_cf(rho,nx,ny,nz,rhoy) !(nx,ny1,nz)
+call interpz_cf(rho,nx,ny,nz,rhoz) !(nx,ny,nz1)
 
-	dpdx(i,j,k) = 0.! (prd(i,j,k) - prd(i-1,j,k)) *dt /dx
-	dpdy(i,j,k) = 0.! (prd(i,j,k) - prd(i,j-1,k)) *dt /dy
-	dpdz(i,j,k) = 0.! (prd(i,j,k) - prd(i,j,k-1)) *dt /dz
 
-	enddo
-	enddo
-	enddo
+do k = 1, nz1
+do j = 1, ny
+do i = 1, nx
 
-	dpdx(0,:,:) = dpdx(1,:,:) 
-	dpdy(0,:,:) = dpdy(1,:,:) 
-	dpdz(0,:,:) = dpdz(1,:,:) 
+dpdz(i,j,k) = 0.!(prd(i,j,k) - prd(i,j,k-1))/ rhoz(i,j,k) *dt /dz
 
-	dpdx(nx1+1,:,:) = dpdx(nx1,:,:) 
+enddo
+enddo
+enddo
 
-	dpdx(:,0,:) = dpdx(:,1,:) 
-	dpdy(:,0,:) = dpdy(:,1,:) 
-	dpdz(:,0,:) = dpdz(:,1,:) 
+do k = 1, nz
+do j = 1, ny1
+do i = 1, nx
 
-	dpdy(:,ny1+1,:) = dpdy(:,ny1,:) 
+dpdy(i,j,k) = 0.!(prd(i,j,k) - prd(i,j-1,k))/ rhoy(i,j,k) *dt /dy
 
-	dpdx(:,:,0) = dpdx(:,:,1) 
-	dpdy(:,:,0) = dpdy(:,:,1) 
-	dpdz(:,:,0) = dpdz(:,:,1) 
+enddo
+enddo
+enddo
+
+do k = 1, nz
+do j = 1, ny
+do i = 1, nx1
+
+dpdx(i,j,k) = 0.!(prd(i,j,k) - prd(i-1,j,k))/ rhox(i,j,k) *dt /dx
+
+enddo
+enddo
+enddo
 
 
 dpdx(0,:,:) = dpdx(1,:,:) 
