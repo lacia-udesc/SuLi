@@ -314,230 +314,366 @@ elseif ((nlock == 2) .and. (obst_t .ne. 0)) then
            do k = 1, kw(i,j)-1 
 
 
-		if ((kw(i-1,j) < k) .and. ((kw(i,j-1) < k)) ) then ! 5ª aqui faz interpolação 
-		 ls(i,j,k) = (ls(i-1,j,k) + ls(i,j-1,k))*0.5
+
+
+
+		if (ccy0.eq.0.and.ccyf.eq.0) then
+			v(:,1,:) = v(:,ny1,:)     
+		endif
 		
-		elseif ((kw(i+1,j) < k) .and. ((kw(i,j-1) < k)) ) then ! 6ª aqui faz interpolação 
-		 ls(i,j,k) = (ls(i+1,j,k) + ls(i,j-1,k))*0.5
-
-		elseif ((kw(i+1,j) < k) .and. ((kw(i,j+1) < k)) ) then ! 7ª aqui faz interpolação 
-		 ls(i,j,k) = (ls(i+1,j,k) + ls(i,j+1,k))*0.5
-
-		elseif ((kw(i-1,j) < k) .and. ((kw(i,j+1) < k)) ) then ! 8ª aqui faz interpolação 
-		 ls(i,j,k) = (ls(i-1,j,k) + ls(i,j+1,k))*0.5
-
-		elseif ((kw(i-1,j) < k) .and. ((kw(i,j-1) >= k) .and. (kw(i,j+1) >= k)) ) then ! 1ª
-		 ls(i,j,k) = ls(i-1,j,k) ! 2.*ls(i-1,j,k) - ls(i-2,j,k)
-
-		elseif ((kw(i,j-1) < k) .and. ((kw(i-1,j) >= k) .and. (kw(i+1,j) >= k)) ) then ! 2ª
-		 ls(i,j,k)= ls(i,j-1,k) ! 2.*ls(i,j-1,k) - ls(i,j-2,k)
-
-		elseif ((kw(i+1,j) < k) .and. ((kw(i,j-1) >= k) .and. (kw(i,j+1) >= k)) ) then ! 3ª
-		 ls(i,j,k)= ls(i+1,j,k) !2.*ls(i+1,j,k) - ls(i+2,j,k)
-
-		elseif ((kw(i,j+1) < k) .and. ((kw(i-1,j) >= k) .and. (kw(i+1,j) >= k)) ) then ! 4ª
-		 ls(i,j,k)= ls(i,j+1,k) !2.*ls(i,j+1,k) - ls(i,j+2,k)
-
-
-
-		elseif ( (k == kw(i,j)-1) .and. (k < nz) ) then ! condição de topo
-		 ls(i,j,k) = ls(i,j,k+1)
-
-		!else	! Caso dentro do obstáculo tenha água, é para interpolar.
-		! ls(i,j,k) = (ls(i+1,j,k)+ls(i-1,j,k)+ls(i,j+1,k)+ls(i,j-1,k)) *0.25
+		!Free-slip condition
+		if (ccy0.eq.1) then 
+			v(:,1,:) = 0.        + dpdy(:,1,:)
+		endif
+		!No-slip condition
+		if (ccy0.eq.2) then 
+			v(:,1,:) = 0.        + dpdy(:,1,:)
+		endif
+		
+		!Prescrita
+		if (ccy0.eq.3) then
+			v(:,1,:) = byy1(:,:) + dpdy(:,1,:)
 		endif
 
+		!Parede direita (j = ny ou ny1)
+		!Periodica
+		if (ccy0.eq.0.and.ccyf.eq.0) then
+			v(:,ny1,:)   = v(:,1,:)
+		endif
+
+		!Free-slip condition
+		if (ccyf.eq.1) then
+			v(:,ny1,:)   = 0.            + dpdy(:,ny1,:)
+		endif
 		
+		!No-slip condition
+		if (ccyf.eq.2) then 
+			v(:,ny1,:) = 0.             + dpdy(:,ny1,:)
+		endif
 
-	  enddo
-         enddo
-	enddo
+		!Prescrita
+		if (ccyf.eq.3) then 
+			v(:,ny1,:)   = byyf(:,:) + dpdy(:,ny1,:)
+		endif
 
-	CALL heaviside()
+		!Parede frente (i = 1)
+		!Periodica
+		if (ccx0.eq.0.and.ccxf.eq.0) then
+			u(1,:,:) = u(nx1,:,:)
+		endif
+		
+		!Free-slip condition
+		if (ccx0.eq.1) then
+			u(1,:,:) = 0.        + dpdx(1,:,:)
+		endif
 
+		!No-slip condition
+		if (ccx0.eq.2) then
+			u(1,:,:) = 0.        + dpdx(1,:,:)
+		endif
+
+		!Prescrita
+		if (ccx0.eq.3) then
+			u(1,:,:) = bxx1(:,:) + dpdx(1,:,:)
+		endif
+		
+		!Para validação
+		if (ccx0.eq.4) then 
+			!do i = 0, 1
+				!u(i,:,11+1) =	0.15946 + dpdx(i,:,12)
+				!u(i,:,12+1) =	0.2873  + dpdx(i,:,13)
+				!u(i,:,13+1) =	0.328   + dpdx(i,:,14)
+				!u(i,:,14+1) =	0.36376 + dpdx(i,:,15)
+				!u(i,:,15+1) =	0.39226 + dpdx(i,:,16)
+				!u(i,:,16+1) =	0.41742 + dpdx(i,:,17)
+				!u(i,:,17+1) =	0.44166 + dpdx(i,:,18)
+				!u(i,:,18+1) =	0.46318 + dpdx(i,:,19)
+				!u(i,:,19+1) =	0.48141 + dpdx(i,:,20)
+				!u(i,:,20+1) =	0.4867  + dpdx(i,:,21)
+			!enddo
+		endif
+
+		!Parede de trás (i = nx ou nx1)	
+		!Periodica
+		if (ccx0.eq.0.and.ccxf.eq.0) then
+			u(nx1,:,:)   = u(1,:,:)
+		endif
+
+		!Free-slip condition
+		if (ccxf.eq.1) then
+			u(nx1,:,:)   = 0.            + dpdx(nx1,:,:)
+		endif
+
+		!No-slip condition
+		if (ccxf.eq.2) then
+			u(nx1,:,:)   = 0.           + dpdx(nx1,:,:)
+			u(nx1+1,:,:) = u(nx1-1,:,:)
+			v(nx+1,:,:)  = -v(nx,:,:)
+			w(nx+1,:,:)  = -w(nx,:,:)
+		endif
+
+		!Prescrita
+		if (ccxf.eq.3) then
+			u(nx1,:,:)   = bxxf(:,:)   + dpdx(nx1,:,:)
+		endif
+
+		!Saida livre
+		if (ccxf.eq.4) then
+			u(nx1,:,:)   = u(nx1-1,:,:)
+		endif
+
+		!Parede do fundo (k = 1)
+		!Free-slip
+		if (ccz0.eq.1) then
+			w(:,:,1) = 0.        + dpdz(:,:,1)
+		endif
+
+		!No-slip condition
+		if (ccz0.eq.2) then
+			w(:,:,1) = 0.        + dpdz(:,:,1)
+		endif
+
+		!Velocidade prescrita para manufaturada
+		if (ccz0.eq.3) then
+			w(:,:,1) = bzz1(:,:) + dpdz(:,:,1)
+		endif
+
+		!Superfície Livre (k = nz ou nz1)
+		!Sempre na superfície livre será free-slip(em teste)
+		if (cczf.eq.1) then
+			w(:,:,nz1)   = 0.            + dpdz(:,:,nz1)
+		endif
+		
+		!Sempre na superfície livre será no-slip(em teste)
+		if (cczf.eq.2) then
+			w(:,:,nz1)   = 0.           + dpdz(:,:,nz1)
+		endif
+
+		!Velocidade prescrita para manufaturada
+		if (cczf.eq.3) then
+			w(:,:,nz1)   = bzzf(:,:)    + dpdz(:,:,nz1)
+		endif
+	
+
+
+elseif ((nlock == 3) .and. (obst_t .ne. 0)) then
+		!Contorno para Level Set, o ideal é que o objeto seja representado por pelo menos dois grid por direção
+		do j = 1,ny
+		do i = 1,nx
+		do k = 1, kw(i,j)-1 
+
+			if ((kw(i-1,j) < k) .and. ((kw(i,j-1) < k)) ) then ! 5ª aqui faz interpolação 
+				ls(i,j,k) = (ls(i-1,j,k) + ls(i,j-1,k))*0.5
+			
+			elseif ((kw(i+1,j) < k) .and. ((kw(i,j-1) < k)) ) then ! 6ª aqui faz interpolação 
+				ls(i,j,k) = (ls(i+1,j,k) + ls(i,j-1,k))*0.5
+
+			elseif ((kw(i+1,j) < k) .and. ((kw(i,j+1) < k)) ) then ! 7ª aqui faz interpolação 
+				ls(i,j,k) = (ls(i+1,j,k) + ls(i,j+1,k))*0.5
+
+			elseif ((kw(i-1,j) < k) .and. ((kw(i,j+1) < k)) ) then ! 8ª aqui faz interpolação 
+				ls(i,j,k) = (ls(i-1,j,k) + ls(i,j+1,k))*0.5
+
+			elseif ((kw(i-1,j) < k) .and. ((kw(i,j-1) >= k) .and. (kw(i,j+1) >= k)) ) then ! 1ª aqui faz interpolação 
+				ls(i,j,k) = ls(i-1,j,k) !2.*ls(i-1,j,k) - ls(i-2,j,k)
+
+			elseif ((kw(i,j-1) < k) .and. ((kw(i-1,j) >= k) .and. (kw(i+1,j) >= k)) ) then ! 2ª aqui faz interpolação 
+				ls(i,j,k)= ls(i,j-1,k) !2.*ls(i,j-1,k) - ls(i,j-2,k)
+
+			elseif ((kw(i+1,j) < k) .and. ((kw(i,j-1) >= k) .and. (kw(i,j+1) >= k)) ) then ! 3ª aqui faz interpolação 
+				ls(i,j,k)= ls(i+1,j,k) !2.*ls(i+1,j,k) - ls(i+2,j,k)
+
+			elseif ((kw(i,j+1) < k) .and. ((kw(i-1,j) >= k) .and. (kw(i+1,j) >= k)) ) then ! 4ª aqui faz interpolação 
+				ls(i,j,k)= ls(i,j+1,k) !2.*ls(i,j+1,k) - ls(i,j+2,k)
+
+			elseif ( (k == kw(i,j)-1) .and. (k < nz) ) then !Condição de topo
+				ls(i,j,k) = ls(i,j,k+1)
+
+			!Caso dentro do obstáculo tenha água, é para interpolar.
+			!else	
+			! 	ls(i,j,k) = (ls(i+1,j,k)+ls(i-1,j,k)+ls(i,j+1,k)+ls(i,j-1,k)) *0.25
+			endif
+		enddo
+		enddo
+		enddo
+
+		CALL heaviside()
 endif
 
-	!===============================================================================================================
+
+
 
 END SUBROUTINE contorno
-
-
-!#################################################################################
-
 
 SUBROUTINE obstaculo()
 !Subrotina para definir o formato do obstáculo
 
 !Duna de forma senoidal (não varia em y, apenas repete)
 !Daniel Rodrigues Acosta
-!6/Maio/2016
+!06/05/2016
 !Tudo é resolvido em 2D e apenas repetido/transladado ao longo de Y, que para essa investigação terá espessura dy bem pequena (=3), para ignorar seus efeitos.
 !Assim, tudo é definido sobre a projeção 2D e não é necessário utilizar índices j e k.
 
-	USE velpre	
-	USE obst
-	USE disc
+USE velpre	
+USE obst
+USE disc
 
-	IMPLICIT NONE
-	
-	real(8) :: x, y, x0, y0, a, d, sigx, sigy, tgaux, aux1, aux2, dz_v, erro, raio		!x mostra a localização atual
-	real(8),dimension(-1:nx1*2+2,-1:ny1*2+2) :: auxx
-	integer :: i,j, nxx, nyy
+IMPLICIT NONE
 
-	nxx = nx1*2
-	nyy = ny1*2
+real(8) :: x, y, x0, y0, a, d, sigx, sigy, tgaux, aux1, aux2, dz_v, erro, raio		!x mostra a localização atual
+real(8),dimension(-1:nx1*2+2,-1:ny1*2+2) :: auxx
+integer :: i,j, nxx, nyy
 
-	!ku, kv, kw indicam até que altura as velocidades tem que ser zeradas (até qual índice k)
+nxx = nx1*2
+nyy = ny1*2
 
-	!!@@!! DESENHAR UM ÚNICO OBJETO E FAZER A DIVISÃO NA HORA DE TRANSFORMAR EM INTEIRO!!@@!!
+!ku, kv, kw indicam até que altura as velocidades tem que ser zeradas (até qual índice k)
 
-	if (obst_t == 0) then ! dunas (Daniel, Leonardo)
-	write(*,*) "sem obstáculo!"
+!Desenhar um único objeto e fazer a divisão na hora de transformar em inteiro
 
-	return
-	elseif (obst_t == 1) then ! dunas (Daniel, Leonardo)
-        do j = -1,nyy+2
-	 do i = -1, nxx+2
-		x = (i-1.)*(dx*0.5)
-		auxx(i,j) = elev + amp*(1.+sin(fase+2.*pi*x/comp))  !núm. de veloc U zeradas, dependente da funçao altura da duna na parede esquerda do diferencial de volume
-		!auxy(i,j) = elev + amp*(1.+sin(fase+2.*pi*x1/comp))-0.5*dz1  !número de velocidades V zeradas
-		!auxz(i,j) = elev + amp*(1.+sin(fase+2.*pi*x1/comp))   !número de velocidades W zeradas
-	 enddo	
-        enddo	
+if (obst_t == 0) then !Dunas (Daniel, Leonardo)
+	write(*,*) "Sem obstáculo."
+return
 
-	elseif (obst_t == 2) then ! duna de Yue et al. (2003) (Luisa, Leonardo)
-
-        do j = -1,nyy+2
-	 do i = -1, nxx+2
-	 x = (i-1.)*(dx*0.5)
-
-	 if (x.le.0.01) then
-	  auxx(i,j) = 0.02
-
-	 elseif (x.le.0.05) then
-	   tgaux=-tan(26.*pi/180.)
-	   auxx(i,j)=tgaux*x+0.02
-
-	 elseif (x.le.0.075) then
-	    auxx(i,j)=0.0005
-
-	 elseif (x.le.0.1375) then
-	     tgaux=tan(1.8*pi/180.)
-	     auxx(i,j)=tgaux*x+0.0005
-	     aux1=auxx(i,j)
-
-	 elseif (x.le.0.325) then
-	      tgaux=tan(5.*pi/180.)
-	      auxx(i,j)=tgaux*x+aux1
-	      aux2=auxx(i,j)
-
-	 elseif (x.le.0.39) then
-	       tgaux=tan(1.8*pi/180.)
-	       auxx(i,j)=tgaux*x+aux2
-	 else
-	       auxx(i,j)=0.02
-
-	 endif
-
-	enddo
-	enddo
-
-
-
-	elseif (obst_t == 3) then !gaussbump3D (Luisa, Leonardo)
-
-	d=0.2    !4.!0.1/dz1+1. !base --> parte "plana"
-
-	 x0 =3.   !3./dx!2.*nx/3. !centro em x, do pico
-	 y0 =ny/2.*dy !ny/2. !centro em y, do pico
-	 a  = 2.0      !2./dz1!nz/5. !altura do pico
-	 sigx = 0.5 !0.5/dx!nx/5. !largura em x do pico
-	 sigy = 0.5 !0.5/dy!ny/5. !largura em y do pico
-
-	 do j=-1,nyy+2
-	  y = (j-1.)*(dy*0.5)
-	  aux1=(y-y0)*(y-y0)/(2.*sigy*sigy) 
-
-	 do i=-1,nxx+2
-	  x = (i-1.)*(dx*0.5)
-	  aux2=(x-x0)*(x-x0)/(2.*sigx*sigx)
-
-	  aux2=-aux2-aux1
-	  aux2=exp(aux2)
-	  auxx(i,j)=aux2*a +d
-	 enddo
-	 enddo
-
-
-
-	elseif (obst_t == 4) then ! beji e battjes. (1994) (Leonardo)
-
-        do j = -1,nyy+2
-	 do i = -1, nxx+2
-	 x = (i-1)*(dx*0.5)
-
-	 if (x < 6.) then !antes de subir
-	  auxx(i,j) = 0.
-
-	 elseif (x < 12.) then !final da subida
-	   tgaux=tan(1./20.)
-	   auxx(i,j)=tgaux*(x-6.)
-
-	 elseif (x < 14.) then ! em cima do obst.
-	    auxx(i,j)= 0.30
-
-	 elseif (x < 17.) then ! descida
-	     tgaux=-tan(1./10.)
-	     auxx(i,j)=tgaux*(x-14.)+0.30
-	 else !resto
-	       auxx(i,j) = 0.
-	 endif
-
-	enddo
-	enddo
-
-	elseif (obst_t == 5) then !(canal 0 - delft 1980)
-
-        do j = -1,nyy+2
+elseif (obst_t == 1) then !Dunas (Daniel, Leonardo)
+	do j = -1,nyy+2
 	do i = -1, nxx+2
-	   x = (i-2)*(dx*0.5)
-	   if (x <= 1.0) then !(raso plano)
-	    auxx(i,j) = 0.2
-	   else !(fundo plano)
-	    auxx(i,j) = 0.
-	   endif
+		x = (i-1.)*(dx*0.5)
+		auxx(i,j) = elev + amp*(1.+sin(fase+2.*pi*x/comp)) !Número de velocidades U zeradas, dependente da funçao altura da duna na parede esquerda do diferencial de volume
+		!auxy(i,j) = elev + amp*(1.+sin(fase+2.*pi*x1/comp))-0.5*dz1 !Número de velocidades V zeradas
+		!auxz(i,j) = elev + amp*(1.+sin(fase+2.*pi*x1/comp)) !Número de velocidades W zeradas
+	enddo	
+	enddo	
+
+elseif (obst_t == 2) then !Duna de Yue et al. (2003) (Luisa, Leonardo)
+
+	do j = -1,nyy+2
+	do i = -1, nxx+2
+	x = (i-1.)*(dx*0.5)
+
+	if (x.le.0.01) then
+		auxx(i,j) = 0.02
+
+	elseif (x.le.0.05) then
+		tgaux=-tan(26.*pi/180.)
+		auxx(i,j)=tgaux*x+0.02
+
+	elseif (x.le.0.075) then
+		auxx(i,j)=0.0005
+
+	elseif (x.le.0.1375) then
+		tgaux=tan(1.8*pi/180.)
+		auxx(i,j)=tgaux*x+0.0005
+		aux1=auxx(i,j)
+
+	elseif (x.le.0.325) then
+		tgaux=tan(5.*pi/180.)
+		auxx(i,j)=tgaux*x+aux1
+		aux2=auxx(i,j)
+
+	elseif (x.le.0.39) then
+	   tgaux=tan(1.8*pi/180.)
+	   auxx(i,j)=tgaux*x+aux2
+	else
+		auxx(i,j)=0.02
+
+	endif
+	enddo
+	enddo
+	
+elseif (obst_t == 3) then !gaussbump3D (Luisa, Leonardo)
+
+	d=0.2    !4.!0.1/dz1+1. !Base parte "plana"
+
+	x0 =3.       !3./dx!2.*nx/3. !Centro em x, do pico
+	y0 =ny/2.*dy !ny/2.          !Centro em y, do pico
+	a  = 2.0     !2./dz1!nz/5.   !Altura do pico
+	sigx = 0.5   !0.5/dx!nx/5.   !Largura em x do pico
+	sigy = 0.5   !0.5/dy!ny/5.   !Largura em y do pico
+
+	do j=-1,nyy+2
+		y = (j-1.)*(dy*0.5)
+		aux1=(y-y0)*(y-y0)/(2.*sigy*sigy) 
+
+	do i=-1,nxx+2
+		x = (i-1.)*(dx*0.5)
+		aux2=(x-x0)*(x-x0)/(2.*sigx*sigx)
+		aux2=-aux2-aux1
+		aux2=exp(aux2)
+		auxx(i,j)=aux2*a +d
 	enddo
 	enddo
 
+elseif (obst_t == 4) then !Beji e Battjes,(1994) (Leonardo)
 
-	elseif (obst_t == 6) then ! (canal 1_2 - delft 1980)
+	do j = -1,nyy+2
+	do i = -1, nxx+2
+	x = (i-1)*(dx*0.5)
 
-        do j = -1,nyy+2
-	 do i = -1, nxx+2
-	 x = (i-1.)*dx*0.5
+	if (x < 6.) then !Antes de subir
+		auxx(i,j) = 0.
 
-	 if (x < 1.) then !antes de subir
-	  auxx(i,j) = 0.2
+	elseif (x < 12.) then !Final da subida
+		tgaux=tan(1./20.)
+		auxx(i,j)=tgaux*(x-6.)
 
-	 elseif (x < 1.4) then !final da subida
-	   tgaux=-1./2.
-	   auxx(i,j)=tgaux*(x-1.) + 0.2
+	elseif (x < 14.) then !Em cima do obstáculo
+		auxx(i,j)= 0.30
 
-	 elseif (x < 2.4) then ! em cima do obst.
-	    auxx(i,j)= 0.
-
-	 elseif (x < 2.8) then ! descida
-	     tgaux=1./2.
-	     auxx(i,j)=tgaux*(x-2.4)
-	 else !resto
-	       auxx(i,j) = 0.2
-	 endif
-
+	elseif (x < 17.) then !Descida
+		tgaux=-tan(1./10.)
+		auxx(i,j)=tgaux*(x-14.)+0.30
+		
+	else !Resto
+		auxx(i,j) = 0.
+	endif
+	
 	enddo
 	enddo
 
+elseif (obst_t == 5) then !(canal 0 - delft 1980)
 
-	elseif (obst_t == 7) then ! (SBRH - Buracos e calombos)
+	do j = -1,nyy+2
+	do i = -1, nxx+2
+	x = (i-2)*(dx*0.5)
+	
+	if (x <= 1.0) then !Raso plano
+		auxx(i,j) = 0.2
+		
+	else !Ffundo plano
+		auxx(i,j) = 0.
+	endif
+	enddo
+	enddo
+
+elseif (obst_t == 6) then !(canal 1_2 - delft 1980)
+
+	do j = -1,nyy+2
+	do i = -1, nxx+2
+	x = (i-1.)*dx*0.5
+
+	if (x < 1.) then !Antes de subir
+		auxx(i,j) = 0.2
+
+	elseif (x < 1.4) then !Final da subida
+		tgaux=-1./2.
+		auxx(i,j)=tgaux*(x-1.) + 0.2
+
+	elseif (x < 2.4) then !Em cima do obstáculo
+		auxx(i,j)= 0.
+
+	elseif (x < 2.8) then !Descida
+		tgaux=1./2.
+		auxx(i,j)=tgaux*(x-2.4)
+		
+	else !Resto
+	   auxx(i,j) = 0.2
+	endif
+	enddo
+	enddo
+
+elseif (obst_t == 7) then !(SBRH - Buracos e calombos)
+
 
 	raio = 2.5
 
