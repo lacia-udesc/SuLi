@@ -15,7 +15,6 @@ SUBROUTINE posdin()
 !PARTE 5	!%%%!-- Correção das Velocidades e do Desnível --!%%%!
 
 	! velocidades corrigidas
-
 	aux1 = dt / dx 
 	aux2 = dt / dy 
 
@@ -45,6 +44,7 @@ SUBROUTINE posdin()
 	enddo
 	enddo
 	enddo
+
 
 !	w(:,:,1) = 0. !velocidade vertical no fundo é zero
 !	do k = 1, nz
