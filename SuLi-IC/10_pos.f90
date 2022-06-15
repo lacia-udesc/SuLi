@@ -11,7 +11,6 @@ SUBROUTINE posdin()
 	real(8), dimension(nx,ny1,nz) :: rhoy, hs_y
 	real(8), dimension(nx,ny,nz1) :: rhoz, hs_z
 
-!===============================================================================================================
 !PARTE 5	!%%%!-- Correção das Velocidades e do Desnível --!%%%!
 
 	! velocidades corrigidas
