@@ -246,60 +246,101 @@ if ((nlock == 1).or.(nlock == 2)) then
 		endif
 		
 
-	!obstáculo de fundo
-	!ativar se tiver osbstáculo de fundo
-	!ku, kv, kw indicam até que altura as velocidades tem que ser zeradas (até qual índice k)
+		!Parede do fundo (k = 1)
+		!Free-slip
+		if (ccz0.eq.1) then
+			u(:,:,0) = u(:,:,1)
+			v(:,:,0) = v(:,:,1)
+			w(:,:,0) = -w(:,:,2)
+		endif
 
-	if (obst_t == 0) then
-	
+		!No-slip condition
 		if (ccz0.eq.2) then
-			ub(:,:,2) = u(:,:,2)
-			vb(:,:,2) = v(:,:,2)
-			wb(:,:,2) = w(:,:,2)
+			u(:,:,0) = -u(:,:,1)
+			v(:,:,0) = -v(:,:,1)
+			w(:,:,0) = w(:,:,2)
 		endif
-			
-			
-		if (ccy0.eq.2) then
-			ub(:,2,:) = u(:,2,:)
-			vb(:,2,:) = v(:,2,:)
-			wb(:,2,:) = w(:,2,:)
+
+		!Velocidade prescrita para manufaturada
+		if (ccz0.eq.3) then
+			u(:,:,0) = bzx0(:,:)
+			v(:,:,0) = bzy0(:,:)
+			w(:,:,0) = bzz0(:,:)
 		endif
-					
+
+		!Superfície Livre (k = nz ou nz1)
+		!Sempre na superfície livre será free-slip(em teste)
+		if (cczf.eq.1) then
+			u(:,:,nz+1)  = u(:,:,nz)
+			v(:,:,nz+1)  = v(:,:,nz)
+			w(:,:,nz1+1) = -w(:,:,nz1-1)
+		endif
+		
+		!Sempre na superfície livre será no-slip(em teste)
+		if (cczf.eq.2) then
+			u(:,:,nz+1)  = -u(:,:,nz)
+			v(:,:,nz+1)  = -v(:,:,nz)
+			w(:,:,nz1+1) = w(:,:,nz1-1)
+		endif
+
+		!Velocidade prescrita para manufaturada
+		if (cczf.eq.3) then
+			u(:,:,nz+1)  = bzxf(:,:)
+			v(:,:,nz+1)  = bzyf(:,:)
+			w(:,:,nz1+1) = bzzf1(:,:)
+		endif
+	
+		!Obstáculo de fundo
+		!Ativar se tiver osbstáculo de fundo
+		!ku, kv, kw indicam até que altura as velocidades tem que ser zeradas (até qual índice k)
+
+		if (obst_t == 0) then
+			if (ccz0.eq.2) then
+				ub(:,:,2) = u(:,:,2)
+				vb(:,:,2) = v(:,:,2)
+				wb(:,:,2) = w(:,:,2)
+			endif
+				
+			if (ccy0.eq.2) then
+				ub(:,2,:) = u(:,2,:)
+				vb(:,2,:) = v(:,2,:)
+				wb(:,2,:) = w(:,2,:)
+			endif
+				
+			if (ccyf.eq.2) then
+				ub(:,ny1-1,:) = u(:,ny1-1,:)
+				vb(:,ny1-1,:) = v(:,ny1-1,:)
+				wb(:,ny1-1,:) = w(:,ny1-1,:)
+			endif	
 			
-		if (ccyf.eq.2) then
-			ub(:,ny1-1,:) = u(:,ny1-1,:)
-			vb(:,ny1-1,:) = v(:,ny1-1,:)
-			wb(:,ny1-1,:) = w(:,ny1-1,:)
-		endif		
-		
-		
-	else
-	
-        do j=0,ny+1
-	 do i=0,nx+1
-		u(i,j,0:ku(i,j))=0.! + dpdx(i,j,0:ku(i,j))
-		v(i,j,0:kv(i,j))=0.! + dpdy(i,j,0:kv(i,j))
-		w(i,j,0:kw(i,j))=0.! + dpdz(i,j,0:kw(i,j))
+		else
+			do j=0,ny+1
+			do i=0,nx+1
+				u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
+				v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
+				w(i,j,0:kw(i,j))=0. !+ dpdz(i,j,0:kw(i,j))
+				!Rugosidade Interna
+				ub(i,j,ku(i,j)+1) = u(i,j,ku(i,j)+1)
+				vb(i,j,kv(i,j)+1) = v(i,j,kv(i,j)+1)
+				wb(i,j,kw(i,j)+1) = w(i,j,kw(i,j)+1)
+				!ub(i,j,ku(i,j)+1) = 0.
+				!vb(i,j,kv(i,j)+1) = 0.
+				!wb(i,j,kw(i,j)+1) = 0.
+				 
+			enddo
+			enddo
+			
+			i = nx1+1 !j=todos
+				do j=0,ny+1
+					u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
+				enddo
 
-!! Rugosidade Interna
-		ub(i,j,ku(i,j)+1) = u(i,j,ku(i,j)+1)
-		vb(i,j,kv(i,j)+1) = v(i,j,kv(i,j)+1)
-		wb(i,j,kw(i,j)+1) = w(i,j,kw(i,j)+1)
+			j=ny1+1 !i=todos
+				do i=0,nx+1
+					v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
+				enddo
+		endif
 
-!		ub(i,j,ku(i,j)+1) = 0.
-!		vb(i,j,kv(i,j)+1) = 0.
-!		wb(i,j,kw(i,j)+1) = 0.
-         enddo
-	enddo
-	
-	i = nx1+1 !j=todos
-        do j=0,ny+1
-	  u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
-        enddo
-
-        j=ny1+1 !i=todos
-        do i=0,nx+1
-	  v(i,j,0:kv(i,j))=0.! + dpdy(i,j,0:kv(i,j))
         enddo
 
 
