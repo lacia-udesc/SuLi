@@ -1,30 +1,28 @@
-	!Subrotina para calcular o 
+!Subrotina para calcular diversos
 
 
-	!!! Implementação 03/07/2017
-	! Leonardo Romero Monteiro
+!Implementação em 03/07/2017
+! Leonardo Romero Monteiro
 
-	!!! Modificações
-	! Leonardo Romero Monteiro - 103/07/2017
+!Modificações
+!Leonardo Romero Monteiro em 13/07/2017
 
-	SUBROUTINE tempo()
+SUBROUTINE tempo()
 
-	USE vartempo
-	USE velpre
+USE vartempo
+USE velpre
 
-	IMPLICIT NONE
+IMPLICIT NONE
 
-	!===================================================================================================================
+!Contadores
+integer :: i, j, k
+real :: aux1
 
-	!contadores
-	integer :: i, j, k
-	real :: aux1
-
-	if ((t_tempo == 0) .or. ((t_tempo == 3) .and. (it == 1))) then ! Euler e primeiro do AB2
+if ((t_tempo == 0) .or. ((t_tempo == 3) .and. (it == 1))) then !Euler e primeiro do AB2
 	do k = 1, nz
 	do j = 1, ny
 	do i = 1, nx1
-		u(i,j,k) = u(i,j,k) + dt*Fu(i,j,k)
+	u(i,j,k) = u(i,j,k) + dt*Fu(i,j,k)
 
 	enddo
 	enddo	
@@ -33,7 +31,7 @@
 	do k = 1, nz
 	do j = 1, ny1
 	do i = 1, nx
-		v(i,j,k) = v(i,j,k) + dt*Fv(i,j,k)
+	v(i,j,k) = v(i,j,k) + dt*Fv(i,j,k)
 
 	enddo
 	enddo
@@ -42,12 +40,13 @@
 	do k = 1, nz1
 	do j = 1, ny
 	do i = 1, nx
-		w(i,j,k) = w(i,j,k) + dt*Fw(i,j,k)
+	w(i,j,k) = w(i,j,k) + dt*Fw(i,j,k)
 
 	enddo
 	enddo
 	enddo
-		if (t_tempo == 3) then ! só para AB2
+	
+	if (t_tempo == 3) then !Só para AB2
 		fu0 = Fu
 		fv0 = Fv
 		fw0 = Fw
