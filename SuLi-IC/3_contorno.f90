@@ -244,7 +244,6 @@ if ((nlock == 1).or.(nlock == 2)) then
 		 w(:,:,nz1)   = bzzf(:,:)    + dpdz(:,:,nz1)
 		 w(:,:,nz1+1) = bzzf1(:,:)   + dpdz(:,:,nz1+1)
 		endif
-		
 
 		!Parede do fundo (k = 1)
 		!Free-slip
@@ -341,10 +340,9 @@ if ((nlock == 1).or.(nlock == 2)) then
 				enddo
 		endif
 
-        enddo
 
+endif
 
-	endif
 
 
 elseif ((nlock == 2) .and. (obst_t .ne. 0)) then
@@ -925,16 +923,21 @@ endif
 
 END SUBROUTINE sponge_layer
 
-SUBROUTINE prd_corr(dpdx,dpdy,dpdz)
-	! derivadas das pressões para adicionar nas condições de contorno (aproximar o valor em u^n+1 ...)
+SUBROUTINE prd_corr(dpdx,dpdy,dpdz) !! arrumar rotina para eficiência!!
+!Derivadas das pressões para adicionar nas condições de contorno (aproximar o valor em u^n+1 ...)
 
-	USE velpre
-	USE parametros
+USE velpre
+USE parametros
 
-	IMPLICIT NONE
+IMPLICIT NONE
+!Declarado também no programa
+real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: dpdx
+real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: dpdy
+real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: dpdz
 
-	!===================================================================================================================
-	!DECLARADO TAMBÉM NO PROGRAMA
+real(8), dimension(nx1,ny,nz) :: rhox
+real(8), dimension(nx,ny1,nz) :: rhoy
+real(8), dimension(nx,ny,nz1) :: rhoz
 
 	real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: dpdx
 	real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: dpdy
