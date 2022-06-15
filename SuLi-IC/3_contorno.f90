@@ -26,7 +26,7 @@ real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: dpdz
 
 !RESOLUÇÃO DO PROBLEMA
 
-if (nlock == 1) then
+if ((nlock == 1).or.(nlock == 2)) then
 	if (mms_t > 0) call mms_bc()
 		!Velocidades de atrito
 		!ub = 0.
