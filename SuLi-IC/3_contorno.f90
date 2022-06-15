@@ -55,8 +55,8 @@ if (nlock == 1) then
 
 		CALL prd_corr(dpdx,dpdy,dpdz)
 
-	!**! Parede esquerda (j = 1)
-		!periodica
+		!Parede esquerda (j = 1)
+		!Periodica
 		if (ccy0.eq.0.and.ccyf.eq.0) then
 		 u(:,0,:) = u(:,ny,:)    + dpdx(:,0,:)
 		 v(:,0,:) = v(:,ny1-1,:) + dpdy(:,0,:)
