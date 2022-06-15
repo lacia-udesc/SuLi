@@ -343,14 +343,10 @@ if ((nlock == 1).or.(nlock == 2)) then
 
 endif
 
+if (nlock == 2) then
 
 
-elseif ((nlock == 2) .and. (obst_t .ne. 0)) then
 
-	! contorno para Level Set  ! o ideal é que o objeto seja representado por pelo menos dois grid por direção!
-        do j = 1,ny
-	  do i = 1,nx
-           do k = 1, kw(i,j)-1 
 
 
 
