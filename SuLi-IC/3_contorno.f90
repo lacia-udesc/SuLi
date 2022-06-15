@@ -1,46 +1,39 @@
 !Subrotina definir as condições de contorno das velocidades e suas influências
-! Referência: Gotoh, 2013
+!Referência: Gotoh, 2013
 
-!!! Implementação 15/04/2014
-! Leonardo Romero Monteiro
+!Implementação em 15/04/2014
+!Leonardo Romero Monteiro
 
-!!! Modificações
-! Leonardo Romero Monteiro - 18/08/2016
+!Modificações
+!Leonardo Romero Monteiro em 18/08/2016
 
 SUBROUTINE contorno(nlock)
 
-	USE velpre
-	USE obst
-        USE cond
-	USE ls_param
-	IMPLICIT NONE
+USE velpre
+USE obst
+   USE cond
+USE ls_param
 
-	!===================================================================================================================
-	!DECLARADO TAMBÉM NO PROGRAMA
+IMPLICIT NONE
 
-	real(8) :: zi, zj, zk
-	integer :: i, j, k, niv, ii,nlock
+!Declarado também no programa
+real(8) :: zi, zj, zk
+integer :: i, j, k, niv, ii,nlock
 
-	real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: dpdx
-	real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: dpdy
-	real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: dpdz
+real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: dpdx
+real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: dpdy
+real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: dpdz
 
-	!===================================================================================================================
-	!RESOLUÇÃO DO PROBLEMA
-	!===================================================================================================================
-
+!RESOLUÇÃO DO PROBLEMA
 
 if (nlock == 1) then
-
-if (mms_t > 0) call mms_bc()
-
-	!*# velocidades de atrito
-!		ub = 0.
-!		vb = 0.
-
-	!*# pressão
-	    !! grad 0
-               
+	if (mms_t > 0) call mms_bc()
+		!Velocidades de atrito
+		!ub = 0.
+		!vb = 0.
+		!pressão
+		!grad 0
+				   
 		if (ccx0.eq.0.and.ccxf.eq.0) then
 		   prd1(0,:,:)    = prd1(nx,:,:)
 		   prd1(nx+1,:,:) = prd1(1,:,:)
