@@ -116,11 +116,11 @@ SUBROUTINE graddin()
 		matdpr(:,:,nz1) = matdpr(:,:,nz)
 		! Normalização da pressão dinâmica
 		do k = 0, nz1
-			do j = 0, ny1
-				do i = 0, nx1
-					matepr(i,j,k) = prd1(i,j,k) * sqrt(matdpr(i,j,k))
-				enddo
-			enddo
+		do j = 0, ny1
+		do i = 0, nx1
+			matepr(i,j,k) = prd1(i,j,k) * sqrt(matdpr(i,j,k))
+		enddo
+		enddo
 		enddo
 
 		!Normalização das matrizes s e cálculo do primeiro erro
@@ -266,23 +266,16 @@ SUBROUTINE graddin()
 
 		! Desnormalização de matriz e para a pressão dinâmica
 		do k = 0, nz+1
-			do j = 0, ny+1
-				do i = 0, nx+1
-					prd1(i,j,k) = matepr(i,j,k) / sqrt(matdpr(i,j,k))
-				enddo
-			enddo
+		do j = 0, ny+1
+		do i = 0, nx+1
+			prd1(i,j,k) = matepr(i,j,k) / sqrt(matdpr(i,j,k))
+		enddo
+		enddo
 		enddo
 
 	!===============================================================================================================
 
 	END SUBROUTINE graddin
-
-
-
-
-
-
-
 
 
 !######################################################################################
