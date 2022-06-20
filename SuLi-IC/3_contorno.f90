@@ -58,191 +58,142 @@ if ((nlock == 1).or.(nlock == 2)) then
 		!Parede esquerda (j = 1)
 		!Periodica
 		if (ccy0.eq.0.and.ccyf.eq.0) then
-		 u(:,0,:) = u(:,ny,:)    + dpdx(:,0,:)
-		 v(:,0,:) = v(:,ny1-1,:) + dpdy(:,0,:)
-		 v(:,1,:) = v(:,ny1,:)   + dpdy(:,1,:)
-		 w(:,0,:) = w(:,ny,:)    + dpdz(:,0,:)
+			u(:,0,:) = u(:,ny,:)    
+			v(:,0,:) = v(:,ny1-1,:)
+			v(:,1,:) = v(:,ny1,:)   
+			w(:,0,:) = w(:,ny,:)    
+		endif
+		
 		!Free-slip condition
+		if (ccy0.eq.1) then 
+			u(:,0,:) = u(:,1,:)
+			v(:,0,:) = -v(:,2,:)
+			w(:,0,:) = w(:,1,:)
+		endif
 		!No-slip condition
+		if (ccy0.eq.2) then 
+			u(:,0,:) = -u(:,1,:)
+			v(:,0,:) = v(:,2,:)
+			w(:,0,:) = -w(:,1,:)
+		endif
+		
+		!Prescrita
+		if (ccy0.eq.3) then
+			u(:,0,:) = byx0(:,:)
+			v(:,0,:) = byy0(:,:)
+			w(:,0,:) = byz0(:,:)
 		endif
 
-		if (ccy0.eq.1) then ! free-slip condition
-		 u(:,0,:) = u(:,1,:)  + dpdx(:,0,:)
-		 v(:,1,:) = 0.        + dpdy(:,1,:)
-		 v(:,0,:) = -v(:,2,:) + dpdy(:,0,:)
-		 w(:,0,:) = w(:,1,:)  + dpdz(:,0,:)
-                endif
-
-		if (ccy0.eq.2) then ! no-slip condition
-		 u(:,0,:) = u(:,1,:) + dpdx(:,0,:)
-		 v(:,1,:) = 0.        + dpdy(:,1,:)
-		 v(:,0,:) = v(:,2,:)  + dpdy(:,0,:)
-		 w(:,0,:) = -w(:,1,:) + dpdz(:,0,:)
-                endif
-
-		if (ccy0.eq.3) then ! prescrita
-		 u(:,0,:) = byx0(:,:) + dpdx(:,0,:)
-		 v(:,1,:) = byy1(:,:) + dpdy(:,1,:)
-		 v(:,0,:) = byy0(:,:) + dpdy(:,0,:)
-		 w(:,0,:) = byz0(:,:) + dpdz(:,0,:)
-                endif
-
-
-
-	!**! Parede direita (j = ny ou ny1)
-		!periodica
+		!Parede direita (j = ny ou ny1)
+		!Periodica
 		if (ccy0.eq.0.and.ccyf.eq.0) then
-		 u(:,ny+1,:)  = u(:,1,:) + dpdx(:,ny+1,:)
-		 v(:,ny1,:)   = v(:,1,:) + dpdy(:,ny1,:)
-		 v(:,ny1+1,:) = v(:,2,:) + dpdy(:,ny1+1,:)
-		 w(:,ny+1,:)  = w(:,1,:) + dpdz(:,ny+1,:)
+			u(:,ny+1,:)  = u(:,1,:)
+			v(:,ny1+1,:) = v(:,2,:)
+			w(:,ny+1,:)  = w(:,1,:)
+		endif
+
+		!Free-slip condition
+		if (ccyf.eq.1) then
+			u(:,ny+1,:)  = u(:,ny,:)
+			v(:,ny1+1,:) = -v(:,ny1-1,:)
+			w(:,ny+1,:)  = w(:,ny,:)
+		endif
+		
+		!No-slip condition
+		if (ccyf.eq.2) then 
+			u(:,ny+1,:) = -u(:,ny,:)
+			v(:,ny1+1,:) = v(:,ny1-1,:)
+			w(:,ny+1,:) = -w(:,ny,:)
+		endif
+
+		!Prescrita
+		if (ccyf.eq.3) then 
+			u(:,ny+1,:)  = byxf(:,:)
+			v(:,ny1+1,:) = byyf1(:,:)
+			w(:,ny+1,:)  = byzf(:,:)
+		endif
+
+		!Parede frente (i = 1)
+		!Periodica
+		if (ccx0.eq.0.and.ccxf.eq.0) then
+			u(0,:,:) = u(nx1-1,:,:)
+			v(0,:,:) = v(nx,:,:)
+			w(0,:,:) = w(nx,:,:)
+		endif
+		
+		!Free-slip condition
+		if (ccx0.eq.1) then
+			u(0,:,:) = -u(2,:,:)
+			v(0,:,:) = v(1,:,:)
+			w(0,:,:) = w(1,:,:)
+		endif
+
+		!No-slip condition
+		if (ccx0.eq.2) then
+			u(0,:,:) = u(2,:,:)
+			v(0,:,:) = -v(1,:,:)
+			w(0,:,:) = -w(1,:,:)
+		endif
+
+		!Prescrita
+		if (ccx0.eq.3) then
+			u(0,:,:) = bxx0(:,:)
+			v(0,:,:) = bxy0(:,:)
+			w(0,:,:) = bxz0(:,:)
+		endif
+		
+		!Para validação
+		if (ccx0.eq.4) then 
+			v(0,:,:) = bxy0(:,:)
+			w(0,:,:) = w(1,:,:)
 			!do i = 0, 1
+				!u(i,:,11+1) =	0.15946 + dpdx(i,:,12)
+				!u(i,:,12+1) =	0.2873  + dpdx(i,:,13)
+				!u(i,:,13+1) =	0.328   + dpdx(i,:,14)
+				!u(i,:,14+1) =	0.36376 + dpdx(i,:,15)
+				!u(i,:,15+1) =	0.39226 + dpdx(i,:,16)
+				!u(i,:,16+1) =	0.41742 + dpdx(i,:,17)
+				!u(i,:,17+1) =	0.44166 + dpdx(i,:,18)
+				!u(i,:,18+1) =	0.46318 + dpdx(i,:,19)
+				!u(i,:,19+1) =	0.48141 + dpdx(i,:,20)
+				!u(i,:,20+1) =	0.4867  + dpdx(i,:,21)
 			!enddo
 		endif
 
-		if (ccyf.eq.1) then ! free-slip condition
-		 u(:,ny+1,:)  = u(:,ny,:)     + dpdx(:,ny+1,:)
-		 v(:,ny1,:)   = 0.            + dpdy(:,ny1,:)
-		 v(:,ny1+1,:) = -v(:,ny1-1,:) + dpdy(:,ny1+1,:)
-		 w(:,ny+1,:)  = w(:,ny,:)     + dpdz(:,ny+1,:)
-                endif
-
-		if (ccyf.eq.2) then ! no-slip condition
-		 u(:,ny+1,:) = -u(:,ny,:)    + dpdx(:,ny+1,:)
-		 v(:,ny1,:) = 0.             + dpdy(:,ny1,:)
-		 v(:,ny1+1,:) = v(:,ny1-1,:) + dpdy(:,ny1+1,:)
-		 w(:,ny+1,:) = -w(:,ny,:)    + dpdz(:,ny+1,:)
-                endif
-
-		if (ccyf.eq.3) then ! prescrita
-		 u(:,ny+1,:)  = byxf(:,:)  + dpdx(:,ny+1,:)
-		 v(:,ny1,:)   = byyf(:,:)  + dpdy(:,ny1,:)
-		 v(:,ny1+1,:) = byyf1(:,:) + dpdy(:,ny1+1,:)
-		 w(:,ny+1,:)  = byzf(:,:)  + dpdz(:,ny+1,:)
-                endif
-
-
-
-	!**! Parede frente (i = 1)
-		!periodica
-	       if (ccx0.eq.0.and.ccxf.eq.0) then
-		u(0,:,:) = u(nx1-1,:,:) + dpdx(0,:,:)
-		u(1,:,:) = u(nx1,:,:)   + dpdx(1,:,:)
-		v(0,:,:) = v(nx,:,:)    + dpdy(0,:,:)
-		w(0,:,:) = w(nx,:,:)    + dpdz(0,:,:)
-	       endif
-
-		if (ccx0.eq.1) then! free-slip condition
-		 u(1,:,:) = 0.        + dpdx(1,:,:)
-		 u(0,:,:) = -u(2,:,:) + dpdx(0,:,:)
-		 v(0,:,:) = v(1,:,:)  + dpdy(0,:,:)
-		 w(0,:,:) = w(1,:,:)  + dpdz(0,:,:)
-                endif
-
-		if (ccx0.eq.2) then ! no-slip condition
-		 u(1,:,:) = 0.        + dpdx(1,:,:)
-		 u(0,:,:) = u(2,:,:)  + dpdx(0,:,:)
-		 v(0,:,:) = -v(1,:,:) + dpdy(0,:,:)
-		 w(0,:,:) = -w(1,:,:) + dpdz(0,:,:)
-                endif
-
-		if (ccx0.eq.3) then!! Prescrita
-		 u(1,:,:) = bxx1(:,:) + dpdx(1,:,:)
-		 u(0,:,:) = bxx0(:,:) + dpdx(0,:,:)
-		 v(0,:,:) = bxy0(:,:) + dpdy(0,:,:)
-		 w(0,:,:) = bxz0(:,:) + dpdz(0,:,:)
-                endif
-		if (ccx0.eq.4) then !!para validacao
-                 v(0,:,:) = bxy0(:,:) + dpdy(0,:,:)
-                 w(0,:,:) = w(1,:,:)
-		!u(i,:,11+1) =	0.15946 + dpdx(i,:,12)
-		!u(i,:,12+1) =	0.2873  + dpdx(i,:,13)
-		!u(i,:,13+1) =	0.328   + dpdx(i,:,14)
-		!u(i,:,14+1) =	0.36376 + dpdx(i,:,15)
-		!u(i,:,15+1) =	0.39226 + dpdx(i,:,16)
-		!u(i,:,16+1) =	0.41742 + dpdx(i,:,17)
-		!u(i,:,17+1) =	0.44166 + dpdx(i,:,18)
-		!u(i,:,18+1) =	0.46318 + dpdx(i,:,19)
-		!u(i,:,19+1) =	0.48141 + dpdx(i,:,20)
-		!u(i,:,20+1) =	0.4867  + dpdx(i,:,21)
-                endif
-
-
-		!!**! Parede tras (i = nx ou nx1)
-		!periodica
+		!Parede de trás (i = nx ou nx1)	
+		!Periodica
 		if (ccx0.eq.0.and.ccxf.eq.0) then
-		 u(nx1,:,:)   = u(1,:,:) + dpdx(nx1,:,:)
-		 u(nx1+1,:,:) = u(2,:,:) + dpdx(nx1+1,:,:)
-		 v(nx+1,:,:)  = v(1,:,:) + dpdy(nx+1,:,:)
-		 w(nx+1,:,:)  = w(1,:,:) + dpdz(nx+1,:,:)
+			u(nx1+1,:,:) = u(2,:,:)
+			v(nx+1,:,:)  = v(1,:,:)
+			w(nx+1,:,:)  = w(1,:,:)
 		endif
 
-		 if (ccxf.eq.1) then! free-slip condition
-		  u(nx1,:,:)   = 0.            + dpdx(nx1,:,:)
-		  u(nx1+1,:,:) = -u(nx1-1,:,:) + dpdx(nx1+1,:,:)
-		  v(nx+1,:,:)  = v(nx,:,:)     + dpdy(nx+1,:,:)
-		  w(nx+1,:,:)  = w(nx,:,:)     + dpdz(nx+1,:,:)
-		 endif
-
-		 if (ccxf.eq.2) then! no-slip condition
-		  u(nx1,:,:)   = 0.           + dpdx(nx1,:,:)
-		  u(nx1+1,:,:) = u(nx1-1,:,:) + dpdx(nx1+1,:,:)
-		  v(nx+1,:,:)  = -v(nx,:,:)   + dpdy(nx+1,:,:)
-		  w(nx+1,:,:)  = -w(nx,:,:)   + dpdz(nx+1,:,:)
-		 endif
-
-		 if (ccxf.eq.3) then!prescrita
-		  u(nx1,:,:)   = bxxf(:,:)   + dpdx(nx1,:,:)
-		  u(nx1+1,:,:) = bxxf1(:,:)  + dpdx(nx1+1,:,:)
-		  v(nx+1,:,:)  = bxyf(:,:)   + dpdy(nx+1,:,:)
-		  w(nx+1,:,:)  = bxzf(:,:)   + dpdz(nx+1,:,:)
-		 endif
-
-		 if (ccxf.eq.4) then!saida livre
-		  u(nx1,:,:)   = u(nx1-1,:,:) + dpdx(nx1,:,:)
-		  u(nx1+1,:,:) = u(nx1,:,:)   + dpdx(nx1+1,:,:)
-		  v(nx+1,:,:)  = v(nx,:,:)    + dpdy(nx+1,:,:)
-		  w(nx+1,:,:)  = w(nx,:,:)    + dpdz(nx+1,:,:)
-		 endif
-
-
-	!**! Parede do fundo (k = 1)
-		if (ccz0.eq.1) then ! free-slip condition
-		 u(:,:,0) = u(:,:,1)  + dpdx(:,:,0)
-		 v(:,:,0) = v(:,:,1)  + dpdy(:,:,0)
-		 w(:,:,1) = 0.        + dpdz(:,:,1)
-		 w(:,:,0) = -w(:,:,2) + dpdz(:,:,0)
-                endif
-
-		if (ccz0.eq.2) then ! no-slip condition
-		 u(:,:,0) = -u(:,:,1) + dpdx(:,:,0)
-		 v(:,:,0) = -v(:,:,1) + dpdy(:,:,0)
-		 w(:,:,1) = 0.        + dpdz(:,:,1)
-		 w(:,:,0) = w(:,:,2)  + dpdz(:,:,0)
-                endif
-
-		if (ccz0.eq.3) then !!velocidade prescrita para manufaturada
-		 u(:,:,0) = bzx0(:,:) + dpdx(:,:,0)
-		 v(:,:,0) = bzy0(:,:) + dpdy(:,:,0)
-		 w(:,:,1) = bzz1(:,:) + dpdz(:,:,1)
-		 w(:,:,0) = bzz0(:,:) + dpdz(:,:,0)
+		!Free-slip condition
+		if (ccxf.eq.1) then
+			u(nx1+1,:,:) = -u(nx1-1,:,:)
+			v(nx+1,:,:)  = v(nx,:,:)
+			w(nx+1,:,:)  = w(nx,:,:)
 		endif
 
-
-	!**! Superfície Livre (k = nz ou nz1)
-		! sempre na superfície livre será free-slipe (em teste)
-		if (cczf.eq.1) then
-		 u(:,:,nz+1)  = u(:,:,nz)     + dpdx(:,:,nz+1)
-		 v(:,:,nz+1)  = v(:,:,nz)     + dpdy(:,:,nz+1)
-		 w(:,:,nz1)   = 0.            + dpdz(:,:,nz1)
-		 w(:,:,nz1+1) = -w(:,:,nz1-1) + dpdz(:,:,nz1+1)
+		!No-slip condition
+		if (ccxf.eq.2) then
+			u(nx1+1,:,:) = u(nx1-1,:,:)
+			v(nx+1,:,:)  = -v(nx,:,:)
+			w(nx+1,:,:)  = -w(nx,:,:)
 		endif
 
-		if (cczf.eq.3) then !!velocidade prescrita para manufaturada
-		 u(:,:,nz+1)  = bzxf(:,:)    + dpdx(:,:,nz+1)
-		 v(:,:,nz+1)  = bzyf(:,:)    + dpdy(:,:,nz+1)
-		 w(:,:,nz1)   = bzzf(:,:)    + dpdz(:,:,nz1)
-		 w(:,:,nz1+1) = bzzf1(:,:)   + dpdz(:,:,nz1+1)
+		!Prescrita
+		if (ccxf.eq.3) then
+			u(nx1+1,:,:) = bxxf1(:,:)
+			v(nx+1,:,:)  = bxyf(:,:)
+			w(nx+1,:,:)  = bxzf(:,:)
+		endif
+
+		!Saida livre
+		if (ccxf.eq.4) then
+			u(nx1+1,:,:) = u(nx1,:,:)
+			v(nx+1,:,:)  = v(nx,:,:)
+			w(nx+1,:,:)  = w(nx,:,:)
 		endif
 
 		!Parede do fundo (k = 1)
@@ -709,6 +660,7 @@ elseif (obst_t == 6) then !(canal 1_2 - delft 1980)
 
 elseif (obst_t == 7) then !(SBRH - Buracos e calombos)
 
+	raio = 0.12
 
 	do j = -1,nyy+2
 	do i = -1, nxx+2
