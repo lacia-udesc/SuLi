@@ -82,9 +82,10 @@
 		STOP
 	endif
 
-	!Camada esponja. Ativar somente quando necessário.
-	!CALL sponge_layer(epis_z)
-
+	!Camada esponja.
+	if (esp_type > 0) then
+		CALL sponge_layer(epis_z)
+	endif
 	!Cálculo dos Fs
 
 	call interpx_cf(rho,nx,ny,nz,rhox) !(nx1,ny,nz)
