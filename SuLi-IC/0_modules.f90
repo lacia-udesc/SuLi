@@ -139,7 +139,7 @@ module parametros
 
 !Parâmetros
 !Viscosidade cinemática (m²/s), coeficiente de chezy (m**(1/2)/s), aceleração da graviadde (m/s²) e implicitness parameter $Patnaik et al. 1987$ (-) 
-real(8), parameter :: tetah = 0.50, chezy = 44.5, decliv = 0.0002
+real(8), parameter :: chezy = 44.5, decliv = 0.0002
 
 real(8), parameter :: gx = 9.80665 * sin(atan(decliv)) , gz = 9.80665 * cos(atan(decliv))
 
