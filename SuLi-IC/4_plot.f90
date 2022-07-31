@@ -5,10 +5,7 @@
 !Leonardo Romero Monteiro
 
 !Modificações
-!Leonardo Romero Monteiro em 12/01/2015
-
-!Correções
-!Leonardo Romero Monteiro & Mariana De Cesaro em 14/06/2022
+!Felipe Augusto R. Silva em 09/01/2022
 
 SUBROUTINE plot_i()
 
@@ -103,21 +100,21 @@ enddo
 
 !Conservação de massa
 open (unit=100002, action= 'write', file= 'dados//conservacao_massa.txt', status= 'unknown')
-write(100002,*) "it*dt", " ", "vol_ini", " ", "vol_ins", " ","vol_ini-vol_ins", " ","divergencia"
+write(100002,*) "t", " ", "vol_ini", " ", "vol_ins", " ","vol_ini-vol_ins", " ","divergencia"
 
 !Número de courant
 open (unit=9999991, action= 'write', file= 'dados//courant.txt', status= 'unknown')
-write(9999991,*) "it*dt", "  ", "ntal", "  ", "tal", "  ", "maxval(a)", " ", "maxval(d)", "  ", "loca", "  ", "locd"
+write(9999991,*) "t", "  ", "ntal", "  ", "tal", "  ", "maxval(a)", " ", "maxval(d)", "  ", "loca", "  ", "locd"
 
 !Contagem temporal
 open (unit=200000, file='dados//contagem')
-write(200000,*) "it", " ", "it*dt", " ", "hoje", " ", "agora", " ", "duração da simulação (min)"
+write(200000,*) "it", " ", "t", " ", "hoje", " ", "agora", " ", "duração da simulação (min)"
 
 call date_and_time(values = agora)
 agora1 = agora
 call cpu_time(t_i)
 !Contagem temporal
-write(200000,*) it, it*dt, agora, t_i - t_i
+write(200000,*) it, t, agora, t_i - t_i
 
 !Perfil longitudinal do desnível
 open (unit=9999999, action= 'write', file= 'dados//resul.txt', status= 'unknown')
@@ -257,9 +254,17 @@ call date_and_time(values = agora)
 call cpu_time(t_a)
 nfil=it
 
-if(mod(it, ceiling(dt_frame/dt)).eq.0) then
+
+CALL est(div)
+
+if(t > (cont-9)*dt_frame) then
 
 	cont = cont + 1
+	
+	write(*,*) " "
+ 	write(*,*) "*vol. inicial", vol_ini, "vol. instant.", vol_ins, "erro (%)", (vol_ini-vol_ins)/vol_ini, "div.", maxval(abs(div))
+	write(*,*) 
+	
 
 	x1(0,:,:) = -dx
 	y1(:,0,:) = -dy
@@ -352,11 +357,11 @@ if(mod(it, ceiling(dt_frame/dt)).eq.0) then
 	close (unit=cont)
 
 	!Contagem temporal
-	write(*,*) "it,", " ", "it*dt,", " ", "ciclo,", " ","tempo restante aproximado (horas),", " ","duração da simulação (min)"
-	write(*,*) it, it*dt, ciclo, prev, (t_a-t_i)/60.
+	write(*,*) "it,", " ", "t,", " ", "ciclo,", " ","tempo restante aproximado (horas),", " ","duração da simulação (min)"
+	write(*,*) it, t, ciclo, prev, (t_a-t_i)/60.
 endif
 
-write(200000,*) it, it*dt, agora, (t_a-t_i)/60.
+write(200000,*) it, t, agora, (t_a-t_i)/60.
 
 !open (unit=99998799, action= 'write', file= 'dados//frente.txt', status= 'unknown')
 ii = 0
@@ -477,7 +482,6 @@ enddo
 
 !	 close (unit=100012)
 
-CALL est(div)
 
 END SUBROUTINE plot_f
 
@@ -485,6 +489,8 @@ SUBROUTINE plot_atrib()
 
 USE velpre
 USE obst
+
+IMPLICIT NONE
 
 open(unit=9, action= 'write', file= 'dados//atributos.txt', status= 'unknown')
 write(9,*) "u inicial = ", uinicial
@@ -505,6 +511,7 @@ USE ls_param
 IMPLICIT NONE
 real(8), dimension(nx,ny,nz) :: div
 integer :: i,j,k
+real(8) a, b, c
 
 do k = 1, nz
 do j = 1, ny
@@ -514,12 +521,21 @@ enddo
 enddo
 enddo
 !open (unit=100002, action= 'write', file= 'conservacao_massa.txt', status= 'unknown')
-write(100002,*) it*dt, vol_ini, vol_ins, vol_ini-vol_ins, maxval(abs(div))
+write(100002,*) t, vol_ini, vol_ins, vol_ini-vol_ins, maxval(abs(div))
 
-if(mod(it, ceiling(dt_frame/dt)).eq.0) then
-	write(*,*) " "
- 	write(*,*) "*vol. inicial", vol_ini, "vol. instant.", vol_ins, "erro (%)", (vol_ini-vol_ins)/vol_ini, "div.", maxval(abs(div))
-	write(*,*) 
+if (t_tempo_var .eq. 1) then
+	a = maxval(abs(u))*dt/dx 
+	b = maxval(abs(v))*dt/dy 
+	c = maxval(abs(w))*dt/dz
+
+	if (a > 0.3 .or. b > 0.3 .or. c > 0.3) then
+		dt = dt - 0.1*dt0
+		write(*,*) t, maxval(abs(div)), a,b,c   , dt
+		call coef_tempo()
+	elseif (a < 0.1 .and. b < 0.1 .and. c < 0.1) then
+		dt = dt + 0.01*dt0
+		write(*,*) t, maxval(abs(div)), a,b,c   , dt
+		call coef_tempo()
+	endif
 endif
-
 END SUBROUTINE est

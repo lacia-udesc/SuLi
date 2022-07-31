@@ -6,8 +6,8 @@
 !!! Modificação 18/09/16
 ! Leonardo Romero Monteiro
 
-!! Modifica��o 2 31/12/16
-! Lu�sa V. Lucchese
+!! Modificação 2 31/12/16
+! Luísa V. Lucchese
 
 SUBROUTINE visco()
 
@@ -65,21 +65,21 @@ else
   call derivaz(u,nx1,ny,nz,dudz_i); call derivaz(v,nx,ny1,nz,dvdz_i); call derivaz(w,nx,ny,nz1,dwdz_i)
 
 
-if (m_turb == 1) then ! LES Smagorinsky-Lilly cl�ssico
+if (m_turb == 1) then ! LES Smagorinsky-Lilly clássico
 
- !as interpola��es abaixo s�o interpolando tudo para o centro da celula
+ !as interpolações abaixo são interpolando tudo para o centro da celula
 
-       ! interpola��o para u
+       ! interpolação para u
        call interpx_fc(dudx_i,nx1,ny,nz,dudx)!dudx(i,j,k)=(dudx_i(i+1,j,k)+dudx_i(i,j,k))*0.5
        call interpx_fc(dudy_i,nx1,ny,nz,dudy)!dudy(i,j,k)=(dudy_i(i+1,j,k)+dudy_i(i,j,k))*0.5
        call interpx_fc(dudz_i,nx1,ny,nz,dudz)!dudz(i,j,k)=(dudz_i(i+1,j,k)+dudz_i(i,j,k))*0.5
 
-       ! interpola��o para v
+       ! interpolação para v
        call interpy_fc(dvdx_i,nx,ny1,nz,dvdx)!dvdx(i,j,k)=(dvdx_i(i,j+1,k)+dvdx_i(i,j,k))*0.5
        call interpy_fc(dvdy_i,nx,ny1,nz,dvdy)!dvdy(i,j,k)=(dvdy_i(i,j+1,k)+dvdy_i(i,j,k))*0.5
        call interpy_fc(dvdz_i,nx,ny1,nz,dvdz)!dvdz(i,j,k)=(dvdz_i(i,j+1,k)+dvdz_i(i,j,k))*0.5
 
-       ! interpola��o para w
+       ! interpolação para w
        call interpz_fc(dwdx_i,nx,ny,nz1,dwdx)!dwdx(i,j,k)=(dwdx_i(i,j,k+1)+dwdx_i(i,j,k))*0.5
        call interpz_fc(dwdy_i,nx,ny,nz1,dwdy)!dwdy(i,j,k)=(dwdy_i(i,j,k+1)+dwdy_i(i,j,k))*0.5
        call interpz_fc(dwdz_i,nx,ny,nz1,dwdz)!dwdz(i,j,k)=(dwdz_i(i,j,k+1)+dwdz_i(i,j,k))*0.5
@@ -128,7 +128,7 @@ elseif (m_turb == 2) then ! LES Smagorinsky-Lilly direcional ! arrumar para mih!
  call interpy_fc(dvdz_a,nx,ny1,nz1,dvdz_z)
 
   !aqui, faremos as contabilizacoes para xnut.
-  !as p s�o variaveis auxiliares, que serao sobrescritas 
+  !as p são variaveis auxiliares, que serao sobrescritas 
   !na avaliacao de ynut e znut
   !a notacao _a denomina auxiliar.
 

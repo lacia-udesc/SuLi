@@ -62,7 +62,7 @@ CALL plot_i()
 !Parte 5: Passo corretor; graddin() e posdin()
 
 do it = 1, ts
-t = it * dt
+t = t + dt
 
 !write(*,*) it
 
@@ -82,14 +82,19 @@ do tt = 1, ntt
 	CALL tempo()
 
 	if (wave_t > 0) call boundary_waves() !For wave propagation
-		!Condições de Contorno para a parte Hidrostática
-		!CALL pressh()
+
 	CALl contorno(2)
 
 	if (mms_t .eq. 0) then
-		CALL graddin()
+		if (t_press .eq. 0) then
+			CALL pressh()	!Condições de Contorno para a parte Hidrostática
+		else
+			CALL graddin()
+		endif
+
 		CALL posdin()
 		CALl contorno(1)
+
 	endif
 
  enddo
