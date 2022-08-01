@@ -1,0 +1,1041 @@
+<?xml version="1.0" ?>
+ <!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
+ <Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="2.0">
+ <Domain>
+
+
+     <Grid Name="TimeSeries" GridType="Collection" CollectionType="Temporal">
+         <Time TimeType="HyperSlab">
+             <DataItem Format="XML" NumberType="Float" Dimensions="3">
+            <!--Start, Stride, Count-->
+             0.0  0.10000000000000001     
+             </DataItem>
+         </Time>
+
+
+         <Grid Name="campos_00010" GridType="Uniform">
+     <Topology name="topo" TopologyType="3DSMesh"
+         Dimensions="          26          26          26 ">
+     </Topology>
+     <Geometry name="geo" Type="X_Y_Z">
+     <DataItem Name="X" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="           4 ">
+     campos_00010
+     </DataItem>
+     <DataItem Name="Y" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="       70308 ">
+     campos_00010
+     </DataItem>
+     <DataItem Name="Z" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="      140612 ">
+     campos_00010
+     </DataItem>
+     </Geometry>
+             <Attribute Name="V" AttributeType="Vector" Center="Node">
+                <DataItem Dimensions="          26          26          26 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      210916 " Dimensions="          26          26          26  1">
+                      campos_00010
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      281220 " Dimensions="          26          26          26  1">
+                      campos_00010
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      351524 " Dimensions="          26          26          26  1">
+                      campos_00010
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="level_set" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      421828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00010
+                </DataItem>
+             </Attribute>
+             <Attribute Name="obstaculo" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      484328 "
+                 Dimensions="          25          25          25 ">
+                   campos_00010
+                </DataItem>
+             </Attribute>
+             <Attribute Name="pressure" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      546828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00010
+                </DataItem>
+             </Attribute>
+             <Attribute Name="vorticity" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      609328 " Dimensions="          25          25          25  1">
+                      campos_00010
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      671828 " Dimensions="          25          25          25  1">
+                      campos_00010
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      734328 " Dimensions="          25          25          25  1">
+                      campos_00010
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="visc" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      796828 " Dimensions="          25          25          25  1">
+                      campos_00010
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      859328 " Dimensions="          25          25          25  1">
+                      campos_00010
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      921828 " Dimensions="          25          25          25  1">
+                      campos_00010
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+         </Grid>
+
+
+         <Grid Name="campos_00011" GridType="Uniform">
+     <Topology name="topo" TopologyType="3DSMesh"
+         Dimensions="          26          26          26 ">
+     </Topology>
+     <Geometry name="geo" Type="X_Y_Z">
+     <DataItem Name="X" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="           4 ">
+     campos_00011
+     </DataItem>
+     <DataItem Name="Y" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="       70308 ">
+     campos_00011
+     </DataItem>
+     <DataItem Name="Z" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="      140612 ">
+     campos_00011
+     </DataItem>
+     </Geometry>
+             <Attribute Name="V" AttributeType="Vector" Center="Node">
+                <DataItem Dimensions="          26          26          26 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      210916 " Dimensions="          26          26          26  1">
+                      campos_00011
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      281220 " Dimensions="          26          26          26  1">
+                      campos_00011
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      351524 " Dimensions="          26          26          26  1">
+                      campos_00011
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="level_set" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      421828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00011
+                </DataItem>
+             </Attribute>
+             <Attribute Name="obstaculo" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      484328 "
+                 Dimensions="          25          25          25 ">
+                   campos_00011
+                </DataItem>
+             </Attribute>
+             <Attribute Name="pressure" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      546828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00011
+                </DataItem>
+             </Attribute>
+             <Attribute Name="vorticity" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      609328 " Dimensions="          25          25          25  1">
+                      campos_00011
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      671828 " Dimensions="          25          25          25  1">
+                      campos_00011
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      734328 " Dimensions="          25          25          25  1">
+                      campos_00011
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="visc" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      796828 " Dimensions="          25          25          25  1">
+                      campos_00011
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      859328 " Dimensions="          25          25          25  1">
+                      campos_00011
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      921828 " Dimensions="          25          25          25  1">
+                      campos_00011
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+         </Grid>
+
+
+         <Grid Name="campos_00012" GridType="Uniform">
+     <Topology name="topo" TopologyType="3DSMesh"
+         Dimensions="          26          26          26 ">
+     </Topology>
+     <Geometry name="geo" Type="X_Y_Z">
+     <DataItem Name="X" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="           4 ">
+     campos_00012
+     </DataItem>
+     <DataItem Name="Y" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="       70308 ">
+     campos_00012
+     </DataItem>
+     <DataItem Name="Z" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="      140612 ">
+     campos_00012
+     </DataItem>
+     </Geometry>
+             <Attribute Name="V" AttributeType="Vector" Center="Node">
+                <DataItem Dimensions="          26          26          26 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      210916 " Dimensions="          26          26          26  1">
+                      campos_00012
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      281220 " Dimensions="          26          26          26  1">
+                      campos_00012
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      351524 " Dimensions="          26          26          26  1">
+                      campos_00012
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="level_set" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      421828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00012
+                </DataItem>
+             </Attribute>
+             <Attribute Name="obstaculo" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      484328 "
+                 Dimensions="          25          25          25 ">
+                   campos_00012
+                </DataItem>
+             </Attribute>
+             <Attribute Name="pressure" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      546828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00012
+                </DataItem>
+             </Attribute>
+             <Attribute Name="vorticity" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      609328 " Dimensions="          25          25          25  1">
+                      campos_00012
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      671828 " Dimensions="          25          25          25  1">
+                      campos_00012
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      734328 " Dimensions="          25          25          25  1">
+                      campos_00012
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="visc" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      796828 " Dimensions="          25          25          25  1">
+                      campos_00012
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      859328 " Dimensions="          25          25          25  1">
+                      campos_00012
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      921828 " Dimensions="          25          25          25  1">
+                      campos_00012
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+         </Grid>
+
+
+         <Grid Name="campos_00013" GridType="Uniform">
+     <Topology name="topo" TopologyType="3DSMesh"
+         Dimensions="          26          26          26 ">
+     </Topology>
+     <Geometry name="geo" Type="X_Y_Z">
+     <DataItem Name="X" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="           4 ">
+     campos_00013
+     </DataItem>
+     <DataItem Name="Y" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="       70308 ">
+     campos_00013
+     </DataItem>
+     <DataItem Name="Z" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="      140612 ">
+     campos_00013
+     </DataItem>
+     </Geometry>
+             <Attribute Name="V" AttributeType="Vector" Center="Node">
+                <DataItem Dimensions="          26          26          26 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      210916 " Dimensions="          26          26          26  1">
+                      campos_00013
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      281220 " Dimensions="          26          26          26  1">
+                      campos_00013
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      351524 " Dimensions="          26          26          26  1">
+                      campos_00013
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="level_set" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      421828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00013
+                </DataItem>
+             </Attribute>
+             <Attribute Name="obstaculo" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      484328 "
+                 Dimensions="          25          25          25 ">
+                   campos_00013
+                </DataItem>
+             </Attribute>
+             <Attribute Name="pressure" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      546828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00013
+                </DataItem>
+             </Attribute>
+             <Attribute Name="vorticity" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      609328 " Dimensions="          25          25          25  1">
+                      campos_00013
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      671828 " Dimensions="          25          25          25  1">
+                      campos_00013
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      734328 " Dimensions="          25          25          25  1">
+                      campos_00013
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="visc" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      796828 " Dimensions="          25          25          25  1">
+                      campos_00013
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      859328 " Dimensions="          25          25          25  1">
+                      campos_00013
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      921828 " Dimensions="          25          25          25  1">
+                      campos_00013
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+         </Grid>
+
+
+         <Grid Name="campos_00014" GridType="Uniform">
+     <Topology name="topo" TopologyType="3DSMesh"
+         Dimensions="          26          26          26 ">
+     </Topology>
+     <Geometry name="geo" Type="X_Y_Z">
+     <DataItem Name="X" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="           4 ">
+     campos_00014
+     </DataItem>
+     <DataItem Name="Y" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="       70308 ">
+     campos_00014
+     </DataItem>
+     <DataItem Name="Z" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="      140612 ">
+     campos_00014
+     </DataItem>
+     </Geometry>
+             <Attribute Name="V" AttributeType="Vector" Center="Node">
+                <DataItem Dimensions="          26          26          26 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      210916 " Dimensions="          26          26          26  1">
+                      campos_00014
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      281220 " Dimensions="          26          26          26  1">
+                      campos_00014
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      351524 " Dimensions="          26          26          26  1">
+                      campos_00014
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="level_set" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      421828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00014
+                </DataItem>
+             </Attribute>
+             <Attribute Name="obstaculo" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      484328 "
+                 Dimensions="          25          25          25 ">
+                   campos_00014
+                </DataItem>
+             </Attribute>
+             <Attribute Name="pressure" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      546828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00014
+                </DataItem>
+             </Attribute>
+             <Attribute Name="vorticity" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      609328 " Dimensions="          25          25          25  1">
+                      campos_00014
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      671828 " Dimensions="          25          25          25  1">
+                      campos_00014
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      734328 " Dimensions="          25          25          25  1">
+                      campos_00014
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="visc" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      796828 " Dimensions="          25          25          25  1">
+                      campos_00014
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      859328 " Dimensions="          25          25          25  1">
+                      campos_00014
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      921828 " Dimensions="          25          25          25  1">
+                      campos_00014
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+         </Grid>
+
+
+         <Grid Name="campos_00015" GridType="Uniform">
+     <Topology name="topo" TopologyType="3DSMesh"
+         Dimensions="          26          26          26 ">
+     </Topology>
+     <Geometry name="geo" Type="X_Y_Z">
+     <DataItem Name="X" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="           4 ">
+     campos_00015
+     </DataItem>
+     <DataItem Name="Y" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="       70308 ">
+     campos_00015
+     </DataItem>
+     <DataItem Name="Z" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="      140612 ">
+     campos_00015
+     </DataItem>
+     </Geometry>
+             <Attribute Name="V" AttributeType="Vector" Center="Node">
+                <DataItem Dimensions="          26          26          26 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      210916 " Dimensions="          26          26          26  1">
+                      campos_00015
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      281220 " Dimensions="          26          26          26  1">
+                      campos_00015
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      351524 " Dimensions="          26          26          26  1">
+                      campos_00015
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="level_set" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      421828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00015
+                </DataItem>
+             </Attribute>
+             <Attribute Name="obstaculo" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      484328 "
+                 Dimensions="          25          25          25 ">
+                   campos_00015
+                </DataItem>
+             </Attribute>
+             <Attribute Name="pressure" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      546828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00015
+                </DataItem>
+             </Attribute>
+             <Attribute Name="vorticity" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      609328 " Dimensions="          25          25          25  1">
+                      campos_00015
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      671828 " Dimensions="          25          25          25  1">
+                      campos_00015
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      734328 " Dimensions="          25          25          25  1">
+                      campos_00015
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="visc" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      796828 " Dimensions="          25          25          25  1">
+                      campos_00015
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      859328 " Dimensions="          25          25          25  1">
+                      campos_00015
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      921828 " Dimensions="          25          25          25  1">
+                      campos_00015
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+         </Grid>
+
+
+         <Grid Name="campos_00016" GridType="Uniform">
+     <Topology name="topo" TopologyType="3DSMesh"
+         Dimensions="          26          26          26 ">
+     </Topology>
+     <Geometry name="geo" Type="X_Y_Z">
+     <DataItem Name="X" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="           4 ">
+     campos_00016
+     </DataItem>
+     <DataItem Name="Y" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="       70308 ">
+     campos_00016
+     </DataItem>
+     <DataItem Name="Z" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="      140612 ">
+     campos_00016
+     </DataItem>
+     </Geometry>
+             <Attribute Name="V" AttributeType="Vector" Center="Node">
+                <DataItem Dimensions="          26          26          26 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      210916 " Dimensions="          26          26          26  1">
+                      campos_00016
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      281220 " Dimensions="          26          26          26  1">
+                      campos_00016
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      351524 " Dimensions="          26          26          26  1">
+                      campos_00016
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="level_set" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      421828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00016
+                </DataItem>
+             </Attribute>
+             <Attribute Name="obstaculo" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      484328 "
+                 Dimensions="          25          25          25 ">
+                   campos_00016
+                </DataItem>
+             </Attribute>
+             <Attribute Name="pressure" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      546828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00016
+                </DataItem>
+             </Attribute>
+             <Attribute Name="vorticity" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      609328 " Dimensions="          25          25          25  1">
+                      campos_00016
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      671828 " Dimensions="          25          25          25  1">
+                      campos_00016
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      734328 " Dimensions="          25          25          25  1">
+                      campos_00016
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="visc" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      796828 " Dimensions="          25          25          25  1">
+                      campos_00016
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      859328 " Dimensions="          25          25          25  1">
+                      campos_00016
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      921828 " Dimensions="          25          25          25  1">
+                      campos_00016
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+         </Grid>
+
+
+         <Grid Name="campos_00017" GridType="Uniform">
+     <Topology name="topo" TopologyType="3DSMesh"
+         Dimensions="          26          26          26 ">
+     </Topology>
+     <Geometry name="geo" Type="X_Y_Z">
+     <DataItem Name="X" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="           4 ">
+     campos_00017
+     </DataItem>
+     <DataItem Name="Y" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="       70308 ">
+     campos_00017
+     </DataItem>
+     <DataItem Name="Z" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="      140612 ">
+     campos_00017
+     </DataItem>
+     </Geometry>
+             <Attribute Name="V" AttributeType="Vector" Center="Node">
+                <DataItem Dimensions="          26          26          26 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      210916 " Dimensions="          26          26          26  1">
+                      campos_00017
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      281220 " Dimensions="          26          26          26  1">
+                      campos_00017
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      351524 " Dimensions="          26          26          26  1">
+                      campos_00017
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="level_set" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      421828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00017
+                </DataItem>
+             </Attribute>
+             <Attribute Name="obstaculo" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      484328 "
+                 Dimensions="          25          25          25 ">
+                   campos_00017
+                </DataItem>
+             </Attribute>
+             <Attribute Name="pressure" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      546828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00017
+                </DataItem>
+             </Attribute>
+             <Attribute Name="vorticity" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      609328 " Dimensions="          25          25          25  1">
+                      campos_00017
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      671828 " Dimensions="          25          25          25  1">
+                      campos_00017
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      734328 " Dimensions="          25          25          25  1">
+                      campos_00017
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="visc" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      796828 " Dimensions="          25          25          25  1">
+                      campos_00017
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      859328 " Dimensions="          25          25          25  1">
+                      campos_00017
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      921828 " Dimensions="          25          25          25  1">
+                      campos_00017
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+         </Grid>
+
+
+         <Grid Name="campos_00018" GridType="Uniform">
+     <Topology name="topo" TopologyType="3DSMesh"
+         Dimensions="          26          26          26 ">
+     </Topology>
+     <Geometry name="geo" Type="X_Y_Z">
+     <DataItem Name="X" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="           4 ">
+     campos_00018
+     </DataItem>
+     <DataItem Name="Y" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="       70308 ">
+     campos_00018
+     </DataItem>
+     <DataItem Name="Z" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="      140612 ">
+     campos_00018
+     </DataItem>
+     </Geometry>
+             <Attribute Name="V" AttributeType="Vector" Center="Node">
+                <DataItem Dimensions="          26          26          26 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      210916 " Dimensions="          26          26          26  1">
+                      campos_00018
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      281220 " Dimensions="          26          26          26  1">
+                      campos_00018
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      351524 " Dimensions="          26          26          26  1">
+                      campos_00018
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="level_set" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      421828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00018
+                </DataItem>
+             </Attribute>
+             <Attribute Name="obstaculo" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      484328 "
+                 Dimensions="          25          25          25 ">
+                   campos_00018
+                </DataItem>
+             </Attribute>
+             <Attribute Name="pressure" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      546828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00018
+                </DataItem>
+             </Attribute>
+             <Attribute Name="vorticity" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      609328 " Dimensions="          25          25          25  1">
+                      campos_00018
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      671828 " Dimensions="          25          25          25  1">
+                      campos_00018
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      734328 " Dimensions="          25          25          25  1">
+                      campos_00018
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="visc" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      796828 " Dimensions="          25          25          25  1">
+                      campos_00018
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      859328 " Dimensions="          25          25          25  1">
+                      campos_00018
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      921828 " Dimensions="          25          25          25  1">
+                      campos_00018
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+         </Grid>
+
+
+         <Grid Name="campos_00019" GridType="Uniform">
+     <Topology name="topo" TopologyType="3DSMesh"
+         Dimensions="          26          26          26 ">
+     </Topology>
+     <Geometry name="geo" Type="X_Y_Z">
+     <DataItem Name="X" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="           4 ">
+     campos_00019
+     </DataItem>
+     <DataItem Name="Y" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="       70308 ">
+     campos_00019
+     </DataItem>
+     <DataItem Name="Z" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="      140612 ">
+     campos_00019
+     </DataItem>
+     </Geometry>
+             <Attribute Name="V" AttributeType="Vector" Center="Node">
+                <DataItem Dimensions="          26          26          26 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      210916 " Dimensions="          26          26          26  1">
+                      campos_00019
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      281220 " Dimensions="          26          26          26  1">
+                      campos_00019
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      351524 " Dimensions="          26          26          26  1">
+                      campos_00019
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="level_set" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      421828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00019
+                </DataItem>
+             </Attribute>
+             <Attribute Name="obstaculo" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      484328 "
+                 Dimensions="          25          25          25 ">
+                   campos_00019
+                </DataItem>
+             </Attribute>
+             <Attribute Name="pressure" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      546828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00019
+                </DataItem>
+             </Attribute>
+             <Attribute Name="vorticity" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      609328 " Dimensions="          25          25          25  1">
+                      campos_00019
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      671828 " Dimensions="          25          25          25  1">
+                      campos_00019
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      734328 " Dimensions="          25          25          25  1">
+                      campos_00019
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="visc" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      796828 " Dimensions="          25          25          25  1">
+                      campos_00019
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      859328 " Dimensions="          25          25          25  1">
+                      campos_00019
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      921828 " Dimensions="          25          25          25  1">
+                      campos_00019
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+         </Grid>
+
+
+         <Grid Name="campos_00020" GridType="Uniform">
+     <Topology name="topo" TopologyType="3DSMesh"
+         Dimensions="          26          26          26 ">
+     </Topology>
+     <Geometry name="geo" Type="X_Y_Z">
+     <DataItem Name="X" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="           4 ">
+     campos_00020
+     </DataItem>
+     <DataItem Name="Y" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="       70308 ">
+     campos_00020
+     </DataItem>
+     <DataItem Name="Z" Format="Binary" Dimensions="          26          26          26 " DataType="Float" Precision="4" Endian="little"
+     Seek="      140612 ">
+     campos_00020
+     </DataItem>
+     </Geometry>
+             <Attribute Name="V" AttributeType="Vector" Center="Node">
+                <DataItem Dimensions="          26          26          26 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      210916 " Dimensions="          26          26          26  1">
+                      campos_00020
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      281220 " Dimensions="          26          26          26  1">
+                      campos_00020
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      351524 " Dimensions="          26          26          26  1">
+                      campos_00020
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="level_set" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      421828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00020
+                </DataItem>
+             </Attribute>
+             <Attribute Name="obstaculo" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      484328 "
+                 Dimensions="          25          25          25 ">
+                   campos_00020
+                </DataItem>
+             </Attribute>
+             <Attribute Name="pressure" Center="Cell">
+                <DataItem Format="Binary" 
+                 DataType="Float" Precision="4" Endian="little" Seek="      546828 "
+                 Dimensions="          25          25          25 ">
+                   campos_00020
+                </DataItem>
+             </Attribute>
+             <Attribute Name="vorticity" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      609328 " Dimensions="          25          25          25  1">
+                      campos_00020
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      671828 " Dimensions="          25          25          25  1">
+                      campos_00020
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      734328 " Dimensions="          25          25          25  1">
+                      campos_00020
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+             <Attribute Name="visc" AttributeType="Vector" Center="Cell">
+                <DataItem Dimensions="          25          25          25 3" Function="JOIN($0, $1, $2)"
+                          ItemType="Function">
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      796828 " Dimensions="          25          25          25  1">
+                      campos_00020
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      859328 " Dimensions="          25          25          25  1">
+                      campos_00020
+                   </DataItem>
+                   <DataItem  Format="Binary" DataType="Float" Precision="4" Endian="little"
+                      Seek="      921828 " Dimensions="          25          25          25  1">
+                      campos_00020
+                   </DataItem>
+                </DataItem>
+             </Attribute>
+         </Grid>
+
+
+     </Grid>
+ </Domain>
+</Xdmf>

@@ -4,18 +4,18 @@ module disc
 real(8),parameter ::  pi = acos(-1.) 
 
 !Discretizações espaciais em x e y (metros), discretização temporal (segundos)
-real(8),parameter :: dx = 0.02, dy = 0.02, dz = 0.02
+real(8),parameter :: dx = 0.02, dy = 0.02, dz = 0.02, dt0 = 0.001
 
-real(8) :: t, dt = 0.001, t_i, t_a
+real(8) :: t, dt, t_i, t_a
 !Número de células para x, y e z (-); número de pontos para x, y e z (-); tempo de simulação (segundos)
 
 !Número de tempo por arquivo plotado
-real(8),parameter :: dt_frame = 1.
+real(8),parameter :: dt_frame = 0.1
 
 
-integer,parameter :: nx=int(.5/dx) , ny=int(1./dy), nz=int(0.9/dz)
+integer,parameter :: nx=int(.5/dx) , ny=int(0.5/dy), nz=int(0.5/dz)
 !nz=int(10./dz1-0.1+0.5) porque a última célula é maior (0.5)
-integer,parameter :: nx1=nx+1, ny1=ny+1, nz1=nz+1, ts = ceiling(20./0.001)
+integer,parameter :: nx1=nx+1, ny1=ny+1, nz1=nz+1, ts = ceiling(1./dt0)
 
 !Para fazer dz variável no espaço inicialmente criar uma função ...
 real(8),parameter :: uinicial = 0.31
@@ -23,6 +23,7 @@ real(8),parameter :: uinicial = 0.31
 integer,parameter :: t_plot = 1 ! 0 = modo simples (velocidade, Level Set e IBM), 1 = modo completo (pressão, vorticidade, viscosidade)
 
 integer,parameter :: t_tempo = 1 ! 0 = Euler Explícito, 1 = RK 2, 2 = RK 3, 3 = AB2
+integer,parameter :: t_tempo_var = 0 ! 0 = dt constante, 1 = dt adaptativo
 
 integer,parameter :: der = 1 ! 1 = upwind, 2 = centrado, 3 = upwind 2nd order (centrado só para advectivo clássico)
 integer,parameter :: adv_type = 1 ! 1 = advectivo clássico, 2 = rotacional, 3 = antissimétrico
@@ -34,6 +35,8 @@ integer,parameter :: m_turb = 0 ! 0 = sem modelo, 1 = LES Smagorinsky-Lilly Clá
 integer,parameter :: esp_type = 0 ! 0 = sem camada esponja, 1 = leva em consideração a profundidade, 2 = não leva em consideração a profundidade, 3 = Método da Tangente Hiperbólica
 
 integer,parameter :: wave_t = 0 ! 0 = sem onda, 1 = Stokes I, 2 = Stokes II, 5 = Stokes V
+
+integer,parameter :: t_press = 1 ! 0 = aproximacao hidrostatica de pressao, 1 = aproximacao nao-hidrostatica (1 mais indicado)
 
 integer,parameter :: mms_t = 0  ! 0 = sem MMS, 1 = MMS permanente, 2 = MMS não permanente
 
@@ -94,7 +97,7 @@ real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: u
 real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: v
 real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: w
 
-real(8),dimension(0:ny+1,0:nz+1)  :: bxx0, bxx1
+real(8),dimension(0:ny+1,0:nz+1)  :: bxx0, bxx1, blx1
 real(8),dimension(0:ny1+1,0:nz+1) :: bxy0
 real(8),dimension(0:ny+1,0:nz1+1) :: bxz0
 

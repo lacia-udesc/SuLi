@@ -53,14 +53,11 @@ if ((nlock == 1).or.(nlock == 2)) then
 		prd1(:,:,0)    = prd1(:,:,1)
 		prd1(:,:,nz+1) = prd1(:,:,nz)
 
-		CALL prd_corr(dpdx,dpdy,dpdz)
-
 		!Parede esquerda (j = 1)
 		!Periodica
 		if (ccy0.eq.0.and.ccyf.eq.0) then
 			u(:,0,:) = u(:,ny,:)    
 			v(:,0,:) = v(:,ny1-1,:)
-			v(:,1,:) = v(:,ny1,:)   
 			w(:,0,:) = w(:,ny,:)    
 		endif
 		
@@ -266,13 +263,13 @@ if ((nlock == 1).or.(nlock == 2)) then
 		else
 			do j=0,ny+1
 			do i=0,nx+1
-				u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
-				v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
-				w(i,j,0:kw(i,j))=0. !+ dpdz(i,j,0:kw(i,j))
+				u(i,j,0:ku(i,j)-1)=0. !+ dpdx(i,j,0:ku(i,j))
+				v(i,j,0:kv(i,j)-1)=0. !+ dpdy(i,j,0:kv(i,j))
+				w(i,j,0:kw(i,j)-1)=0. !+ dpdz(i,j,0:kw(i,j))
 				!Rugosidade Interna
-				ub(i,j,ku(i,j)+1) = u(i,j,ku(i,j)+1)
-				vb(i,j,kv(i,j)+1) = v(i,j,kv(i,j)+1)
-				wb(i,j,kw(i,j)+1) = w(i,j,kw(i,j)+1)
+				ub(i,j,ku(i,j)) = u(i,j,ku(i,j)+1)
+				vb(i,j,kv(i,j)) = v(i,j,kv(i,j)+1)
+				wb(i,j,kw(i,j)) = w(i,j,kw(i,j)+1)
 				!ub(i,j,ku(i,j)+1) = 0.
 				!vb(i,j,kv(i,j)+1) = 0.
 				!wb(i,j,kw(i,j)+1) = 0.
@@ -296,24 +293,21 @@ endif
 
 if (nlock == 2) then
 
+	if (ccx0 .eq. 3 .or. ccxf .eq. 3 .or. ccy0 .eq. 3 .or. ccyf .eq. 3 .or. ccz0 .eq. 3 .or. cczf .eq. 3) then
+		CALL prd_corr(dpdx,dpdy,dpdz)
+	endif
 
-
-
-
-
-
-
-		if (ccy0.eq.0.and.ccyf.eq.0) then
-			v(:,1,:) = v(:,ny1,:)     
-		endif
+	if (ccy0.eq.0.and.ccyf.eq.0) then
+		v(:,1,:) = v(:,ny1,:)     
+	endif
 		
 		!Free-slip condition
 		if (ccy0.eq.1) then 
-			v(:,1,:) = 0.        + dpdy(:,1,:)
+			v(:,1,:) = 0.
 		endif
 		!No-slip condition
 		if (ccy0.eq.2) then 
-			v(:,1,:) = 0.        + dpdy(:,1,:)
+			v(:,1,:) = 0.
 		endif
 		
 		!Prescrita
@@ -329,12 +323,12 @@ if (nlock == 2) then
 
 		!Free-slip condition
 		if (ccyf.eq.1) then
-			v(:,ny1,:)   = 0.            + dpdy(:,ny1,:)
+			v(:,ny1,:)   = 0.
 		endif
 		
 		!No-slip condition
 		if (ccyf.eq.2) then 
-			v(:,ny1,:) = 0.             + dpdy(:,ny1,:)
+			v(:,ny1,:) = 0.
 		endif
 
 		!Prescrita
@@ -350,17 +344,20 @@ if (nlock == 2) then
 		
 		!Free-slip condition
 		if (ccx0.eq.1) then
-			u(1,:,:) = 0.        + dpdx(1,:,:)
+			u(1,:,:) = 0.
 		endif
 
 		!No-slip condition
 		if (ccx0.eq.2) then
-			u(1,:,:) = 0.        + dpdx(1,:,:)
+			u(1,:,:) = 0.
 		endif
 
 		!Prescrita
 		if (ccx0.eq.3) then
 			u(1,:,:) = bxx1(:,:) + dpdx(1,:,:)
+			do k = 1, nz
+			ls(1,:,k) = blx1(1:ny,k)
+			enddo 
 		endif
 		
 		!Para validação
@@ -387,15 +384,12 @@ if (nlock == 2) then
 
 		!Free-slip condition
 		if (ccxf.eq.1) then
-			u(nx1,:,:)   = 0.            + dpdx(nx1,:,:)
+			u(nx1,:,:)   = 0.
 		endif
 
 		!No-slip condition
 		if (ccxf.eq.2) then
-			u(nx1,:,:)   = 0.           + dpdx(nx1,:,:)
-			u(nx1+1,:,:) = u(nx1-1,:,:)
-			v(nx+1,:,:)  = -v(nx,:,:)
-			w(nx+1,:,:)  = -w(nx,:,:)
+			u(nx1,:,:)   = 0.
 		endif
 
 		!Prescrita
@@ -411,12 +405,12 @@ if (nlock == 2) then
 		!Parede do fundo (k = 1)
 		!Free-slip
 		if (ccz0.eq.1) then
-			w(:,:,1) = 0.        + dpdz(:,:,1)
+			w(:,:,1) = 0.
 		endif
 
 		!No-slip condition
 		if (ccz0.eq.2) then
-			w(:,:,1) = 0.        + dpdz(:,:,1)
+			w(:,:,1) = 0.
 		endif
 
 		!Velocidade prescrita para manufaturada
@@ -427,12 +421,12 @@ if (nlock == 2) then
 		!Superfície Livre (k = nz ou nz1)
 		!Sempre na superfície livre será free-slip(em teste)
 		if (cczf.eq.1) then
-			w(:,:,nz1)   = 0.            + dpdz(:,:,nz1)
+			w(:,:,nz1)   = 0.
 		endif
 		
 		!Sempre na superfície livre será no-slip(em teste)
 		if (cczf.eq.2) then
-			w(:,:,nz1)   = 0.           + dpdz(:,:,nz1)
+			w(:,:,nz1)   = 0.
 		endif
 
 		!Velocidade prescrita para manufaturada
@@ -446,7 +440,7 @@ elseif ((nlock == 3) .and. (obst_t .ne. 0)) then
 		!Contorno para Level Set, o ideal é que o objeto seja representado por pelo menos dois grid por direção
 		do j = 1,ny
 		do i = 1,nx
-		do k = 1, kw(i,j)-1 
+		do k = kw(i,j)-1, 1 
 
 			if ((kw(i-1,j) < k) .and. ((kw(i,j-1) < k)) ) then ! 5ª aqui faz interpolação 
 				ls(i,j,k) = (ls(i-1,j,k) + ls(i,j-1,k))*0.5
@@ -735,6 +729,24 @@ elseif (obst_t == 10) then !(bd_koshizuka, 1995 e Kleefsman, 2005)
 
 	enddo
 	enddo
+	
+elseif (obst_t == 12) then !rio Felipe
+
+	auxx = -dz
+
+	do j = -1,nyy+2
+	do i = -1, nxx+2
+	x = (i-1.)*dx*0.5
+	y = (j-1.)*dy*0.5
+
+	if ((y >= 1.5 ) .or. (y <=0.5 )) then !Criando a parede
+		auxx(i,j) = 0.55!(nz+1)*dz
+	else
+		auxx(i,j) = 0.!(nz+1)*dz
+	endif
+	enddo
+	enddo
+	
 endif
 
 
@@ -896,7 +908,7 @@ do k = 1, nz1
 do j = 1, ny
 do i = 1, nx
 
-dpdz(i,j,k) = 0.!(prd(i,j,k) - prd(i,j,k-1))/ rhoz(i,j,k) *dt /dz
+dpdz(i,j,k) = (prd(i,j,k) - prd(i,j,k-1))/ rhoz(i,j,k) *dt /dz
 
 enddo
 enddo
@@ -906,7 +918,7 @@ do k = 1, nz
 do j = 1, ny1
 do i = 1, nx
 
-dpdy(i,j,k) = 0.!(prd(i,j,k) - prd(i,j-1,k))/ rhoy(i,j,k) *dt /dy
+dpdy(i,j,k) = (prd(i,j,k) - prd(i,j-1,k))/ rhoy(i,j,k) *dt /dy
 
 enddo
 enddo
@@ -916,7 +928,7 @@ do k = 1, nz
 do j = 1, ny
 do i = 1, nx1
 
-dpdx(i,j,k) = 0.!(prd(i,j,k) - prd(i-1,j,k))/ rhox(i,j,k) *dt /dx
+dpdx(i,j,k) = (prd(i,j,k) - prd(i-1,j,k))/ rhox(i,j,k) *dt /dx
 
 enddo
 enddo

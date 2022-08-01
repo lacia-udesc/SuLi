@@ -35,60 +35,63 @@ SUBROUTINE posdin()
 	enddo
 	enddo
 
-	do k = 1, nz1
-	do j = 1, ny
-	do i = 1, nx
-		w(i,j,k) = w(i,j,k) - dt / dz * ( prd1(i,j,k)-prd1(i,j,k-1) ) / rhoz(i,j,k)! + dt*tf_pz(i,j,k)/rhoz(i,j,k)
+	if (t_press.eq.1) then
+		do k = 1, nz1
+		do j = 1, ny
+		do i = 1, nx
+			w(i,j,k) = w(i,j,k) - dt / dz * ( prd1(i,j,k)-prd1(i,j,k-1) ) / rhoz(i,j,k)! + dt*tf_pz(i,j,k)/rhoz(i,j,k)
 
-	enddo
-	enddo
-	enddo
+		enddo
+		enddo
+		enddo
+	else
+
+		w(:,:,1) = 0. !velocidade vertical no fundo é zero
+		do k = 1, nz
+		do j = 1, ny
+		do i = 1, nx
+			w(i,j,k+1) = w(i,j,k)-(u(i+1,j,k)-u(i,j,k))*dz/dx - (v(i,j+1,k)-v(i,j,k))*dz/dy
+		enddo
+		enddo
+		enddo
+
+		! anula a velocidade no ar para puramente hidrostatico
+		call interpx_cf(hs,nx,ny,nz,hs_x) !(nx1,ny,nz)
+		call interpy_cf(hs,nx,ny,nz,hs_y) !(nx,ny1,nz)
+		call interpz_cf(hs,nx,ny,nz,hs_z) !(nx,ny,nz1)
 
 
-!	w(:,:,1) = 0. !velocidade vertical no fundo é zero
-!	do k = 1, nz
-!	do j = 1, ny
-!	do i = 1, nx
-!		w(i,j,k+1) = w(i,j,k)-(u(i+1,j,k)-u(i,j,k))*dz/dx - (v(i,j+1,k)-v(i,j,k))*dz/dy
-!	enddo
-!	enddo
-!	enddo
+		do k = 1, nz
+		do j = 1, ny
+		do i = 1, nx1
+		 if (hs_x(i,j,k) < 0.0001) then
+		  u(i,j,k) = 0.
+		 endif
+		enddo
+		enddo
+		enddo
 
-!	call interpx_cf(hs,nx,ny,nz,hs_x) !(nx1,ny,nz)
-!	call interpy_cf(hs,nx,ny,nz,hs_y) !(nx,ny1,nz)
-!	call interpz_cf(hs,nx,ny,nz,hs_z) !(nx,ny,nz1)
+		do k = 1, nz
+		do j = 1, ny1
+		do i = 1, nx
+		 if (hs_y(i,j,k) < 0.0001) then
+		  v(i,j,k) = 0.
+		 endif
+		enddo
+		enddo
+		enddo
 
+		do k = 1, nz1
+		do j = 1, ny
+		do i = 1, nx
+		 if (hs_z(i,j,k) < 0.0001) then
+		  w(i,j,k) = 0.
+		 endif
+		enddo
+		enddo
+		enddo
 
-!	do k = 1, nz
-!	do j = 1, ny
-!	do i = 1, nx1
-!	 if (hs_x(i,j,k) < 0.0001) then
-!	  u(i,j,k) = 0.
-!	 endif
-!	enddo
-!	enddo
-!	enddo
-
-!	do k = 1, nz
-!	do j = 1, ny1
-!	do i = 1, nx
-!	 if (hs_y(i,j,k) < 0.0001) then
-!	  v(i,j,k) = 0.
-!	 endif
-!	enddo
-!	enddo
-!	enddo
-
-!	do k = 1, nz1
-!	do j = 1, ny
-!	do i = 1, nx
-!	 if (hs_z(i,j,k) < 0.0001) then
-!	  w(i,j,k) = 0.
-!	 endif
-!	enddo
-!	enddo
-!	enddo
-
+	endif
 	prd = prd1
 	!prd1 = prd1 + prd0 !arrumar erro da pressão quando prd0 =/ 0
 

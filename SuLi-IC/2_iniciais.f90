@@ -5,20 +5,18 @@
 !Leonardo Romero Monteiro
 
 !Modificações
-!Leonardo Romero Monteiro em 13/01/2015
+!Leonardo Romero Monteiro em 13/01/2022
 
 SUBROUTINE iniciais()
 
 USE velpre
 USE obst
 USE tempo
-	USE cond
+USE cond
 USE mms_m
-
 IMPLICIT NONE
 
 integer :: i, j, k
-
 if (ccx0.eq.4) then 
 	!Para validacao
 	!u(:,:,11+1) = 0.15946
@@ -34,6 +32,7 @@ if (ccx0.eq.4) then
 endif
 
 t = 0.
+dt = dt0
 u = uinicial
 v = 0.
 w = 0.
@@ -80,6 +79,15 @@ endif
 it = 0
 cont = 10
 
+call coef_tempo()
+
+END SUBROUTINE iniciais
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+SUBROUTINE coef_tempo()
+
+USE disc
 !Método da integração temporal
 write(*,*) "Esquema temporal: "
 if ((t_tempo == 0)  .or. (t_tempo == 3)) then
@@ -103,5 +111,5 @@ elseif (t_tempo == 2) then
 	
 endif
 
-	END SUBROUTINE iniciais
+END SUBROUTINE coef_tempo
 
