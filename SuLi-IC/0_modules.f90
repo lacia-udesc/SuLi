@@ -1,5 +1,5 @@
 !Características básicas do domínio, escoamento e método numérico SuLi-IC
-module disc
+module disc!
 
 real(8),parameter ::  pi = acos(-1.) 
 
