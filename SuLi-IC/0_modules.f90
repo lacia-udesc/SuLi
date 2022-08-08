@@ -3,19 +3,18 @@ module disc
 
 real(8),parameter ::  pi = acos(-1.) 
 
-!Discretizações espaciais em x e y (metros), discretização temporal (segundos)
+!Discretizações espaciais em x, y e z (metros), discretização temporal (segundos)
 real(8),parameter :: dx = 0.02, dy = 0.02, dz = 0.02, dt0 = 0.001
 
-real(8) :: t, dt, t_i, t_a
+! Tamanho do domminio nas tres direcoes (m) e tempo da simulacao (s)
+real(8),parameter :: lx = 0.5 , ly = 0.5 , lz = 0.5, lt = 1.
+
 !Número de células para x, y e z (-); número de pontos para x, y e z (-); tempo de simulação (segundos)
+integer,parameter :: nx=int(lx/dx) , ny=int(ly/dy), nz=int(lz/dz)
+integer,parameter :: nx1=nx+1, ny1=ny+1, nz1=nz+1, ts = ceiling(lt/dt0)
 
 !Número de tempo por arquivo plotado
 real(8),parameter :: dt_frame = 0.1
-
-
-integer,parameter :: nx=int(.5/dx) , ny=int(0.5/dy), nz=int(0.5/dz)
-!nz=int(10./dz1-0.1+0.5) porque a última célula é maior (0.5)
-integer,parameter :: nx1=nx+1, ny1=ny+1, nz1=nz+1, ts = ceiling(1./dt0)
 
 !Para fazer dz variável no espaço inicialmente criar uma função ...
 real(8),parameter :: uinicial = 0.31
@@ -40,16 +39,21 @@ integer,parameter :: t_press = 1 ! 0 = aproximacao hidrostatica de pressao, 1 = 
 
 integer,parameter :: mms_t = 0  ! 0 = sem MMS, 1 = MMS permanente, 2 = MMS não permanente
 
+! auxiliares
+real(8) :: t, dt, t_i, t_a
 integer :: it, tt ,ntt
-
 real(8),dimension(3) :: a_dt
 
 end module disc
+
+!#####################################################################
 
 module restart
  integer, parameter :: irest=0 !0=essa simulacao nao é um restart de outra 1 = o arquivo de restart vai ser lido e usado pra continuar a simulacao
  real :: interv_rest=100 !de quantas em quantas iteracoes salva o restart
 end module restart
+
+!#####################################################################
 
 !Condicoes de contorno
 module cond 
@@ -64,8 +68,9 @@ integer,parameter :: ccyf=2 !condicao de contorno parede y=yf --> 0 é periodico
 integer,parameter :: ccz0=2 !condicao de contorno parede z=0 --> 1 é free-slip, 2 é no-slip, 3 é prescrita
 integer,parameter :: cczf=1 !condicao de contorno parede z=zf --> 1 é free-slip, 3 é prescrita
 
-
 end module cond
+
+!#####################################################################
 
 module obst
 
@@ -81,12 +86,15 @@ integer, dimension(0:nx1+1,0:ny+1) :: ku
 !Indicam até que altura as velocidades tem que ser zeradas (até qual índice k)
 integer, dimension(0:nx+1,0:ny1+1) :: kv
 integer, dimension(0:nx+1,0:ny+1)  :: kw
-integer, parameter :: elev = 50. *dz                    
-!Comprimento a adicionar abaixo
 
+!Inicio Remover do codigo
+integer, parameter :: elev = 50. *dz                    
 real(8), parameter :: amp = 0.50, comp = .5, fase = -pi/2. !amplitude, comprimento e fase da onda
+!Fim remover
 
 end module obst
+
+!#####################################################################
 
 module velpre
 
@@ -129,6 +137,8 @@ real(8) :: d_max, d_min, b_eta0, b_eta1
 
 end module velpre
 
+!#####################################################################
+
 module vartempo
 
 USE disc
@@ -138,11 +148,13 @@ real(8),dimension(nx,ny,nz1) :: Fw, w0, fw0, fw1
 
 end module vartempo
 
+!#####################################################################
+
 module parametros
 
 !Parâmetros
 !Viscosidade cinemática (m²/s), coeficiente de chezy (m**(1/2)/s), aceleração da graviadde (m/s²) e implicitness parameter $Patnaik et al. 1987$ (-) 
-real(8), parameter :: tetah = 0.50, chezy = 44.5, decliv = 0.0002
+real(8), parameter :: tetah = 0.50, chezy = 44.5, decliv = 0.0002 !remover tetah
 
 real(8), parameter :: gx = 9.80665 * sin(atan(decliv)) , gz = 9.80665 * cos(atan(decliv))
 
@@ -154,6 +166,8 @@ real(8), parameter :: gx = 9.80665 * sin(atan(decliv)) , gz = 9.80665 * cos(atan
 
 end module parametros
 
+!#####################################################################
+
 module tempo
 
 integer(8) :: cont
@@ -162,9 +176,11 @@ integer(8) :: cont
 integer :: agora(8), agora1(8)
 real(8) :: ciclo, prev
 
-
 end module tempo
 
+!#####################################################################
+
+!
 module wave_c
 USE disc
 
@@ -174,10 +190,11 @@ real(8) :: aeta1, aeta2, aeta3, aeta4, aeta5
 
 real(8), dimension(0:nz+1) :: kp
 
-
 end module wave_c
 
-!Adicionado por Luísa Lucchese 07/16, variáveis para o LES
+!#####################################################################
+
+!variáveis para o LES
 module smag
 
 use disc
@@ -190,6 +207,9 @@ real(8), dimension(nx,ny,nz1) :: znut
 
 end module smag
 
+!#####################################################################
+
+!Variáveis para o LES
 module ls_param
 
 USE disc
@@ -204,7 +224,9 @@ integer,parameter :: t_hs = 0 ! tipo de função heaviside
 
 end module ls_param
 
-!Variáveis para o LES
+!#####################################################################
+
+! solucao manufaturada para verificacao do codigo
 module mms_m
 
 use disc
