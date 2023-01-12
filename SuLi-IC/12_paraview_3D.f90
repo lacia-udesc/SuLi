@@ -1,12 +1,12 @@
-  subroutine visu ()
+subroutine visu ()
 
   USE disc
 
   implicit none
 	
-  real(8) :: lx, ly, lz
+  real(8),save :: lx, ly, lz
   integer :: nfiles, icrfile, file1, filen, ifile, dig1, dig2, dig3, dig4, dig5
-  real(8), allocatable :: y1(:), y2(:), y3(:)
+  real(8),save,allocatable :: y1(:), y2(:), y3(:)
   integer :: i, j, k, num, aig, ii, nfil
 
   character(100) :: a
@@ -178,4 +178,4 @@
   write(nfil,'(A7)')'</Xdmf>'
   close(nfil)
 
-  end subroutine visu
+end subroutine visu

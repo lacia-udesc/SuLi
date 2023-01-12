@@ -4,7 +4,7 @@
 
 # GNU
 FC = gfortran
-OPTFC = -O3 -fdefault-real-8 -fdefault-double-8 -mcmodel=medium # -fcheck=all  #  #large #-floop-optimize -funroll-loops -ftree-fre -finline-functions -fpeel-loops -funsafe-math-optimizations -fprefetch-loop-arrays 
+OPTFC = -O3 -fdefault-real-8 -fdefault-double-8 -mcmodel=medium -fopenmp # -fcheck=all  #  #large #-floop-optimize -funroll-loops -ftree-fre -finline-functions -fpeel-loops -funsafe-math-optimizations -fprefetch-loop-arrays 
 CC = gcc
 
 # Intel
@@ -23,7 +23,7 @@ SRC =   0_modules.f90 1_principal.f90 2_iniciais.f90 3_contorno.f90 4_plot.f90 5
 OBJ =	$(SRC:.f90=.o)
 
 rodar_3d : $(OBJ)
-	$(FC) -O3 -o $@ $(OBJ) $(LIBS)
+	$(FC) -O3 -o $@ $(OBJ) $(OPTFC)
 
 %.o : %.f90
 	$(FC) $(OPTFC) $(OPTIONS) -c $<

@@ -11,30 +11,31 @@ SUBROUTINE graddin()
 
 	USE velpre
 	USE parametros
-        USE cond
+	USE cond
 	USE obst
-
+	USE :: omp_lib
+	
 	IMPLICIT NONE
 
 	!===================================================================================================================
 	!DECLARADO SOMENTE NA SUBROTINA (ou não precisam de entrada)
 
-	real(8) :: alfapr, alfamupr, alfadipr, betapr, betamupr
-	real(8), dimension(nx1,ny,nz) :: matspri
-	real(8), dimension(nx,ny1,nz) :: matsprj
-	real(8), dimension(nx,ny,nz1) :: matsprk
-	real(8), dimension(nx,ny,nz) :: matqpr, matapripos, mataprineg, mataprjpos, mataprjneg, mataprkpos, mataprkneg
-	real(8), dimension(0:nx1,0:ny1,0:nz1) :: matdpr, matepr, erropr, erroppr, mppr
+	real(8),save :: alfapr, alfamupr, alfadipr, betapr, betamupr
+	real(8),save,dimension(nx1,ny,nz) :: matspri
+	real(8),save,dimension(nx,ny1,nz) :: matsprj
+	real(8),save,dimension(nx,ny,nz1) :: matsprk
+	real(8),save,dimension(nx,ny,nz) :: matqpr, matapripos, mataprineg, mataprjpos, mataprjneg, mataprkpos, mataprkneg
+	real(8),save,dimension(0:nx1,0:ny1,0:nz1) :: matdpr, matepr, erropr, erroppr, mppr
 
 	!contadores
 	integer :: i, j, k, cont
 
 	!auxiliares
-	real(8) :: aux1, aux2, aux3
+	real(8),save :: aux1, aux2, aux3
 
-	real(8), dimension(nx1,ny,nz) :: rhox
-	real(8), dimension(nx,ny1,nz) :: rhoy
-	real(8), dimension(nx,ny,nz1) :: rhoz
+	real(8),save,dimension(nx1,ny,nz) :: rhox
+	real(8),save,dimension(nx,ny1,nz) :: rhoy
+	real(8),save,dimension(nx,ny,nz1) :: rhoz
 
 	!===================================================================================================================
 	!RESOLUÇÃO DO PROBLEMA
@@ -178,7 +179,7 @@ SUBROUTINE graddin()
 		if (cont == 9999) write(*,*) "pulou pressão; ", "erro =", abs(alfamupr)
 
 		cont = cont +1
-
+	!$OMP SINGLE
 			!inicialização
 			alfapr   = 0.
 			alfamupr = 0.
@@ -186,41 +187,62 @@ SUBROUTINE graddin()
 			betapr   = 0.
 			betamupr = 0.
 			mppr     = 0.
-
+	
+	!$OMP END SINGLE
 			! Parâmetro mp e alfa
 
+		!$OMP PARALLEL DO  !!SCHEDULE(DYNAMIC)
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
 				mppr(i,j,k) = erroppr(i,j,k) - erroppr(i+1,j,k) * matapripos(i,j,k) - erroppr(i-1,j,k) * mataprineg(i,j,k) &
 				- erroppr(i,j+1,k) * mataprjpos(i,j,k) - erroppr(i,j-1,k) * mataprjneg(i,j,k) & 
 				- erroppr(i,j,k+1) * mataprkpos(i,j,k) - erroppr(i,j,k-1) * mataprkneg(i,j,k)
-
+			enddo
+			enddo
+			enddo
+		!$OMP END PARALLEL DO
+		
+		
+		!$OMP BARRIER	
+			do k = 1, nz
+			do j = 1, ny
+			do i = 1, nx
 				alfamupr = alfamupr + erropr(i,j,k) * erropr(i,j,k)
 				alfadipr = alfadipr + erroppr(i,j,k) * mppr(i,j,k)
 			enddo
 			enddo
 			enddo
-
+			
+		!$OMP BARRIER		
 			alfapr = alfamupr / alfadipr
 	
 			! Recálculo das matrizes e, erro e parâmetro beta
 
-
+		!$OMP PARALLEL DO  !!SCHEDULE(DYNAMIC)
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
 				matepr(i,j,k)  = matepr(i,j,k)  - alfapr * erroppr(i,j,k)
 				erropr(i,j,k) = erropr(i,j,k) - alfapr * mppr(i,j,k)
+			enddo
+			enddo
+			enddo
+		!$OMP END PARALLEL DO
 
+			do k = 1, nz
+			do j = 1, ny
+			do i = 1, nx
 				betamupr = betamupr + erropr(i,j,k) * erropr(i,j,k)
 			enddo
 			enddo
 			enddo
 
+		!$OMP BARRIER	
 			betapr = betamupr/alfamupr
 
-			! Recálculo de errop
+			! Recálculo de erroppr
+		!$OMP PARALLEL DO !! SCHEDULE(DYNAMIC)
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
@@ -228,9 +250,11 @@ SUBROUTINE graddin()
 			enddo
 			enddo
 			enddo
+		!$OMP END PARALLEL DO
 
 			! Condições de contorno
 
+		
 		if (ccx0.eq.0) then  ! Condição periódica
 			matepr(0,:,:)   = matepr(nx,:,:)
 			matepr(nx1,:,:) = matepr(1,:,:)
@@ -281,40 +305,36 @@ SUBROUTINE graddin()
 !######################################################################################
 SUBROUTINE pressh()
 
-USE velpre
-USE parametros
+	USE velpre
+	USE parametros
 
-IMPLICIT NONE
+	IMPLICIT NONE
 
-integer :: i, j, k
-real(8) :: intz
+	integer :: i, j, k
+	real(8),save :: intz
 
-!WORK Z-PENCILS
-   do k = nz,1 ,-1
-   do j = 1, ny
-   do i = 1, nx
-      if (k == nz) then !top boundary conditions
-         prd1(i,j,k)   = dz*gz*rho(i,j,k)
+	!WORK Z-PENCILS
+	   do k = nz,1 ,-1
+	   do j = 1, ny
+	   do i = 1, nx
+	      if (k == nz) then !top boundary conditions
+		 prd1(i,j,k)   = dz*gz*rho(i,j,k)
 
-      elseif (k == nz-1) then !top boundary conditions
+	      elseif (k == nz-1) then !top boundary conditions
 
-         prd1(i,j,k)   = dz*gz*(rho(i,j,k)+ rho(i,j,k+1))*0.5 + prd1(i,j,k+1)
+		 prd1(i,j,k)   = dz*gz*(rho(i,j,k)+ rho(i,j,k+1))*0.5 + prd1(i,j,k+1)
 
-      elseif (k < nz-1) then
+	      elseif (k < nz-1) then
 
-         intz = dz * (rho(i,j,k) + 4.*rho(i,j,k+1) + rho(i,j,k+2)) /3.
-         prd1(i,j,k)   = gz * intz + prd1(i,j,k+2) 
+		 intz = dz * (rho(i,j,k) + 4.*rho(i,j,k+1) + rho(i,j,k+2)) /3.
+		 prd1(i,j,k)   = gz * intz + prd1(i,j,k+2) 
 
-      endif
+	      endif
 
-   enddo
-   enddo
-   enddo
+	   enddo
+	   enddo
+	   enddo
 
 
 END SUBROUTINE pressh
-
-
-
-
 

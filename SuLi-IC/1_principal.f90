@@ -23,106 +23,114 @@
 PROGRAM PNH
 
 !Declaração de Variáveis!
-USE disc
-USE restart
+	USE omp_lib
+	USE disc
+	USE restart
 
-IMPLICIT NONE
+	IMPLICIT NONE
 
-if (nx*ny*nz > 30000000) then
-write(*,*) "Verifique se o seu computador tem capacidade para a simulação, se sim, cancele esta condicional no código."
-STOP
-endif
-
-
-!Condições iniciais
-if (irest.eq.0) then
- CALL iniciais()
-else
- CALL restart_ini()
-endif
-
-
-!Adicionar os contornos na plotagem inicial
-CALl contorno(1)
-CALl contorno(3)
-
-
-!Solução manufaturada
-if (mms_t > 0) CALL mms()
-
-!Plotagens iniciais
-CALL plot_i()
-
-!RESOLUÇÃO DO PROBLEMA
-
-!Parte 1: Função distância; level_set()
-!Parte 2: Viscosidade Turbulenta; visco()
-!Parte 3: Passo preditor; convdiff() e tempo()
-!Parte 4 : Condições de contorno; call boundary_waves() e contorno()
-!Parte 5: Passo corretor; graddin() e posdin()
-
-do it = 1, ts
-t = t + dt
-
-!write(*,*) it
-
-!Termo fonte para o método da sulução manufaturada (MMS)
-if ((mms_t == 1) .and. (it == 1)) call termo_fonte1()
-if (mms_t == 2) call termo_fonte2()
-
-
-CALL level_set()
-CALl contorno(3)
-
-do tt = 1, ntt
-	dt = a_dt(tt)
+	!$ CALL OMP_set_num_threads(6)
+	!$ write(*,*) "CÓDIGO EM PARALELO"
+	!$ CALL OMP_set_dynamic(.FALSE.)
+	!$ CALL OMP_set_nested(.FALSE.)	
 	
-	CALL visco()
-	CALL convdiff()
-	CALL tempo()
-
-	if (wave_t > 0) call boundary_waves() !For wave propagation
-
-	CALl contorno(2)
-
-	if (mms_t .eq. 0) then
-		if (t_press .eq. 0) then
-			CALL pressh()	!Condições de Contorno para a parte Hidrostática
-		else
-			CALL graddin()
-		endif
-
-		CALL posdin()
-		CALl contorno(1)
-
+	write(*,*) "tamanho do domínio", nx*ny*nz
+		
+	if (nx*ny*nz > 30000000) then
+		write(*,*) "Verifique se o seu computador tem capacidade para a simulação, se sim, cancele esta condicional no código."
+		STOP
 	endif
 
- enddo
+
+	!Condições iniciais
+	if (irest.eq.0) then
+		CALL iniciais()
+	else
+		CALL restart_ini()
+	endif
 
 
-!Solução manufaturada; cálculo do erro
-if (mms_t > 0) CALL mms()
+	!Adicionar os contornos na plotagem inicial
+	CALl contorno(1)
+	CALl contorno(3)
 
-!Plotagens por passo de tempo
-CALL plot_f()
 
-if (mod(it,ceiling(interv_rest/dt)).eq.0) then
-	CALL restart_salva()
-endif
+	!Solução manufaturada
+	if (mms_t > 0) CALL mms()
 
-enddo
+	!Plotagens iniciais
+	CALL plot_i()
 
-!Atributos finais da simulação
-CALL plot_atrib()
+	!RESOLUÇÃO DO PROBLEMA
 
-!Em plot.f90
-close (unit=100001)
-close (unit=100002)
-close (unit=200000)
-close (unit=9999991)
-close (unit=99998799)
-close (unit=99998800)
-close (unit=99998801)
+	!Parte 1: Função distância; level_set()
+	!Parte 2: Viscosidade Turbulenta; visco()
+	!Parte 3: Passo preditor; convdiff() e tempo()
+	!Parte 4 : Condições de contorno; call boundary_waves() e contorno()
+	!Parte 5: Passo corretor; graddin() e posdin()
+
+	do it = 1, ts
+		t = t + dt
+
+		!write(*,*) it
+
+		!Termo fonte para o método da sulução manufaturada (MMS)
+		if ((mms_t == 1) .and. (it == 1)) call termo_fonte1()
+		if (mms_t == 2) call termo_fonte2()
+
+
+		CALL level_set()
+		CALl contorno(3)
+
+		do tt = 1, ntt
+			dt = a_dt(tt)
+			
+			CALL visco()
+			CALL convdiff()
+			CALL tempo()
+
+			if (wave_t > 0) call boundary_waves() !For wave propagation
+
+			CALl contorno(2)
+
+			if (mms_t .eq. 0) then
+				if (t_press .eq. 0) then
+					CALL pressh()	!Condições de Contorno para a parte Hidrostática
+				else
+					CALL graddin()
+				endif
+
+				CALL posdin()
+				CALl contorno(1)
+
+			endif
+
+		 enddo
+
+
+		!Solução manufaturada; cálculo do erro
+		if (mms_t > 0) CALL mms()
+
+		!Plotagens por passo de tempo
+		CALL plot_f()
+
+		if (mod(it,ceiling(interv_rest/dt)).eq.0) then
+			CALL restart_salva()
+		endif
+
+	enddo
+
+	!Atributos finais da simulação
+	CALL plot_atrib()
+
+	!Em plot.f90
+	close (unit=100001)
+	close (unit=100002)
+	close (unit=200000)
+	close (unit=9999991)
+	close (unit=99998799)
+	close (unit=99998800)
+	close (unit=99998801)
 
 End program PNH
 

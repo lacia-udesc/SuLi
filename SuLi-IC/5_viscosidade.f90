@@ -20,34 +20,34 @@ SUBROUTINE visco()
 	!===================================================================================================================
 	integer :: i, j, k
 
-        real(8) :: p1, p2, p3
+        real(8),save :: p1, p2, p3
                           
-        real(8), dimension(nx,ny,nz) :: aux1
+        real(8),save,dimension(nx,ny,nz) :: aux1
 
-        real(8), dimension(nx1,ny,nz) :: dudx_i, dudy_i, dudz_i
-        real(8), dimension(nx,ny1,nz) :: dvdx_i, dvdy_i, dvdz_i
-        real(8), dimension(nx,ny,nz1) :: dwdx_i, dwdy_i, dwdz_i
+        real(8),save,dimension(nx1,ny,nz) :: dudx_i, dudy_i, dudz_i
+        real(8),save,dimension(nx,ny1,nz) :: dvdx_i, dvdy_i, dvdz_i
+        real(8),save,dimension(nx,ny,nz1) :: dwdx_i, dwdy_i, dwdz_i
 
 
-        real(8), dimension(nx,ny,nz) :: dudx, dudy, dudz
-        real(8), dimension(nx,ny,nz) :: dvdx, dvdy, dvdz
-        real(8), dimension(nx,ny,nz) :: dwdx, dwdy, dwdz
+        real(8),save,dimension(nx,ny,nz) :: dudx, dudy, dudz
+        real(8),save,dimension(nx,ny,nz) :: dvdx, dvdy, dvdz
+        real(8),save,dimension(nx,ny,nz) :: dwdx, dwdy, dwdz
 
-        real(8), dimension(nx1,ny,nz) :: dudx_x, dudy_x, dudz_x, dwdx_x, dvdx_x
-        real(8), dimension(nx,ny1,nz) :: dudy_y, dvdx_y, dwdy_y, dvdz_y, dvdy_y
-        real(8), dimension(nx,ny,nz1) :: dwdy_z, dvdz_z, dwdz_z, dwdx_z, dudz_z
-        real(8), dimension(nx1,ny1,nz) :: dvdx_a, dudy_a
-        real(8), dimension(nx1,ny,nz1) :: dwdx_a, dudz_a 
-        real(8), dimension(nx,ny1,nz1) :: dwdy_a, dvdz_a
+        real(8),save,dimension(nx1,ny,nz) :: dudx_x, dudy_x, dudz_x, dwdx_x, dvdx_x
+        real(8),save,dimension(nx,ny1,nz) :: dudy_y, dvdx_y, dwdy_y, dvdz_y, dvdy_y
+        real(8),save,dimension(nx,ny,nz1) :: dwdy_z, dvdz_z, dwdz_z, dwdx_z, dudz_z
+        real(8),save,dimension(nx1,ny1,nz) :: dvdx_a, dudy_a
+        real(8),save,dimension(nx1,ny,nz1) :: dwdx_a, dudz_a 
+        real(8),save,dimension(nx,ny1,nz1) :: dwdy_a, dvdz_a
 
-	real(8) :: aux2,aux3,aux4,deltag,nuor
-        real(8), dimension(nx,ny1,nz) :: ynut_a
-        real(8), dimension(nx1,ny,nz) :: xnut_a
-        real(8), dimension(nx,ny,nz1) :: znut_a
+	real(8),save :: aux2,aux3,aux4,deltag,nuor
+        real(8),save,dimension(nx,ny1,nz) :: ynut_a
+        real(8),save,dimension(nx1,ny,nz) :: xnut_a
+        real(8),save,dimension(nx,ny,nz1) :: znut_a
 
-	real(8), dimension(nx1,ny,nz) :: ls_nux
-	real(8), dimension(nx,ny1,nz) :: ls_nuy
-	real(8), dimension(nx,ny,nz1) :: ls_nuz
+	real(8),save,dimension(nx1,ny,nz) :: ls_nux
+	real(8),save,dimension(nx,ny1,nz) :: ls_nuy
+	real(8),save,dimension(nx,ny,nz1) :: ls_nuz
 
 
 
@@ -209,11 +209,5 @@ endif
   enddo
   enddo
   enddo
-
-
-
-
-
-
 
 END SUBROUTINE visco
