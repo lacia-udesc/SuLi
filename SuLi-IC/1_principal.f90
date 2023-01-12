@@ -12,7 +12,7 @@
 !Descrição do método
 !Aproximação de pressão não-hidrostática utilizando o método de fracionamento do tempo (1ª Parte = Hidrostática, 2ª Parte = Não Hidrostática);
 !Ambiente tri-dimensional, x, y (horizontais) e z (vertical);
-!Método semi implícito e com correção quasi-implícita (theta) em diferenças finitas com a grade deslocada;
+!Método semi implícito e com correção quasi-implícita em diferenças finitas com a grade deslocada;
 
 !Implementação em 15/11/2014
 !Leonardo Romero Monteiro
