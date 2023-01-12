@@ -8,23 +8,20 @@ SUBROUTINE classico(uint,vint,wint)
 	IMPLICIT NONE
 
 	!===================================================================================================================
-	real(8), dimension(nx1,ny,nz) :: uint
-	real(8), dimension(nx,ny1,nz) :: vint
-	real(8), dimension(nx,ny,nz1) :: wint
-
-	real(8), dimension(nx1,ny,nz) :: dudx, dudy, dudz, bma, dma, dudxa, dudya, dudza
-	real(8), dimension(nx,ny1,nz) :: dvdx, dvdy, dvdz, amb, dmb, dvdxa, dvdya, dvdza
-	real(8), dimension(nx,ny,nz1) :: dwdx, dwdy, dwdz, amd, bmd, dwdxa, dwdya, dwdza
-	real(8), dimension(nx,ny,nz)  :: aux
-
 	!contadores
 	integer :: i, j, k
+	
+	real(8),intent(out),dimension(nx1,ny,nz) :: uint
+	real(8),intent(out),dimension(nx,ny1,nz) :: vint
+	real(8),intent(out),dimension(nx,ny,nz1) :: wint
+
+	real(8),save,dimension(nx1,ny,nz) :: dudx, dudy, dudz, bma, dma, dudxa, dudya, dudza
+	real(8),save,dimension(nx,ny1,nz) :: dvdx, dvdy, dvdz, amb, dmb, dvdxa, dvdya, dvdza
+	real(8),save,dimension(nx,ny,nz1) :: dwdx, dwdy, dwdz, amd, bmd, dwdxa, dwdya, dwdza
+	real(8),save,dimension(nx,ny,nz)  :: aux
 
 	!auxiliares
-	real(8) :: aux1, aux2
-
-
-
+	real(8),save :: aux1, aux2
 
 	!===================================================================================================================
 	!RESOLUÇÃO DO PROBLEMA
@@ -298,31 +295,31 @@ SUBROUTINE rotacional(uint,vint,wint)
 	IMPLICIT NONE
 
 	!===================================================================================================================
-	real(8), dimension(nx1,ny,nz) :: uint
-	real(8), dimension(nx,ny1,nz) :: vint
-	real(8), dimension(nx,ny,nz1) :: wint
+	real(8),intent(out),dimension(nx1,ny,nz) :: uint
+	real(8),intent(out),dimension(nx,ny1,nz) :: vint
+	real(8),intent(out),dimension(nx,ny,nz1) :: wint
 
-	real(8), dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: ap, an, bma, dma
-	real(8), dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: bp, bn, amb, dmb
-	real(8), dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: dp, dn, amd, bmd
-
-	!
-	real(8), dimension(nx1,ny1,nz1) :: dudx, dvdx, dwdx
-	real(8), dimension(nx1,ny1,nz1) :: dudy, dvdy, dwdy
-	real(8), dimension(nx1,ny1,nz1) :: dudz, dvdz, dwdz
+	real(8),save,dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: ap, an, bma, dma
+	real(8),save,dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: bp, bn, amb, dmb
+	real(8),save,dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: dp, dn, amd, bmd
 
 	!
-	real(8) :: aa, bb, dd
+	real(8),save,dimension(nx1,ny1,nz1) :: dudx, dvdx, dwdx
+	real(8),save,dimension(nx1,ny1,nz1) :: dudy, dvdy, dwdy
+	real(8),save,dimension(nx1,ny1,nz1) :: dudz, dvdz, dwdz
+
+	!
+	real(8),save :: aa, bb, dd
 
 	!contadores
 	integer :: i, j, k, ai, bi, di
 
 	!plotagem
-	real(8) :: acont, bcont, dcont 
+	real(8),save :: acont, bcont, dcont 
 	integer :: loca(3), locb(3), locd(3)
 
 	!auxiliares
-	real(8) :: aux1, aux2
+	real(8),save :: aux1, aux2
 
 
 	!===================================================================================================================
@@ -465,32 +462,32 @@ SUBROUTINE antissim(uint,vint,wint)
 	IMPLICIT NONE
 
 	!===================================================================================================================
-	real(8), dimension(nx1,ny,nz) :: uint
-	real(8), dimension(nx,ny1,nz) :: vint
-	real(8), dimension(nx,ny,nz1) :: wint
+	real(8),intent(out),dimension(nx1,ny,nz) :: uint
+	real(8),intent(out),dimension(nx,ny1,nz) :: vint
+	real(8),intent(out),dimension(nx,ny,nz1) :: wint
 
-	real(8), dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: ap, an
-	real(8), dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: bp, bn
-	real(8), dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: dp, dn
+	real(8),save,dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: ap, an
+	real(8),save,dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: bp, bn
+	real(8),save,dimension(0:nx1+1,0:ny1+1,0:nz1+1) :: dp, dn
 
-	!
-	real(8), dimension(nx1,ny1,nz1) :: dudx, dvdx, dwdx
-	real(8), dimension(nx1,ny1,nz1) :: dudy, dvdy, dwdy 
-	real(8), dimension(nx1,ny1,nz1) :: dudz, dvdz, dwdz
-	real(8), dimension(nx1,ny1,nz1) :: bma, dma,amb, dmb, amd, bmd
+	!!
+	real(8),save,dimension(nx1,ny1,nz1) :: dudx, dvdx, dwdx
+	real(8),save,dimension(nx1,ny1,nz1) :: dudy, dvdy, dwdy 
+	real(8),save,dimension(nx1,ny1,nz1) :: dudz, dvdz, dwdz
+	real(8),save,dimension(nx1,ny1,nz1) :: bma, dma,amb, dmb, amd, bmd
 
-	!
-	real(8) :: aa, bb, dd
+	!!
+	real(8),save :: aa, bb, dd
 
 	!contadores
 	integer :: i, j, k, ai, bi, di
 
 	!plotagem
-	real(8) :: acont, bcont, dcont 
+	real(8),save :: acont, bcont, dcont 
 	integer :: loca(3), locb(3), locd(3)
 
 	!auxiliares
-	real(8) :: aux1, aux2
+	real(8),save :: aux1, aux2
 
 
 	!===================================================================================================================

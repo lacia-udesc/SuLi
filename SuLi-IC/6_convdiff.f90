@@ -1,17 +1,17 @@
-	!Subrotina para calcular o Fu, utilizando o ponto de vista lagrangiano
-	!Referencia: Casulli (1990, 1992)
+!Subrotina para calcular o Fu, utilizando o ponto de vista lagrangiano
+!Referencia: Casulli (1990, 1992)
 
-	!!! Implementação 15/04/2014
-	! Leonardo Romero Monteiro
+!!! Implementação 15/04/2014
+! Leonardo Romero Monteiro
 
-	!!! Modificações
-	! Leonardo Romero Monteiro - 13/01/2015
+!!! Modificações
+! Leonardo Romero Monteiro - 13/01/2015
 
-	!!! Observações
-	! no lagrangiano as velocidades no tempo n = t serão calculadas para o tempo n = t-1
+!!! Observações
+! no lagrangiano as velocidades no tempo n = t serão calculadas para o tempo n = t-1
 
-	! são calculadas as Fu, Fv e Fw
-	SUBROUTINE convdiff()
+! são calculadas as Fu, Fv e Fw
+SUBROUTINE convdiff()
 
 	USE velpre
 	USE parametros
@@ -24,37 +24,37 @@
 
 	!===================================================================================================================
 	! auxiliares de velocidades: velocidades lagrangianas
-	real(8), dimension(nx1,ny,nz) :: uint
-	real(8), dimension(nx,ny1,nz) :: vint
-	real(8), dimension(nx,ny,nz1) :: wint
+	real(8),save,dimension(nx1,ny,nz) :: uint
+	real(8),save,dimension(nx,ny1,nz) :: vint
+	real(8),save,dimension(nx,ny,nz1) :: wint
 
-	real(8), dimension(0:nx1,ny,nz) :: ama
-	real(8), dimension(nx,0:ny1,nz) :: bmb
-	real(8), dimension(nx,ny,0:nz1) :: dmd
-	real(8), dimension(nx1,ny1,nz)  :: amb, bma
-	real(8), dimension(nx1,ny,nz1)  :: amd, dma
-	real(8), dimension(nx,ny1,nz1)  :: bmd, dmb
+	real(8),save,dimension(0:nx1,ny,nz) :: ama
+	real(8),save,dimension(nx,0:ny1,nz) :: bmb
+	real(8),save,dimension(nx,ny,0:nz1) :: dmd
+	real(8),save,dimension(nx1,ny1,nz)  :: amb, bma
+	real(8),save,dimension(nx1,ny,nz1)  :: amd, dma
+	real(8),save,dimension(nx,ny1,nz1)  :: bmd, dmb
 
-	!real(8), dimension(0:nx1,ny1,nz)  :: vx
-	!real(8), dimension(0:nx1,ny,nz1)  :: wx
+	!real(8),save,dimension(0:nx1,ny1,nz)  :: vx
+	!real(8),save,dimension(0:nx1,ny,nz1)  :: wx
 
-	!real(8), dimension(nx1,0:ny1,nz)  :: uy
-	!real(8), dimension(nx,0:ny1,nz1)  :: wy
+	!real(8),save,dimension(nx1,0:ny1,nz)  :: uy
+	!real(8),save,dimension(nx,0:ny1,nz1)  :: wy
 
-	!real(8), dimension(nx1,ny,0:nz1)  :: uz
-	!real(8), dimension(nx,ny1,0:nz1)  :: vz
+	!real(8),save,dimension(nx1,ny,0:nz1)  :: uz
+	!real(8),save,dimension(nx,ny1,0:nz1)  :: vz
 
-	real(8), dimension(nx1,ny,nz) :: rhox, dhsdx
-	real(8), dimension(nx,ny1,nz) :: rhoy, dhsdy
-	real(8), dimension(nx,ny,nz1) :: rhoz, dhsdz, epis_z
+	real(8),save,dimension(nx1,ny,nz) :: rhox, dhsdx
+	real(8),save,dimension(nx,ny1,nz) :: rhoy, dhsdy
+	real(8),save,dimension(nx,ny,nz1) :: rhoz, dhsdz, epis_z
 
 	!contadores
 	integer :: i, j, k
 	integer :: ntal
-	real(8)    :: tal
+	real(8),save :: tal
 
 	!auxiliares
-	real(8) :: aux1, aux2
+	real(8),save :: aux1, aux2
 
 	!===================================================================================================================
 	
