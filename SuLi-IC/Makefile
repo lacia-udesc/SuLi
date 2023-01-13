@@ -9,7 +9,7 @@ CC = gcc
 
 # Intel
 #FC = ifort
-#OPTFC =  -fpp -O3 -xHost -IPO -autodouble
+#OPTFC =  -fpp -O3 -autodouble -mcmodel=medium -qopenmp
 #CC = icc
 
 FLAGS = -O3
