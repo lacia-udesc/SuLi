@@ -90,7 +90,7 @@ SUBROUTINE coef_tempo()
 	USE disc
 	!Método da integração temporal
 	write(*,*) "Esquema temporal: "
-	if ((t_tempo == 0)  .or. (t_tempo == 3)) then
+	if (t_tempo == 0) then
 		write(*,*) "Euler."
 		ntt = 1
 		a_dt = 1.0*dt
@@ -108,7 +108,14 @@ SUBROUTINE coef_tempo()
 		a_dt(1) = 0.5*dt
 		a_dt(2) = 1.0*dt
 		a_dt(3) = 1.0*dt
-		
+	elseif (t_tempo == 3) then
+		write(*,*) "AB2."
+		ntt = 1
+		a_dt = 1.0*dt
+    elseif (t_tempo == 4) then
+		write(*,*) "AB3."
+		ntt = 1
+		a_dt = 1.0*dt
 	endif
 
 END SUBROUTINE coef_tempo

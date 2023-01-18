@@ -18,7 +18,7 @@ SUBROUTINE tempo()
 	integer :: i, j, k
 	real(8),save :: aux1
 
-	if ((t_tempo == 0) .or. ((t_tempo == 3) .and. (it == 1))) then !Euler e primeiro do AB2
+	if ((t_tempo == 0) .or. ((t_tempo == 3) .or. (t_tempo == 4) .and. (it == 1))) then !Euler e primeiro do AB2 e AB3
 		do k = 1, nz
 		do j = 1, ny
 		do i = 1, nx1
@@ -46,7 +46,7 @@ SUBROUTINE tempo()
 		enddo
 		enddo
 		
-		if (t_tempo == 3) then !Só para AB2
+		if (t_tempo == 3 .or. t_tempo == 4) then !Só para AB2
 			fu0 = Fu
 			fv0 = Fv
 			fw0 = Fw
@@ -198,7 +198,7 @@ SUBROUTINE tempo()
 			enddo
 			enddo
 		endif
-	elseif ( (t_tempo == 3) .and. (it .ne. 1)) then ! Euler e primeiro do AB2
+	elseif (( (t_tempo == 3) .and. (it .ne. 1)).or. (t_tempo == 4) .and. (it .eq. 2)) then ! AB2 e segundo AB3
 		do k = 1, nz
 		do j = 1, ny
 		do i = 1, nx1
@@ -225,7 +225,46 @@ SUBROUTINE tempo()
 		enddo
 		enddo
 		enddo
-	endif
+
+		if (t_tempo == 4) then
+			fu1 = fu0
+			fv1 = fv0
+			fw1 = fw0
+		endif
+elseif ( (t_tempo == 4) .and. (it .ge. 3)) then ! AB3
+
+		aux1 = dt/12.
+
+		do k = 1, nz
+		do j = 1, ny
+		do i = 1, nx1
+		u(i,j,k) = u(i,j,k) + aux1*(23.*Fu(i,j,k)-16.*fu0(i,j,k)+5.*fu1(i,j,k))
+		fu1(i,j,k) = fu0(i,j,k)
+		fu0(i,j,k) = Fu(i,j,k)
+		enddo
+		enddo	
+		enddo
+	
+		do k = 1, nz
+		do j = 1, ny1
+		do i = 1, nx
+		v(i,j,k) = v(i,j,k) + aux1*(23.*Fv(i,j,k)-16.*fv0(i,j,k)+5.*fv1(i,j,k))
+		fv1(i,j,k) = fv0(i,j,k)	
+		fv0(i,j,k) = Fv(i,j,k)	
+		enddo
+		enddo
+		enddo
+	
+		do k = 1, nz1
+		do j = 1, ny
+		do i = 1, nx
+		w(i,j,k) = w(i,j,k) + aux1*(23.*Fw(i,j,k)-16.*fw0(i,j,k)+5.*fw1(i,j,k))
+		fw1(i,j,k) = fw0(i,j,k)	
+		fw0(i,j,k) = Fw(i,j,k)	
+		enddo
+		enddo
+		enddo
+endif
 
 END SUBROUTINE tempo
 

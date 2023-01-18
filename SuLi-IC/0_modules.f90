@@ -22,7 +22,7 @@ module disc
 
 	integer,parameter :: t_plot = 1 ! 0 = modo simples (velocidade, Level Set e IBM), 1 = modo completo (pressão, vorticidade, viscosidade)
 
-	integer,parameter :: t_tempo = 1 ! 0 = Euler Explícito, 1 = RK 2, 2 = RK 3, 3 = AB2
+	integer,parameter :: t_tempo = 4 ! 0 = Euler Explícito, 1 = RK 2, 2 = RK 3, 3 = AB2, 4 = AB3
 	integer,parameter :: t_tempo_var = 0 ! 0 = dt constante, 1 = dt adaptativo
 
 	integer,parameter :: der = 1 ! 1 = upwind, 2 = centrado, 3 = upwind 2nd order (centrado só para advectivo clássico)
