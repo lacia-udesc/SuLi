@@ -268,6 +268,78 @@ endif
 
 END SUBROUTINE tempo
 
+
+!!!!!!!!!!!!################################################
+SUBROUTINE complementos()
+
+	USE velpre
+	USE parametros
+	USE ls_param
+	USE vartempo
+	USE mms_m
+	USE obst
+	IMPLICIT NONE
+
+
+	!Contadores
+	integer :: i, j, k
+	real(8),save,dimension(nx,ny,nz) :: aux
+	real(8),save,dimension(nx1,ny,nz) :: dhsdx
+	real(8),save,dimension(nx,ny1,nz) :: dhsdy
+	real(8),save,dimension(nx,ny,nz1) :: dhsdz, epis_z
+	
+
+	!! tensão superficial, MMS, rugosidade, gravidade e camada esponja
+
+	!reinicializando a subrotina
+	epis_z = 0.
+	
+	
+	!Camada esponja.
+	if (esp_type > 0) then
+		CALL sponge_layer(epis_z)
+	endif
+
+	aux = hsx*kurv/rho	
+	call interpx_cf(aux,nx,ny,nz,dhsdx) !(nx1,ny,nz)
+	
+	aux = hsy*kurv/rho	
+	call interpy_cf(aux,nx,ny,nz,dhsdy) !(nx,ny1,nz)
+	
+	aux = hsz*kurv/rho	
+	call interpz_cf(aux,nx,ny,nz,dhsdz) !(nx,ny,nz1)
+
+
+	do k = 1, nz
+	do j = 1, ny
+	do i = 1, nx1
+		Fu(i,j,k) = Fu(i,j,k) + gx &
+			    -sigma*dhsdx(i,j,k) +tf_u(i,j,k) - gz/(chezy*chezy)*sqrt(ub(i,j,k)*ub(i,j,k))*u(i,j,k)
+	enddo
+	enddo	
+	
+	do j = 1, ny1
+	do i = 1, nx
+		Fv(i,j,k) = Fv(i,j,k) &
+			    -sigma*dhsdy(i,j,k) +tf_v(i,j,k) - gz/(chezy*chezy)*sqrt(vb(i,j,k)*vb(i,j,k))*v(i,j,k)
+	enddo
+	enddo
+	enddo
+
+
+	do k = 1, nz1
+	do j = 1, ny
+	do i = 1, nx
+		Fw(i,j,k) = Fw(i,j,k) - (w(i,j,k)-0.)* epis_z(i,j,k) - gz &
+			    -sigma*dhsdz(i,j,k) +tf_w(i,j,k) - gz/(chezy*chezy)*sqrt(wb(i,j,k)*wb(i,j,k))*w(i,j,k)
+	enddo
+	enddo
+	enddo
+
+END SUBROUTINE complementos
+
+
+!!!!!!!!!!!################################################
 SUBROUTINE restart_ini()
 
 	!Só deve rodar caso seja restart

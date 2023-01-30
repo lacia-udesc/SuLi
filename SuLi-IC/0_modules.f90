@@ -4,7 +4,7 @@ module disc
 	real(8),parameter ::  pi = acos(-1.) 
 
 	!Discretizações espaciais em x e y (metros), discretização temporal (segundos)
-	real(8),parameter :: dx = 0.004, dy = 0.004, dz = 0.004, dt0 = 0.001
+	real(8),parameter :: dx = 0.005, dy = 0.005, dz = 0.005, dt0 = 0.001
 
 	real(8) :: t, dt, t_i, t_a
 	!Número de células para x, y e z (-); número de pontos para x, y e z (-); tempo de simulação (segundos)
@@ -48,7 +48,7 @@ end module disc
 
 module restart
 	 integer, parameter :: irest=0 !0=essa simulacao nao é um restart de outra 1 = o arquivo de restart vai ser lido e usado pra continuar a simulacao
-	 real :: interv_rest=100 !de quantas em quantas iteracoes salva o restart
+	 real(8) :: interv_rest=100 !de quantas em quantas iteracoes salva o restart
 end module restart
 
 !Condicoes de contorno
@@ -183,11 +183,11 @@ module smag
 
 	USE disc
 
-	real(8), parameter :: csmag=0.13 ! 0.8 !
-	real(8), dimension(nx,ny,nz)  :: nut 
-	real(8), dimension(nx1,ny,nz) :: xnut 
-	real(8), dimension(nx,ny1,nz) :: ynut 
-	real(8), dimension(nx,ny,nz1) :: znut 
+	real(8),parameter :: csmag=0.13 ! 0.8 !
+	real(8),dimension(nx,ny,nz)  :: nut 
+	real(8),dimension(nx1,ny,nz) :: xnut 
+	real(8),dimension(nx,ny1,nz) :: ynut 
+	real(8),dimension(nx,ny,nz1) :: znut 
 
 end module smag
 

@@ -87,6 +87,7 @@ PROGRAM PNH
 			
 			CALL visco()
 			CALL convdiff()
+			CALL complementos()
 			CALL tempo()
 
 			if (wave_t > 0) call boundary_waves() !For wave propagation

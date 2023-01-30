@@ -16,10 +16,7 @@ SUBROUTINE convdiff()
 	USE velpre
 	USE parametros
 	USE smag
-	USE ls_param
 	USE vartempo
-	USE mms_m
-	USE obst
 	IMPLICIT NONE
 
 	!===================================================================================================================
@@ -44,9 +41,9 @@ SUBROUTINE convdiff()
 	!real(8),save,dimension(nx1,ny,0:nz1)  :: uz
 	!real(8),save,dimension(nx,ny1,0:nz1)  :: vz
 
-	real(8),save,dimension(nx1,ny,nz) :: rhox, dhsdx
-	real(8),save,dimension(nx,ny1,nz) :: rhoy, dhsdy
-	real(8),save,dimension(nx,ny,nz1) :: rhoz, dhsdz, epis_z
+	real(8),save,dimension(nx1,ny,nz) :: rhox
+	real(8),save,dimension(nx,ny1,nz) :: rhoy
+	real(8),save,dimension(nx,ny,nz1) :: rhoz
 
 	!contadores
 	integer :: i, j, k
@@ -61,8 +58,7 @@ SUBROUTINE convdiff()
 	!reinicializando a rotina
 	prd0 = prd1
 
-	!reinicializando a subrotina
-	epis_z = 0.
+
 
 	!===================================================================================================================
 	!RESOLUÇÃO DO PROBLEMA
@@ -82,19 +78,13 @@ SUBROUTINE convdiff()
 		STOP
 	endif
 
-	!Camada esponja.
-	if (esp_type > 0) then
-		CALL sponge_layer(epis_z)
-	endif
+
 	!Cálculo dos Fs
 
 	call interpx_cf(rho,nx,ny,nz,rhox) !(nx1,ny,nz)
 	call interpy_cf(rho,nx,ny,nz,rhoy) !(nx,ny1,nz)
 	call interpz_cf(rho,nx,ny,nz,rhoz) !(nx,ny,nz1)
 
-	call interpx_cf(hsx*kurv/rho,nx,ny,nz,dhsdx) !(nx1,ny,nz)
-	call interpy_cf(hsy*kurv/rho,nx,ny,nz,dhsdy) !(nx,ny1,nz)
-	call interpz_cf(hsz*kurv/rho,nx,ny,nz,dhsdz) !(nx,ny,nz1)
 
 !	call interpy_cf(u(1:nx1,1:ny,1:nz),nx1,ny,nz,uy(1:nx1,1:ny1,1:nz)) !(nx1,ny1,nz)
 !	call interpz_cf(u(1:nx1,1:ny,1:nz),nx1,ny,nz,uz(1:nx1,1:ny,1:nz1)) !(nx1,ny,nz1)
@@ -153,8 +143,7 @@ SUBROUTINE convdiff()
                             bma(i,j+1,k)*((u(i,j+1,k)-u(i,j,k))/dy+(v(i,j+1,k)-v(i-1,j+1,k))/dx) - &
                             bma(i,j,k)  *((u(i,j,k)-u(i,j-1,k))/dy+(v(i,j,k)  -v(i-1,j,k))/dx  ) + &
                             dma(i,j,k+1)*((u(i,j,k+1)-u(i,j,k))/dz+(w(i,j,k+1)-w(i-1,j,k+1))/dx) - &
-                            dma(i,j,k)*  ((u(i,j,k)-u(i,j,k-1))/dz+(w(i,j,k)  -w(i-1,j,k))/dx  ))/rhox(i,j,k) + gx &
-			    -sigma*dhsdx(i,j,k) +tf_u(i,j,k) - gz/(chezy*chezy)*sqrt(ub(i,j,k)*ub(i,j,k))*u(i,j,k)
+                            dma(i,j,k)*  ((u(i,j,k)-u(i,j,k-1))/dz+(w(i,j,k)  -w(i-1,j,k))/dx  ))/rhox(i,j,k)
 	enddo
 	enddo	
 
@@ -165,8 +154,7 @@ SUBROUTINE convdiff()
                             (bmb(i,j,k)*2.*(v(i,j+1,k)-v(i,j,k)) - &
                             bmb(i,j-1,k)*2.*(v(i,j,k)-v(i,j-1,k)))/dy + &
                             dmb(i,j,k+1)*((v(i,j,k+1)-v(i,j,k))/dz+(w(i,j,k+1)-w(i,j-1,k+1))/dy ) - &
-                            dmb(i,j,k)  *((v(i,j,k)-v(i,j,k-1))/dz+(w(i,j,k)  -w(i,j-1,k))/dy   ))/rhoy(i,j,k) &
-			    -sigma*dhsdy(i,j,k) +tf_v(i,j,k) - gz/(chezy*chezy)*sqrt(vb(i,j,k)*vb(i,j,k))*v(i,j,k)
+                            dmb(i,j,k)  *((v(i,j,k)-v(i,j,k-1))/dz+(w(i,j,k)  -w(i,j-1,k))/dy   ))/rhoy(i,j,k)
 	enddo
 	enddo
 	enddo
@@ -179,9 +167,7 @@ SUBROUTINE convdiff()
                             		    bmd(i,j+1,k)*((w(i,j+1,k)-w(i,j,k))/dy+(v(i,j+1,k)-v(i,j+1,k-1))/dz) - &
                             		    bmd(i,j,k)  *((w(i,j,k)-w(i,j-1,k))/dy+(v(i,j,k)  -v(i,j,k-1))/dz  ) + &
                             (dmd(i,j,k)*2.*(w(i,j,k+1)-w(i,j,k))-&
-                            dmd(i,j,k-1)*2.*(w(i,j,k)-w(i,j,k-1)))/dz)/rhoz(i,j,k) &
-			    - (w(i,j,k)-0.)* epis_z(i,j,k) - gz &
-			    -sigma*dhsdz(i,j,k) +tf_w(i,j,k) - gz/(chezy*chezy)*sqrt(wb(i,j,k)*wb(i,j,k))*w(i,j,k)
+                            dmd(i,j,k-1)*2.*(w(i,j,k)-w(i,j,k-1)))/dz)/rhoz(i,j,k)
 	enddo
 	enddo
 	enddo
