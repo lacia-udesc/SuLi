@@ -14,9 +14,13 @@ SUBROUTINE iniciais()
 	USE tempo
 	USE cond
 	USE mms_m
+	USE ls_param, only: ls
+	
 	IMPLICIT NONE
 
-	integer :: i, j, k
+	integer :: i, j, k, ik
+	real(8), save :: umed
+	
 	if (ccx0.eq.4) then 
 		!Para validacao
 		!u(:,:,11+1) = 0.15946
@@ -33,7 +37,33 @@ SUBROUTINE iniciais()
 
 	t = 0.
 	dt = dt0
-	u = uinicial
+	
+	CALL level_set_ini()
+	
+	do k = 1, nz
+	do j = 1, ny
+	do i = 1, nx
+		if (ls(i,j,k)>=0.) then
+		
+			call random_number(r)
+				r=2.*(r-0.5)
+			!#################
+			!u = uinicial + t_iturb(r/100)
+			u(i,j,k) = uinicial*(1.+r*iturb)
+			!##############
+			
+			umed=u(i,j,k)+ umed
+			ik = 1 + ik
+			
+		endif
+	enddo
+	enddo
+	enddo
+	
+	umed=umed/ik
+	
+	u = u + (uinicial - umed)
+	
 	v = 0.
 	w = 0.
 	prd0 = 0.
@@ -66,7 +96,7 @@ SUBROUTINE iniciais()
 		bxz0 = 0.
 	endif
 
-	CALL level_set_ini()
+
 
 	if (mms_t == 0) then
 	   tf_p = 0.

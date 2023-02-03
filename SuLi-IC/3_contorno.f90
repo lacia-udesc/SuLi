@@ -17,8 +17,8 @@ SUBROUTINE contorno(nlock)
 	IMPLICIT NONE
 
 	!Declarado também no programa
-	integer :: i, j, k, niv, ii,nlock
-	real(8), save :: zi, zj, zk
+	integer :: i, j, k, niv, ii,nlock, ik
+	real(8), save :: zi, zj, zk, umed
 
 
 	real(8),save,dimension(0:nx1+1,0:ny+1,0:nz+1) :: dpdx
@@ -355,10 +355,42 @@ SUBROUTINE contorno(nlock)
 
 			!Prescrita
 			if (ccx0.eq.3) then
-				u(1,:,:) = bxx1(:,:) + dpdx(1,:,:)
+			
+
 				do k = 1, nz
 				ls(1,:,k) = blx1(1:ny,k)
 				enddo 
+				
+				ik=0
+				umed=0.
+				
+				i = 1
+				do k = 1, nz
+				do j = 1, ny
+					if (ls(i,j,k)>=0.) then
+						u(1,j,k) = bxx1(j,k)
+					
+						call random_number(r)
+							r=2.*(r-0.5)
+						!#################
+						!u = uinicial + t_iturb(r/100)
+						u(i,j,k) = u(i,j,k) *(1.+r*iturb)
+						!##############
+						
+						umed=u(i,j,k)+ umed
+						ik = 1 + ik
+						
+					endif
+				enddo
+				enddo
+				
+				umed=umed/ik
+				
+				u(1,:,:) = u(1,:,:) + (uinicial - umed)
+				
+				
+				
+				
 			endif
 			
 			!Para validação

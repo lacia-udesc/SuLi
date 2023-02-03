@@ -29,7 +29,7 @@ PROGRAM PNH
 
 	IMPLICIT NONE
 
-	!$ CALL OMP_set_num_threads(6)
+	!$ CALL OMP_set_num_threads(4)
 	!$ write(*,*) "CÓDIGO EM PARALELO"
 	!$ CALL OMP_set_dynamic(.FALSE.)
 	!$ CALL OMP_set_nested(.FALSE.)	

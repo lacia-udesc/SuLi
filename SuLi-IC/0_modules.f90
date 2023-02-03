@@ -4,7 +4,7 @@ module disc
 	real(8),parameter ::  pi = acos(-1.) 
 
 	!Discretizações espaciais em x e y (metros), discretização temporal (segundos)
-	real(8),parameter :: dx = 0.005, dy = 0.005, dz = 0.005, dt0 = 0.001
+	real(8),parameter :: dx = 0.01, dy = 0.01, dz = 0.005, dt0 = 0.001
 
 	real(8) :: t, dt, t_i, t_a
 	!Número de células para x, y e z (-); número de pontos para x, y e z (-); tempo de simulação (segundos)
@@ -13,12 +13,17 @@ module disc
 	real(8),parameter :: dt_frame = 0.001
 
 
-	integer,parameter :: nx=int(.5/dx) , ny=int(0.5/dy), nz=int(0.5/dz)
+	integer,parameter :: nx=int(18./dx) , ny=int(1.18/dy), nz=int(0.12/dz)   !****MUDANÇAS PROS DADOS DO ARTIGO*****
 	!nz=int(10./dz1-0.1+0.5) porque a última célula é maior (0.5)
-	integer,parameter :: nx1=nx+1, ny1=ny+1, nz1=nz+1, ts = ceiling(0.01/dt0)
+	integer,parameter :: nx1=nx+1, ny1=ny+1, nz1=nz+1, ts = ceiling(1./dt0)
+	
+	!#################TESTE TURBULENCIA 2%###################
+	real(8) :: r 
+	real(8),parameter :: iturb = 0.02
+	!########################################################
 
 	!Para fazer dz variável no espaço inicialmente criar uma função ...
-	real(8),parameter :: uinicial = 0.31
+	real(8),parameter :: uinicial = 0.27
 
 	integer,parameter :: t_plot = 1 ! 0 = modo simples (velocidade, Level Set e IBM), 1 = modo completo (pressão, vorticidade, viscosidade)
 
@@ -54,8 +59,8 @@ end module restart
 !Condicoes de contorno
 module cond 
 
-	integer,parameter :: ccx0=0 !condicao de contorno parede x=0 --> 0 é periodico, 1 é free-slip, 2 é no-slip, 3 é prescrita, 4 é fluxo validacao
-	integer,parameter :: ccxf=0 !condicao de contorno parede x=xf --> 0 é periodico, 1 é free-slip, 2 é no-slip, 3 é prescrita, 4 é saida livre
+	integer,parameter :: ccx0=3 !condicao de contorno parede x=0 --> 0 é periodico, 1 é free-slip, 2 é no-slip, 3 é prescrita, 4 é fluxo validacao
+	integer,parameter :: ccxf=4 !condicao de contorno parede x=xf --> 0 é periodico, 1 é free-slip, 2 é no-slip, 3 é prescrita, 4 é saida livre
 
 	!Só pode usar condição periódica no final quando usar no começo e vice-versa
 
@@ -97,7 +102,8 @@ module velpre
 	real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: v
 	real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: w
 
-	real(8),dimension(0:ny+1,0:nz+1)  :: bxx0, bxx1, blx1
+	real(8),dimension(0:ny+1,0:nz+1)  :: bxx0, bxx1 
+	real(8),dimension(ny,nz)  :: blx1
 	real(8),dimension(0:ny1+1,0:nz+1) :: bxy0
 	real(8),dimension(0:ny+1,0:nz1+1) :: bxz0
 
@@ -143,7 +149,7 @@ module parametros
 
 	!Parâmetros
 	!Viscosidade cinemática (m²/s), coeficiente de chezy (m**(1/2)/s), aceleração da graviadde (m/s²) e implicitness parameter $Patnaik et al. 1987$ (-) 
-	real(8), parameter :: chezy = 44.5, decliv = 0.0002
+	real(8), parameter :: chezy = 37.54143, decliv = 0.000734  !*********MUDANÇAS ARTIGO***********
 
 	real(8), parameter :: gx = 9.80665 * sin(atan(decliv)) , gz = 9.80665 * cos(atan(decliv))
 
