@@ -4,18 +4,18 @@ module disc
 	real(8),parameter ::  pi = acos(-1.) 
 
 	!Discretizações espaciais em x e y (metros), discretização temporal (segundos)
-	real(8),parameter :: dx = 0.01, dy = 0.01, dz = 0.005, dt0 = 0.001
+	real(8),parameter :: dx = 0.01, dy = 0.01, dz = 0.005, dt0 = 0.0001
 
 	real(8) :: t, dt, t_i, t_a
 	!Número de células para x, y e z (-); número de pontos para x, y e z (-); tempo de simulação (segundos)
 
 	!Número de tempo por arquivo plotado
-	real(8),parameter :: dt_frame = 0.001
+	real(8),parameter :: dt_frame = 0.0001
 
 
 	integer,parameter :: nx=int(18./dx) , ny=int(1.18/dy), nz=int(0.12/dz)   !****MUDANÇAS PROS DADOS DO ARTIGO*****
 	!nz=int(10./dz1-0.1+0.5) porque a última célula é maior (0.5)
-	integer,parameter :: nx1=nx+1, ny1=ny+1, nz1=nz+1, ts = ceiling(1./dt0)
+	integer,parameter :: nx1=nx+1, ny1=ny+1, nz1=nz+1, ts = ceiling(0.005/dt0)
 	
 	!#################TESTE TURBULENCIA 2%###################
 	real(8) :: r 
@@ -27,7 +27,7 @@ module disc
 
 	integer,parameter :: t_plot = 1 ! 0 = modo simples (velocidade, Level Set e IBM), 1 = modo completo (pressão, vorticidade, viscosidade)
 
-	integer,parameter :: t_tempo = 4 ! 0 = Euler Explícito, 1 = RK 2, 2 = RK 3, 3 = AB2, 4 = AB3
+	integer,parameter :: t_tempo = 2 ! 0 = Euler Explícito, 1 = RK 2, 2 = RK 3, 3 = AB2, 4 = AB3
 	integer,parameter :: t_tempo_var = 0 ! 0 = dt constante, 1 = dt adaptativo
 
 	integer,parameter :: der = 1 ! 1 = upwind, 2 = centrado, 3 = upwind 2nd order (centrado só para advectivo clássico)

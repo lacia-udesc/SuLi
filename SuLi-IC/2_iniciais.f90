@@ -19,7 +19,8 @@ SUBROUTINE iniciais()
 	IMPLICIT NONE
 
 	integer :: i, j, k, ik
-	real(8), save :: umed
+	real(8),save :: umed
+	real(8),save,dimension(nx1,ny,nz) :: ls_x
 	
 	if (ccx0.eq.4) then 
 		!Para validacao
@@ -39,11 +40,13 @@ SUBROUTINE iniciais()
 	dt = dt0
 	
 	CALL level_set_ini()
+
+	call interpx_cf(ls,nx,ny,nz,ls_x) !(nx1,ny1,nz)
 	
 	do k = 1, nz
 	do j = 1, ny
-	do i = 1, nx
-		if (ls(i,j,k)>=0.) then
+	do i = 1, nx1
+		if (ls_x(i,j,k)>=0.) then
 		
 			call random_number(r)
 				r=2.*(r-0.5)
