@@ -29,7 +29,7 @@ PROGRAM PNH
 
 	IMPLICIT NONE
 
-	!$ CALL OMP_set_num_threads(4)
+	!$ CALL OMP_set_num_threads(2)
 	!$ write(*,*) "CÓDIGO EM PARALELO"
 	!$ CALL OMP_set_dynamic(.FALSE.)
 	!$ CALL OMP_set_nested(.FALSE.)	
@@ -132,6 +132,7 @@ PROGRAM PNH
 	close (unit=99998799)
 	close (unit=99998800)
 	close (unit=99998801)
-
+	close (unit=100008)
+	close (unit=100009)
 End program PNH
 

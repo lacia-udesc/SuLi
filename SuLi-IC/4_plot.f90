@@ -30,7 +30,8 @@ SUBROUTINE plot_i()
 	real(8),save,dimension(nx1,ny,nz1)  :: auxy
 	real(8),save,dimension(nx1,ny1,nz)  :: auxz
 	real(8),save,dimension(0:nx1,0:ny1,0:nz1) :: x1, y1, z1
-	integer :: i, j, k, ii
+	integer :: i, j, k, ii, nza
+	integer, dimension(nz) :: celula
 
 
 	!Criar pastas se não existirem
@@ -50,22 +51,54 @@ SUBROUTINE plot_i()
 
 	!Perfil longitudinal do desnível
 
-	ii = 0
-	do i = nx, 2, -1 !Tem que ser o último a variar
-	do k = 1, nz
-	do j = 1, ny
+	!ii = 0
+	!do i = nx, 2, -1 !Tem que ser o último a variar
+	!do k = 1, nz
+	!do j = 1, ny
 
-	if (ii == 0) then
-		if (ls(i-1,j,k)*ls(i,j,k) <= 0.) then
-			write(99998799,*) dt*it, dx*(i-0.5) + ls(i,j,k)
-			ii = 1 ! fará com que saida de todos os loops
-		endif
+	!if (ii == 0) then
+	!	if (ls(i-1,j,k)*ls(i,j,k) <= 0.) then
+	!		write(99998799,*) dt*it, dx*(i-0.5) + ls(i,j,k)
+	!		ii = 1 ! fará com que saida de todos os loops
+	!	endif
 
-	endif
-	enddo
-	enddo
-	enddo
+	!endif
+	!enddo
+	!enddo
+	!enddo
 	!close (unit=99998799)
+	
+	!SONDA X/H=16 MARI
+	i = int(2.032/dx)
+	 j = int(0.5/dy)
+	   
+	   do k = 1, nz
+	   
+	 if (ls(i,j,k)>=0.) then
+	 celula(k)=k
+	 nza=k
+	 endif
+	   enddo
+	 
+	open (unit=100008, action= 'write', file= 'dados//sondaxH16', status= 'unknown')
+		write(100008,*) 't', celula(1:nza)
+		write(100008,*) t, u(i,j,1:nza)
+	
+	!SONDA X/H=20
+	i = int(2.54/dx)
+	 j = int(0.5/dy)
+	   
+	   do k = 1, nz
+	   
+	 if (ls(i,j,k)>=0.) then
+	 celula(k)=k
+	 nza=k
+	 endif
+	   enddo
+	 
+	open (unit=100009, action= 'write', file= 'dados//sondaxH20', status= 'unknown')
+		write(100009,*) 't', celula(1:nza)
+		write(100009,*) t, u(i,j,1:nza)
 
 	!Perfil longitudinal do desnível
 	open (unit=99998800, action= 'write', file= 'dados//h2.txt', status= 'unknown') ! o status deveria ser para escrever em cima deste primeiro ..z
@@ -237,7 +270,7 @@ SUBROUTINE plot_f()
 	real(8),save,dimension(nx1,ny,nz1) :: auxy
 	real(8),save,dimension(nx1,ny1,nz) :: auxz
 	real(8),save,dimension(0:nx1,0:ny1,0:nz1) :: x1, y1, z1
-	integer :: ifile, nfil, i, j, k, ii
+	integer :: ifile, nfil, i, j, k, ii, nza
 
 	!Número do arquivo de saída
 	integer :: dig1, dig2, dig3, dig4, dig5
@@ -396,7 +429,7 @@ SUBROUTINE plot_f()
 	enddo
 
 	ii = 0
-	i = int(2.66/dx) 
+	i = int(2.032/dx) 
 	j = int(0.5/dy) 
 
 	do k = nz, 2, -1
@@ -467,12 +500,33 @@ SUBROUTINE plot_f()
 	!perfil velocidade horizontal seção 7 *************************************
 	!	open (unit=100008, action= 'write', file= 'dados//perfil7.txt', status= 'unknown')
 
-	!	i = int(2.6/dx)
-	!	do k =1, nz
-	!		write(100008,*) u(i,j,k), z1(i,j,k)-dz
-	!	enddo	
-	!	
-	!	 close (unit=100008)
+		
+	!sonda x/H=16 mari
+	i = int(2.032/dx)
+	 j = int(0.5/dy)
+	   
+	   do k = 1, nz
+	   
+	 if (ls(i,j,k)>=0.) then
+	 nza=k
+	 endif
+	   enddo
+	 	
+		write(100008,*) t, u(i,j,1:nza)
+
+	!sonda x/H=20 mari bruna leo
+	i = int(2.54/dx)
+	 j = int(0.5/dy)
+	   
+	   do k = 1, nz
+	   
+	 if (ls(i,j,k)>=0.) then
+	 nza=k
+	 endif
+	   enddo
+	 	
+		write(100009,*) t, u(i,j,1:nza)
+
 	!*********************************************************************
 
 	!perfil velocidade horizontal seção 9 *************************************

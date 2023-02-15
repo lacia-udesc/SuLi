@@ -83,7 +83,7 @@ SUBROUTINE level_set_ini()
 		ampl = 0. 	 !Amplitude da onda
 		lambdax = 2. !Comprimento da onda na direção x
 		lambday = 2. !Wave length
-		prof = 0.08  !Profundidade do escoamento sem a onda
+		prof = 0.127  !Profundidade do escoamento sem a onda
 
 		!Calcula efetivamente o ls
 		if (lambday .ne. 0.) then
