@@ -4,26 +4,25 @@ module disc
 	real(8),parameter ::  pi = acos(-1.) 
 
 	!Discretizações espaciais em x e y (metros), discretização temporal (segundos)
-	real(8),parameter :: dx = 0.01, dy = 0.01, dz = 0.01, dt0 = 0.005
+	real(8),parameter :: dx = 0.02, dy = 0.02, dz = 0.02, dt0 = 0.001
 
 	real(8) :: t, dt, t_i, t_a
 	!Número de células para x, y e z (-); número de pontos para x, y e z (-); tempo de simulação (segundos)
 
 	!Número de tempo por arquivo plotado
-	real(8),parameter :: dt_frame = 0.025
+	real(8),parameter :: dt_frame = 0.02
 
-
-	integer,parameter :: nx=int(5./dx) , ny=int(1.18/2./dy), nz=int(0.15/dz)   !****MUDANÇAS PROS DADOS DO ARTIGO*****
+	integer,parameter :: nx=int(4./dx) , ny=int(0.59/dy), nz=int(0.20/dz)   !###CONFORME ZAMPIRON ET AL. (2022) 
 	!nz=int(10./dz1-0.1+0.5) porque a última célula é maior (0.5)
 	integer,parameter :: nx1=nx+1, ny1=ny+1, nz1=nz+1, ts = ceiling(10./dt0)
 	
-	!#################TESTE TURBULENCIA 2%###################
+	!####TURBULENCIA 2%, CONFORME ZAMPIRON ET AL. (2022)##############
 	real(8) :: r 
 	real(8),parameter :: iturb = 0.02
-	!########################################################
+	!#################################################################
 
 	!Para fazer dz variável no espaço inicialmente criar uma função ...
-	real(8),parameter :: uinicial = 0.49
+	real(8),parameter :: uinicial = 0.49   !###CONFORME ZAMPIRON ET AL. (2022) 
 
 	integer,parameter :: t_plot = 1 ! 0 = modo simples (velocidade, Level Set e IBM), 1 = modo completo (pressão, vorticidade, viscosidade)
 
@@ -35,7 +34,7 @@ module disc
 		
 	integer,parameter :: obst_t = 0 ! 0 = sem obst, 1 = dunas, 2 = dunas2, 3 = gaussiano3D, 4 = beji, 5 = delft degrau, 6 = delft 1_2, 7 = SBRH calombos e buracos, 8 = fennema1990, 9 = aureli2008, bd_koshizuka1995eKleefsman2005
 
-	integer,parameter :: m_turb = 1 ! 0 = sem modelo, 1 = LES Smagorinsky-Lilly Clássico, 2 = LES Smagorinsky-Lilly Direcional
+	integer,parameter :: m_turb = 0 ! 0 = sem modelo, 1 = LES Smagorinsky-Lilly Clássico, 2 = LES Smagorinsky-Lilly Direcional
 
 	integer,parameter :: esp_type = 0 ! 0 = sem camada esponja, 1 = leva em consideração a profundidade, 2 = não leva em consideração a profundidade, 3 = Método da Tangente Hiperbólica
 
@@ -149,7 +148,7 @@ module parametros
 
 	!Parâmetros
 	!Viscosidade cinemática (m²/s), coeficiente de chezy (m**(1/2)/s), aceleração da graviadde (m/s²) e implicitness parameter $Patnaik et al. 1987$ (-) 
-	real(8), parameter :: chezy = 37.54143, decliv = 0.000734  !*********MUDANÇAS ARTIGO***********
+	real(8), parameter :: chezy = 37.54143, decliv = 0.000734  !###CONFORME ZAMPIRON ET AL. (2022)
 
 	real(8), parameter :: gx = 9.80665 * sin(atan(decliv)) , gz = 9.80665 * cos(atan(decliv))
 
