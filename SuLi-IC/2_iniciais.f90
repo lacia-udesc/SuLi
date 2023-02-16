@@ -41,7 +41,7 @@ SUBROUTINE iniciais()
 	
 	CALL level_set_ini()
 
-	!####TURBULENCIA 2%, CONFORME ZAMPIRON ET AL. (2022)##############
+	!####TURBULENCIA, CONFORME ZAMPIRON ET AL. (2022)#################
 	call interpx_cf(ls,nx,ny,nz,ls_x) !(nx1,ny1,nz)
 	
 	do k = 1, nz
