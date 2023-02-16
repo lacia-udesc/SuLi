@@ -132,7 +132,7 @@ PROGRAM PNH
 	close (unit=99998799)
 	close (unit=99998800)
 	close (unit=99998801)
-	close (unit=100008)
-	close (unit=100009)
+	close (unit=100008)  !###SONDA, CONFORME ZAMPIRON ET AL. (2022)
+	close (unit=100009)  !###SONDA, CONFORME ZAMPIRON ET AL. (2022)
 End program PNH
 
