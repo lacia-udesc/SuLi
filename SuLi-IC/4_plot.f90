@@ -47,6 +47,7 @@ SUBROUTINE plot_i()
 	write(*,*) "der = ", der,"advectivo = ", adv_type, "modelo de turb. = ", m_turb
 	write(*,*) "ccx0 = ", ccx0 ,"ccxf = ", ccxf, "ccy0 = ", ccy0, "ccyf = ", ccyf, "ccz0 = ", ccz0, "cczf = ", cczf
 
+
 	!Plotagens de condição inicial
 
 	!Perfil longitudinal do desnível
@@ -68,7 +69,9 @@ SUBROUTINE plot_i()
 	!enddo
 	!close (unit=99998799)
 	
-	!SONDA X/H=16 MARI
+	
+	!####SONDAS PARA VALIDAÇÃO, CONFORME ZAMPIRON ET AL. (2022)#################
+	!Sonda x/H=16 [Mariana 02/2023]
 	i = int(2.032/dx)
 	 j = int(0.5/dy)
 	   
@@ -84,7 +87,7 @@ SUBROUTINE plot_i()
 		write(100008,*) 't', celula(1:nza)
 		write(100008,*) t, u(i,j,1:nza)
 	
-	!SONDA X/H=20
+	!Sonda x/H=20 [Mariana, Bruna, Leonardo 15/02/2023]
 	i = int(2.54/dx)
 	 j = int(0.5/dy)
 	   
@@ -99,6 +102,8 @@ SUBROUTINE plot_i()
 	open (unit=100009, action= 'write', file= 'dados//sondaxH20', status= 'unknown')
 		write(100009,*) 't', celula(1:nza)
 		write(100009,*) t, u(i,j,1:nza)
+	!########################################################################
+
 
 	!Perfil longitudinal do desnível
 	open (unit=99998800, action= 'write', file= 'dados//h2.txt', status= 'unknown') ! o status deveria ser para escrever em cima deste primeiro ..z
@@ -429,7 +434,7 @@ SUBROUTINE plot_f()
 	enddo
 
 	ii = 0
-	i = int(2.032/dx) 
+	i = int(2.032/dx)  !###CONFORME ZAMPIRON ET AL. (2022) 
 	j = int(0.5/dy) 
 
 	do k = nz, 2, -1
@@ -499,35 +504,8 @@ SUBROUTINE plot_f()
 
 	!perfil velocidade horizontal seção 7 *************************************
 	!	open (unit=100008, action= 'write', file= 'dados//perfil7.txt', status= 'unknown')
-
-		
-	!sonda x/H=16 mari
-	i = int(2.032/dx)
-	 j = int(0.5/dy)
-	   
-	   do k = 1, nz
-	   
-	 if (ls(i,j,k)>=0.) then
-	 nza=k
-	 endif
-	   enddo
-	 	
-		write(100008,*) t, u(i,j,1:nza)
-
-	!sonda x/H=20 mari bruna leo
-	i = int(2.54/dx)
-	 j = int(0.5/dy)
-	   
-	   do k = 1, nz
-	   
-	 if (ls(i,j,k)>=0.) then
-	 nza=k
-	 endif
-	   enddo
-	 	
-		write(100009,*) t, u(i,j,1:nza)
-
 	!*********************************************************************
+
 
 	!perfil velocidade horizontal seção 9 *************************************
 	!	open (unit=100012, action= 'write', file= 'dados//perfil8.txt', status= 'unknown')
@@ -538,6 +516,34 @@ SUBROUTINE plot_f()
 	!	enddo	
 
 	!	 close (unit=100012)
+	!*********************************************************************
+	
+	
+	!####SONDAS PARA VALIDAÇÃO, CONFORME ZAMPIRON ET AL. (2022)#################	
+	!Sonda x/H=16 [Mariana 02/2023]
+	i = int(2.032/dx)
+	 j = int(0.5/dy)
+	   
+	   do k = 1, nz
+	   
+	 if (ls(i,j,k)>=0.) then
+	 nza=k
+	 endif
+	   enddo	
+		write(100008,*) t, u(i,j,1:nza)
+
+	!Sonda x/H=20 [Mariana, Bruna, Leonardo 15/02/2023]
+	i = int(2.54/dx)
+	 j = int(0.5/dy)
+	   
+	   do k = 1, nz
+	   
+	 if (ls(i,j,k)>=0.) then
+	 nza=k
+	 endif
+	   enddo	 	
+		write(100009,*) t, u(i,j,1:nza)
+	!########################################################################
 
 
 END SUBROUTINE plot_f
