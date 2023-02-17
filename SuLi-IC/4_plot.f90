@@ -16,7 +16,7 @@ SUBROUTINE plot_i()
 	USE obst
 	USE mms_m
 	USE cond
-	USE omp_lib
+	!$ USE omp_lib
 
 	IMPLICIT NONE
 
@@ -113,8 +113,10 @@ SUBROUTINE plot_i()
 
 	call date_and_time(values = agora)
 	agora1 = agora
-	t_i = omp_get_wtime()
+	call cpu_time(t_i)
+	!$ t_i = omp_get_wtime()
 	
+
 	!Contagem temporal
 	write(200000,*) it, t, agora, t_i - t_i
 
@@ -226,7 +228,7 @@ SUBROUTINE plot_f()
 	USE smag
 	USE obst
 	USE mms_m
-	USE omp_lib
+	!$ USE omp_lib
 	
 	IMPLICIT NONE
 	!Declarado também no programa
@@ -254,7 +256,8 @@ SUBROUTINE plot_f()
 	prev = (prev*6 + (ts-it)*ciclo*1./(60.*60.))/(7.)
 	agora1 = agora
 	call date_and_time(values = agora)
-	t_a = omp_get_wtime()
+	call cpu_time(t_a)
+	!$ t_a = omp_get_wtime()
 	nfil=it
 
 

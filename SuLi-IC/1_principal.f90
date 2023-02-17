@@ -23,7 +23,7 @@
 PROGRAM PNH
 
 !Declaração de Variáveis!
-	USE omp_lib
+	!$ USE omp_lib
 	USE disc
 	USE restart
 

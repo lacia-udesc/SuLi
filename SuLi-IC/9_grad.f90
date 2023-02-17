@@ -13,7 +13,7 @@ SUBROUTINE graddin()
 	USE parametros
 	USE cond
 	USE obst
-	USE :: omp_lib
+	!$ USE omp_lib
 	
 	IMPLICIT NONE
 
