@@ -84,7 +84,7 @@ module obst
 	integer, parameter :: elev = 50. *dz                    
 	!Comprimento a adicionar abaixo
 
-	real(8), parameter :: amp = 0.5, comp = .5, fase = -pi/2. !amplitude, comprimento e fase da onda
+	real(8), parameter :: amp = 0.50, comp = .5, fase = -pi/2. !amplitude, comprimento e fase da onda
 
 end module obst
 
