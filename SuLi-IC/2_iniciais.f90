@@ -41,12 +41,13 @@ SUBROUTINE iniciais()
 	
 	CALL level_set_ini()
 
+	!####TURBULENCIA, CONFORME ZAMPIRON ET AL. (2022)#################
 	call interpx_cf(ls,nx,ny,nz,ls_x) !(nx1,ny1,nz)
 	
 	do k = 1, nz
 	do j = 1, ny
 	do i = 1, nx1
-		if (ls_x(i,j,k)>=0.) then
+		!if (ls_x(i,j,k)>=0.) then
 		
 			call random_number(r)
 				r=2.*(r-0.5)
@@ -58,7 +59,7 @@ SUBROUTINE iniciais()
 			umed=u(i,j,k)+ umed
 			ik = 1 + ik
 			
-		endif
+		!endif
 	enddo
 	enddo
 	enddo
@@ -66,6 +67,7 @@ SUBROUTINE iniciais()
 	umed=umed/ik
 	
 	u = u + (uinicial - umed)
+	!#################################################################
 	
 	v = 0.
 	w = 0.

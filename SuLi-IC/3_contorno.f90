@@ -361,13 +361,14 @@ SUBROUTINE contorno(nlock)
 				ls(1,:,k) = blx1(1:ny,k)
 				enddo 
 				
+				!####TURBULENCIA, CONFORME ZAMPIRON ET AL. (2022)#################
 				ik=0
 				umed=0.
 				
 				i = 1
 				do k = 1, nz
 				do j = 1, ny
-					if (ls(i,j,k)>=0.) then
+					!if (ls(i,j,k)>=0.) then
 						u(1,j,k) = bxx1(j,k)
 					
 						call random_number(r)
@@ -380,17 +381,15 @@ SUBROUTINE contorno(nlock)
 						umed=u(i,j,k)+ umed
 						ik = 1 + ik
 						
-					endif
+					!endif
 				enddo
 				enddo
 				
 				umed=umed/ik
 				
 				u(1,:,:) = u(1,:,:) + (uinicial - umed)
-				
-				
-				
-				
+				!#################################################################	
+		
 			endif
 			
 			!Para validação
