@@ -4,7 +4,7 @@ module disc
 	real(8),parameter ::  pi = acos(-1.) 
 
 	!Discretizações espaciais em x e y (metros), discretização temporal (segundos)
-	real(8),parameter :: dx = 0.01, dy = 0.01, dz = 0.01, dt0 = 0.005
+	real(8),parameter :: dx = 0.014, dy = 0.014, dz = 0.014, dt0 = 0.005
 
 	real(8) :: t, dt, t_i, t_a
 	!Número de células para x, y e z (-); número de pontos para x, y e z (-); tempo de simulação (segundos)
@@ -13,7 +13,7 @@ module disc
 	real(8),parameter :: dt_frame = 0.025
 
 
-	integer,parameter :: nx=int(5./dx) , ny=int(1.18/2./dy), nz=int(0.15/dz)   !****MUDANÇAS PROS DADOS DO ARTIGO*****
+	integer,parameter :: nx=int(3.0/dx) , ny=int(1.4/dy), nz=int(0.14/dz)   !****MUDANÇAS PROS DADOS DO ARTIGO*****
 	!nz=int(10./dz1-0.1+0.5) porque a última célula é maior (0.5)
 	integer,parameter :: nx1=nx+1, ny1=ny+1, nz1=nz+1, ts = ceiling(10./dt0)
 	
@@ -65,7 +65,7 @@ module cond
 	!Só pode usar condição periódica no final quando usar no começo e vice-versa
 
 	integer,parameter :: ccy0=2 !condicao de contorno parede y=0 --> 0 é periodico, 1 é free-slip e 2 é no-slip, 3 é prescrita
-	integer,parameter :: ccyf=1 !condicao de contorno parede y=yf --> 0 é periodico, 1 é free-slip e 2 é no-slip, 3 é prescrita
+	integer,parameter :: ccyf=2 !condicao de contorno parede y=yf --> 0 é periodico, 1 é free-slip e 2 é no-slip, 3 é prescrita
 	integer,parameter :: ccz0=2 !condicao de contorno parede z=0 --> 1 é free-slip, 2 é no-slip, 3 é prescrita
 	integer,parameter :: cczf=1 !condicao de contorno parede z=zf --> 1 é free-slip, 3 é prescrita
 
