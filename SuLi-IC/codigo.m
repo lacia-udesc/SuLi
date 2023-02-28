@@ -1,6 +1,12 @@
+%Leitura de sondas para validação dos efeitos da rugosidade no SuLi
+%Referência: Zampiron et al. (2022)
+
+%Implementação: Mariana de Cesaro
+
 clc
 clear
 
+%ENTRADA - arquivo de leitura da sonda
 [a] = dlmread("sondaxH16");
 
 l=size(a,1);
@@ -8,6 +14,7 @@ c=size(a,2);
 
 media=mean(a(12:l,2:c));
 
+%GRAFICOS
 figure(1)
 
 %ax(1)=subplot(221);
