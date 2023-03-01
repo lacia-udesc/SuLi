@@ -2,6 +2,7 @@
 %Referência: Zampiron et al. (2022)
 
 %Implementação: Mariana de Cesaro
+%Modificações: Bruna Soares
 
 clc
 clear
@@ -24,30 +25,29 @@ subplot(221);
 plot(a(2:52,1),a(2:52,2),"m", a(2:52,1),a(2:52,3),"r",a(2:52,1),a(2:52,4),"b",a(2:52,1),a(2:52,5),"g");
 legend("Sonda 1", "Sonda 2", "Sonda 3", "Sonda 4", "location", "northwestoutside")
 grid on;
-xlabel ("t (s)")
-ylabel ("$\overline{u}$");
-
+xlabel ("t (s)");
+ylabel ("Vmedia(m/s)");
 
 subplot(222);
-plot(a(2:52,1),a(2:52,6),"c;sonda 5;",a(2:52,1),a(2:52,7),"k;sonda 6;",a(2:52,1),a(2:52,8),"r;sonda 7;",a(2:52,1),a(2:52,9),"g;sonda 8;")
+plot(a(2:52,1),a(2:52,6),"c",a(2:52,1),a(2:52,7),"k",a(2:52,1),a(2:52,8),"r",a(2:52,1),a(2:52,9),"g")
 legend("Sonda 5", "Sonda 6", "Sonda 7", "Sonda 8", "location", "northeastoutside");
 grid on;
-xlabel ("t (s)")
-ylabel vmédia(m/s)
+xlabel ("t (s)");
+ylabel ("Vmedia(m/s)");
 
 subplot(223);
-plot(a(2:52,1),a(2:52,10),"m;sonda 9;",a(2:52,1),a(2:52,11),"r;sonda 10;",a(2:52,1),a(2:52,12),"b;sonda 11;",a(2:52,1),a(2:52,13),"g;sonda 12;");
+plot(a(2:52,1),a(2:52,10),"m",a(2:52,1),a(2:52,11),"r",a(2:52,1),a(2:52,12),"b",a(2:52,1),a(2:52,13),"g");
 legend("Sonda 9", "Sonda 10", "Sonda 11", "Sonda 12", "location", "southwestoutside");
 grid on;
-xlabel ("t (s)")
-ylabel vmédia(m/s)
+xlabel ("t (s)");
+ylabel ("Vmedia(m/s)");
 
 subplot(224);
-plot(a(2:52,1),a(2:52,14),"c;sonda 13;",a(2:52,1),a(2:52,15),"k;sonda 14;",a(2:52,1),a(2:52,16),"r;sonda 15;",a(2:52,1),a(2:52,17),"g;sonda 16;")
+plot(a(2:52,1),a(2:52,14),"c",a(2:52,1),a(2:52,15),"k",a(2:52,1),a(2:52,16),"r",a(2:52,1),a(2:52,17),"g")
 legend("Sonda 13", "Sonda 14", "Sonda 15", "Sonda 16", "location", "southeastoutside");
 grid on;
-xlabel ("t (s)")
-ylabel vmédia(m/s)
+xlabel ("t (s)");
+ylabel ("Vmedia(m/s)");
 
 print -f1 figure1.pdf
 
