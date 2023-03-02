@@ -10,16 +10,16 @@ clear
 %ENTRADA - arquivo de leitura da sonda
 [a] = dlmread("sondaxH16");
 
-l=size(a,1);
-c=size(a,2);
+l=size(a,1); %numero de linhas    #primeira linha: cabeçalho
+c=size(a,2); %numero de colunas   #primeira coluna: tempo
 
-media=mean(a(12:l,2:c));
+%media=mean(a(12:l,2:c));
 
 %GRAFICOS
 figure(1)
 
 %ax(1)=subplot(221);
-x=2:5;
+%x=2:5;
 subplot(221);
 %set (ax(1), "tag", "1");
 plot(a(2:52,1),a(2:52,2),"m", a(2:52,1),a(2:52,3),"r",a(2:52,1),a(2:52,4),"b",a(2:52,1),a(2:52,5),"g");
