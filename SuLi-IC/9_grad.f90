@@ -24,7 +24,7 @@ SUBROUTINE graddin()
 	real(8),save,dimension(nx1,ny,nz) :: matspri
 	real(8),save,dimension(nx,ny1,nz) :: matsprj
 	real(8),save,dimension(nx,ny,nz1) :: matsprk
-	real(8),save,dimension(nx,ny,nz) :: matqpr, matapripos, mataprineg, mataprjpos, mataprjneg, mataprkpos, mataprkneg
+	real(8),save,dimension(nx,ny,nz) :: matqpr
 	real(8),save,dimension(0:nx1,0:ny1,0:nz1) :: matdpr, matepr, erropr, erroppr, mppr
 
 	!contadores
@@ -40,7 +40,6 @@ SUBROUTINE graddin()
 	!===================================================================================================================
 	!RESOLUÇÃO DO PROBLEMA
 	!===================================================================================================================
-	cont = 0
 
 	!%%%!-- Método do Gradiente Conjugado - Para Pressão Dinâmica --!%%%!
 
@@ -106,25 +105,40 @@ SUBROUTINE graddin()
 	enddo
 
 	!Normalização das matrizes s e cálculo do primeiro erro
+
+	do k = 1, nz
+	do j = 1, ny
+	do i = 1, nx1
+		matspri(i,j,k) = matspri(i,j,k)/sqrt(matdpr(i,j,k)*matdpr(i-1,j,k))
+	enddo
+	enddo
+	enddo
+
+
+	do k = 1, nz
+	do j = 1, ny1
+	do i = 1, nx
+		matsprj(i,j,k) = matsprj(i,j,k)/sqrt(matdpr(i,j,k)*matdpr(i,j-1,k))
+	enddo
+	enddo
+	enddo
+
+	do k = 1, nz1
+	do j = 1, ny
+	do i = 1, nx
+		matsprk(i,j,k) = matsprk(i,j,k)/sqrt(matdpr(i,j,k)*matdpr(i,j,k-1))
+	enddo
+	enddo
+	enddo
+
 	alfamupr = 0.
 	do k = 1, nz
 	do j = 1, ny
 	do i = 1, nx
-	
-	
-		matapripos(i,j,k) = matspri(i+1,j,k)/sqrt(matdpr(i,j,k)*matdpr(i+1,j,k))
-		mataprineg(i,j,k) = matspri(i,j,k)/sqrt(matdpr(i,j,k)*matdpr(i-1,j,k))
-
-		mataprjpos(i,j,k) = matsprj(i,j+1,k)/sqrt(matdpr(i,j,k)*matdpr(i,j+1,k))
-		mataprjneg(i,j,k) = matsprj(i,j,k)/sqrt(matdpr(i,j,k)*matdpr(i,j-1,k))
-
-		mataprkpos(i,j,k) = matsprk(i,j,k+1)/sqrt(matdpr(i,j,k)*matdpr(i,j,k+1))
-		mataprkneg(i,j,k) = matsprk(i,j,k)/sqrt(matdpr(i,j,k)*matdpr(i,j,k-1))
-
-		erropr(i,j,k) = matepr(i,j,k) - matapripos(i,j,k) * matepr(i+1,j,k) - mataprineg(i,j,k) * matepr(i-1,j,k) &
-			- mataprjpos(i,j,k) * matepr(i,j+1,k) - mataprjneg(i,j,k) * matepr(i,j-1,k) &
-			- mataprkpos(i,j,k) * matepr(i,j,k+1) - mataprkneg(i,j,k) * matepr(i,j,k-1) - matqpr(i,j,k)/sqrt(matdpr(i,j,k))
-
+		erropr(i,j,k) = matepr(i,j,k) - matspri(i+1,j,k) * matepr(i+1,j,k) - matspri(i,j,k) * matepr(i-1,j,k) &
+			- matsprj(i,j+1,k) * matepr(i,j+1,k) - matsprj(i,j,k) * matepr(i,j-1,k) &
+			- matsprk(i,j,k+1) * matepr(i,j,k+1) - matsprk(i,j,k) * matepr(i,j,k-1) - matqpr(i,j,k)/sqrt(matdpr(i,j,k))
+		
 		alfamupr = alfamupr + erropr(i,j,k) * erropr(i,j,k)
 	enddo
 	enddo
@@ -151,68 +165,60 @@ SUBROUTINE graddin()
 
 	erroppr = erropr
 
+	cont = 0
 	!%%%%%%%%%%%%%   loop da redução do erro   %%%%%%%%%%%%%%!
 	do while ((abs(alfamupr) > (0.0001/(nx*ny*nz))) .and. (cont < 10000) )
 
-
-		if (cont == 9999) write(*,*) "pulou pressão; ", "erro =", abs(alfamupr)
-			!$OMP PARALLEL
-			!$OMP SINGLE
 			cont = cont +1
 
 			!inicialização
-			alfamupr = 0.
 			alfadipr = 0.
 			betamupr = 0.
-			!$OMP END SINGLE
-			
-			! Parâmetro mp e alfa
-			!$OMP DO PRIVATE(i,j,k)
-			do k = 1, nz
-			do j = 1, ny
-			do i = 1, nx
-				mppr(i,j,k) = erroppr(i,j,k) - erroppr(i+1,j,k)*matapripos(i,j,k) - erroppr(i-1,j,k)*mataprineg(i,j,k) &
-				- erroppr(i,j+1,k)*mataprjpos(i,j,k) - erroppr(i,j-1,k)*mataprjneg(i,j,k) & 
-				- erroppr(i,j,k+1)*mataprkpos(i,j,k) - erroppr(i,j,k-1)*mataprkneg(i,j,k)
-			enddo
-			enddo
-			enddo
-			!$OMP END DO
-		
-		
-			!$OMP BARRIER	
-			
-			!$OMP SINGLE
-			do k = 1, nz
-			do j = 1, ny
-			do i = 1, nx
-				alfamupr = alfamupr + erropr(i,j,k) * erropr(i,j,k)
-				alfadipr = alfadipr + erroppr(i,j,k) * mppr(i,j,k)
-			enddo
-			enddo
-			enddo
-			!$OMP END SINGLE
-			  
-			!$OMP BARRIER	
-			
-			!$OMP SINGLE	
-			alfapr = alfamupr / alfadipr
-			!$OMP END SINGLE
-			
-			! Recálculo das matrizes e, erro e parâmetro beta
 
-			!$OMP DO COLLAPSE(2) PRIVATE(i,j,k)
+			! Parâmetro mp e alfa
+			!$OMP  PARALLEL DO PRIVATE(i,j,k)
+			do k = 1, nz
+			do j = 1, ny
+			do i = 1, nx
+				mppr(i,j,k) = erroppr(i,j,k) - erroppr(i+1,j,k)*matspri(i+1,j,k) - erroppr(i-1,j,k)*matspri(i,j,k) &
+				- erroppr(i,j+1,k)*matsprj(i,j+1,k) - erroppr(i,j-1,k)*matsprj(i,j,k) & 
+				- erroppr(i,j,k+1)*matsprk(i,j,k+1) - erroppr(i,j,k-1)*matsprk(i,j,k)
+			enddo
+			enddo
+			enddo
+			!$OMP END PARALLEL DO
+
+			do k = 1, nz
+			do j = 1, ny
+			do i = 1, nx
+					alfadipr = alfadipr + erroppr(i,j,k) * mppr(i,j,k)
+			enddo
+			enddo
+			enddo
+
+			alfapr = alfamupr / alfadipr
+
+			! Recálculo das matrizes e, erro e parâmetro beta
+			!$OMP PARALLEL DO PRIVATE(i,j,k)
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
 				matepr(i,j,k)  = matepr(i,j,k)  - alfapr * erroppr(i,j,k)
+			enddo
+			enddo
+			enddo
+			!$OMP END PARALLEL DO
+
+			!$OMP PARALLEL DO PRIVATE(i,j,k)
+			do k = 1, nz
+			do j = 1, ny
+			do i = 1, nx
 				erropr(i,j,k) = erropr(i,j,k) - alfapr * mppr(i,j,k)
 			enddo
 			enddo
 			enddo
-			!$OMP END DO
+			!$OMP END PARALLEL DO
 
-			!$OMP SINGLE
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
@@ -220,16 +226,12 @@ SUBROUTINE graddin()
 			enddo
 			enddo
 			enddo
-			!$OMP END SINGLE
-			
-			!$OMP BARRIER	
-						
-			!$OMP SINGLE	
+	
 			betapr = betamupr/alfamupr
-			!$OMP END SINGLE
+			alfamupr = betamupr
 			
 			! Recálculo de erroppr
-			!$OMP DO PRIVATE(i,j,k)
+			!$OMP PARALLEL DO PRIVATE(i,j,k)
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
@@ -237,45 +239,54 @@ SUBROUTINE graddin()
 			enddo
 			enddo
 			enddo
-			!$OMP END DO
+			!$OMP END PARALLEL DO
 
 			! Condições de contorno
-
-			!$OMP SINGLE
 			if (ccx0.eq.0) then  ! Condição periódica
-				matepr(0,:,:)   = matepr(nx,:,:)
-				matepr(nx1,:,:) = matepr(1,:,:)
 				erroppr(0,:,:)   = erroppr(nx,:,:)
 				erroppr(nx1,:,:) = erroppr(1,:,:)
 			else
-				matepr(0,:,:)   = matepr(1,:,:)
-				matepr(nx1,:,:) = matepr(nx,:,:)
 				erroppr(0,:,:)   = erroppr(1,:,:)
 				erroppr(nx1,:,:) = erroppr(nx,:,:)
 			endif
 
 			if (ccy0.eq.0) then  ! Condição periódica
-				matepr(:,0,:)   = matepr(:,ny,:)
-				matepr(:,ny1,:) = matepr(:,1,:)
 				erroppr(:,0,:)   = erroppr(:,ny,:)
 				erroppr(:,ny1,:) = erroppr(:,1,:)
 			else
-				matepr(:,0,:)   = matepr(:,1,:)
-				matepr(:,ny1,:) = matepr(:,ny,:)
 				erroppr(:,0,:)   = erroppr(:,1,:)
 				erroppr(:,ny1,:) = erroppr(:,ny,:)
 			endif
 
-			matepr(:,:,0)   = matepr(:,:,1)
-			matepr(:,:,nz1) = matepr(:,:,nz)
-
 			erroppr(:,:,0)   = erroppr(:,:,1)
 			erroppr(:,:,nz1) = erroppr(:,:,nz)
-			!$OMP END SINGLE
-			!$OMP END PARALLEL
 		enddo
-		!%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+		! se pular pressão ele vai avisar
+		if (cont == 10000) write(*,*) "pulou pressão; ", "erro =", abs(alfamupr)
+
+		! Condições de contorno
+		if (ccx0.eq.0) then  ! Condição periódica
+			matepr(0,:,:)   = matepr(nx,:,:)
+			matepr(nx1,:,:) = matepr(1,:,:)
+		else
+			matepr(0,:,:)   = matepr(1,:,:)
+			matepr(nx1,:,:) = matepr(nx,:,:)
+		endif
+
+		if (ccy0.eq.0) then  ! Condição periódica
+			matepr(:,0,:)   = matepr(:,ny,:)
+			matepr(:,ny1,:) = matepr(:,1,:)
+		else
+			matepr(:,0,:)   = matepr(:,1,:)
+			matepr(:,ny1,:) = matepr(:,ny,:)
+		endif
+
+		matepr(:,:,0)   = matepr(:,:,1)
+		matepr(:,:,nz1) = matepr(:,:,nz)
+
+
+		!%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		! Desnormalização de matriz e para a pressão dinâmica
 		do k = 0, nz+1
 		do j = 0, ny+1
