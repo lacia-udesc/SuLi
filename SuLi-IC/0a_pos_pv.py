@@ -198,6 +198,11 @@ clip1Display.DiffuseColor = [0.18823529411764706, 0.6745098039215687, 1.0]
 # Properties modified on clip1Display
 clip1Display.Opacity = 0.5
 
+renderView1.ResetActiveCameraToPositiveY()
+
+# reset view to fit data
+renderView1.ResetCamera(False)
+
 #================================================================
 # addendum: following script captures some of the application
 # state to faithfully reproduce the visualization during playback
