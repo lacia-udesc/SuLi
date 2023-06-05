@@ -13,21 +13,14 @@ SUBROUTINE level_set_ini()
 	IMPLICIT NONE
 
 	!Declarado também no programa
-	integer :: i, j, k, tipo, ii, jj, ilamb
-	real(8),save,dimension(nx,ny,nz) :: dist_sign, distx, disty, distz
-	real(8),save,dimension(nx,ny) :: b
-	real(8),save,dimension(nx) :: x
-	real(8),save,dimension(ny) :: y
-	real(8),save,dimension(nz) :: z
-	real(8),save :: dist, ampl, lambdax, lambday, prof, lsaux, m, aux1, xaux1, xaux2, xaux3, xaux4, erro1, erro2, erro3, erro4
+	integer :: i, j, k, ii, jj, ilamb
+	real(8),dimension(nx,ny,nz) :: dist_sign, distx, disty, distz
+	real(8),dimension(nx,ny) :: b
+	real(8),dimension(nx) :: x
+	real(8),dimension(ny) :: y
+	real(8),dimension(nz) :: z
+	real(8),save :: dist, lsaux, aux1, xaux1, xaux2, xaux3, xaux4, erro1, erro2, erro3, erro4
 
-	!Inicialização das variáveis
-	alpha1 = 1.5 !Número de células que varão parte da espessura, pois é uma função suave
-	rho_f1 = 1.204!kg/m³ ar (ls negativo) 20°C
-	mi_f1 = 0.000018253 !Pa/s  !0.00001516!m²/s ar (ls negativo) 20°C !no incompact3d tá como NI
-	rho_f2 =998.0!kg/m³ água saturada (ls positivo) 20°C.
-	mi_f2 = 0.00100798  !Pa/s  !0.00000101!m²/s água saturada (ls positivo) 20°C !no incompact3d tá como NI
-	sigma = 0.0728!N/m tensão superficial da água 20°C
 	rho_m = abs(rho_f2-rho_f1)*0.5
 
 	!Coeficientes de integração RK3 TVD
@@ -43,6 +36,9 @@ SUBROUTINE level_set_ini()
 	bdtl(3)=2./3.
 	gdtl(3)=2./3.
 
+	dx1 =  max(dx,dy,dz) !(dx+dy+dz)/3. !
+	dt1 =0.1 * dx1
+	
 	!Resolução do problema
 	if (t_hs == 0) then
 	  ls_m = 0.
@@ -60,27 +56,15 @@ SUBROUTINE level_set_ini()
 
 	do k = 1, nz
 	z(k) = (k-0.5) * dz
-	enddo
-
-	!Tipos
-	!1 = Onda
-	!2 = Onda 2 
-	!3 = Barragem
-	!4 = Gota
-	!5 = fennema1990 ou aureli2008
-	!6 = MMS
-	!7 = Koshizuka et al., 1995
-
-	!Definindo o tipo:
-	tipo = 1
+	enddo	
 
 	if (tipo == 1) then
 		!CALL waves_coef()
 		!Condição inicial de onda
-		ampl = 0. 	 !Amplitude da onda
-		lambdax = 2. !Comprimento da onda na direção x
-		lambday = 2. !Wave length
-		prof = 0.5   !Profundidade do escoamento sem a onda
+		!ampl = 0. 	 !Amplitude da onda
+		!lambdax = 2. !Comprimento da onda na direção x
+		!lambday = 2. !Wave length
+		!prof = 0.5   !Profundidade do escoamento sem a onda
 
 		!Calcula efetivamente o ls
 		if (lambday .ne. 0.) then
@@ -117,11 +101,11 @@ SUBROUTINE level_set_ini()
 		!CALL waves()
 	elseif (tipo == 3) then
 		!Condição inicial de barragem
-		prof    = 0.0 !5715 !dam depth
-		lambdax = 0.0 !5715 !dam x-length
-		lambday = 0.0 	    !dam y-length
-		ampl = 0.05715
-		m = 30
+		!prof    !dam z-length
+		!lambdax !dam x-length
+		!lambday !dam y-length
+		!ampl    !fator de adição do comprimento em todas as direções (m) - ex: aresta do cubo
+		!m       ! Curvatura do chanfro entre planos na barragem [adimensional]
 		do k = 1, nz
 		do j = 1, ny
 		do i = 1, nx
@@ -133,13 +117,14 @@ SUBROUTINE level_set_ini()
 		enddo
 	elseif (tipo == 4) then
 		!Condição inicial de bolha quadrada/elipsoidal
-		m = 2
+		!ampl    ! raio da gota (ou metade de uma aresta) (m) 
+		!m       ! Curvatura do chanfro entre planos da bolha (2 para redondo) [adimensional]
 		do k = 1, nz
 		do j = 1, ny
 		do i = 1, nx
-		lsaux = (x(i)-0.03)**m/2. + (y(j)-0.03)**m/2.  + (z(k)-0.01)**m/2.
+		lsaux = (x(i)-lambdax)**m/2. + (y(j)-lambday)**m/2.  + (z(k)-prof)**m/2.
 		ls(i,j,k) = -lsaux**(1./m)
-		ls(i,j,k) = ls(i,j,k) + 0.005 
+		ls(i,j,k) = ls(i,j,k) + ampl  
 		enddo
 		enddo
 		enddo
@@ -224,7 +209,7 @@ SUBROUTINE level_set()
 	USE velpre
 
 	IMPLICIT NONE
-	real(8),save,dimension(nx,ny,nz) :: sy7_ls,gx_ls,ta1_ls,sy7_ls1,gx_ls1,ta1_ls1
+	real(8),dimension(nx,ny,nz) :: sy7_ls,gx_ls,ta1_ls,sy7_ls1,gx_ls1,ta1_ls1
 	integer :: i, j, k, itrl
 	real(8),save :: aux1, aux2, dtaux
 
@@ -315,7 +300,7 @@ SUBROUTINE conv_weno(sy7)
 	integer :: i,j,k,ihs
 
 	real(8),intent(out),dimension(nx,ny,nz) :: sy7
-	real(8),save,dimension(nx,ny,nz) :: ta1,tb1,tc1,td1,te1,tf1
+	real(8),dimension(nx,ny,nz) :: ta1,tb1,tc1,td1,te1,tf1
 	real(8),save :: apos, aneg, bpos, bneg, cpos, cneg
 
 
@@ -388,7 +373,7 @@ SUBROUTINE reinic_weno(sy7_ls1,gx_ls1,ta1_ls1)
 
 	USE ls_param
 	IMPLICIT NONE
-	real(8),save,dimension(nx,ny,nz) :: sy1,sy4,func_s,ddd,ta1,tb1,tc1,td1,te1,tf1,lsaux,ls0
+	real(8),dimension(nx,ny,nz) :: sy1,sy4,func_s,ddd,ta1,tb1,tc1,td1,te1,tf1,lsaux,ls0
 	real(8),intent(inout),dimension(nx,ny,nz) :: sy7_ls1,gx_ls1,ta1_ls1
 	real(8) :: error
 	integer :: i, j, k, l, il, nr,ihs,itrl
@@ -516,35 +501,35 @@ SUBROUTINE weno1(dphidxp,dphidxn,nx1,dx1,phi0,ihs)
 	real(8),intent(in) :: dx1
 			
 	real(8),intent(inout),dimension(nx1) :: dphidxp,dphidxn,phi0
-	real(8),save,dimension(3) ::isup, isun, auxx
-	real(8),save,dimension(3) ::alpup, omgup,alpun, omgun
+	real(8),dimension(3) ::isup, isun, auxx
+	real(8),dimension(3) ::alpup, omgup,alpun, omgun
 
 	real(8),save :: mod_phi1,aux1,aux2,aux3,aux4,aux5,aux6,aux,aux11, aux12
 	
-	real(8),dimension(-2:nx1+3) :: phi1
-	real(8),dimension(nx1+4)    :: un
-	real(8),dimension(-3:nx1)   :: up
+	real(8),dimension(-1:nx1+2) :: phi1
+	real(8),dimension(0:nx1+1)    :: un
+	real(8),dimension(0:nx1+1)   :: up
 	real(8),dimension(nx1)   :: phiaux
 	
 	
-	aux1 = 13./12.
-	aux2 = 1./4.
-	aux3 = 1./6.
-	auxx(1) = 0.1
-	auxx(2) = 0.6
+	aux1 = 1./5.
+	aux2 = 1./11.
+	aux3 = 1./2.
+	auxx(1) = 1./3.
+	auxx(2) = 2./3.
 	auxx(3) = 0.3
-	aux6 = 0.00000001
+	aux6 = 0.000000000000000000000000000000000000000001
 	phi1(1:nx1) = phi0(1:nx1)
 
 	if (ihs == 0) then !Contorno periódico
 		phi1(0)  = phi1(nx1-1)
 		phi1(-1) = phi1(nx1-2)
-		phi1(-2) = phi1(nx1-3)
+		!phi1(-2) = phi1(nx1-3)
 
 
 		phi1(nx1+1) = phi1(2)
 		phi1(nx1+2) = phi1(3)
-		phi1(nx1+3) = phi1(4)
+		!phi1(nx1+3) = phi1(4)
 	elseif (ihs == 1) then !Distance extrapolation
 		!phi1(0)     = 2*phi1(1)     - phi1(2)
 		!phi1(-1)    = 2*phi1(0)     - phi1(1)
@@ -552,15 +537,15 @@ SUBROUTINE weno1(dphidxp,dphidxn,nx1,dx1,phi0,ihs)
 		!phi1(nx1+1) = 2*phi1(nx1)   - phi1(nx1-1)
 		!phi1(nx1+2) = 2*phi1(nx1+1) - phi1(nx1)
 		!phi1(nx1+3) = 2*phi1(nx1+2) - phi1(nx1+1)
-		phi1(0)  = 1./5. * (12.*phi1(1)  - 9.*phi1(2) + 2.*phi1(3) )
-		phi1(-1) = 1./5. * (12.*phi1(0)  - 9.*phi1(1) + 2.*phi1(2) )
-		phi1(-2) = 1./5. * (12.*phi1(-1) - 9.*phi1(0) + 2.*phi1(1) )
+		phi1(0)  = aux1 * (12.*phi1(1)  - 9.*phi1(2) + 2.*phi1(3) )
+		phi1(-1) = aux1 * (12.*phi1(0)  - 9.*phi1(1) + 2.*phi1(2) )
+		!phi1(-2) = aux1 * (12.*phi1(-1) - 9.*phi1(0) + 2.*phi1(1) )
 		!phi1(nx1+1) = 1./5. * (12.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
 		!phi1(nx1+2) = 1./5. * (12.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
 		!phi1(nx1+3) = 1./5. * (12.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
-		phi1(nx1+1) = 1./11. * (18.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
-		phi1(nx1+2) = 1./11. * (18.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
-		phi1(nx1+3) = 1./11. * (18.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
+		phi1(nx1+1) = aux2 * (18.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
+		phi1(nx1+2) = aux2 * (18.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
+		!phi1(nx1+3) = aux2 * (18.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
 	elseif (ihs == 2) then !Dderivative zero
 		!phi1(0)     = phi1(1)
 		!phi1(nx1+1) = phi1(nx1)
@@ -568,50 +553,43 @@ SUBROUTINE weno1(dphidxp,dphidxn,nx1,dx1,phi0,ihs)
 		!phi1(nx1+2) = phi1(nx1-1)
 		!phi1(-2)    = phi1(3)
 		!phi1(nx1+3) = phi1(nx1-2)
-		phi1(0)  = 1./11. * (18.*phi1(1)  - 9.*phi1(2) + 2.*phi1(3) )
-		phi1(-1) = 1./11. * (18.*phi1(0)  - 9.*phi1(1) + 2.*phi1(2) )
-		phi1(-2) = 1./11. * (18.*phi1(-1) - 9.*phi1(0) + 2.*phi1(1) )
-		phi1(nx1+1) = 1./11. * (18.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
-		phi1(nx1+2) = 1./11. * (18.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
-		phi1(nx1+3) = 1./11. * (18.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
+		phi1(0)  = aux2 * (18.*phi1(1)  - 9.*phi1(2) + 2.*phi1(3) )
+		phi1(-1) = aux2 * (18.*phi1(0)  - 9.*phi1(1) + 2.*phi1(2) )
+		!phi1(-2) = aux2 * (18.*phi1(-1) - 9.*phi1(0) + 2.*phi1(1) )
+		phi1(nx1+1) = aux2 * (18.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
+		phi1(nx1+2) = aux2 * (18.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
+		!phi1(nx1+3) = aux2 * (18.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
 	endif
 
-	do i=-3,nx1
-	up(i)=(phi1(i+3)-phi1(i+2))/dx1
+	do i=0,nx1+1
+	up(i)=(phi1(i+1)-phi1(i))/dx1
 	enddo
 
-	do i=1,nx1+4
-	un(i)=(phi1(i-2)-phi1(i-3))/dx1
+	do i=0,nx1+1
+	un(i)=(phi1(i)-phi1(i-1))/dx1
 	enddo
 
 	do i=1,nx1
-	isup(1) = aux1 * (up(i)-2*up(i-1)+up(i-2))*(up(i)-2*up(i-1)+up(i-2)) &
-	+ aux2 * (up(i)-4*up(i-1)+3*up(i-2))*(up(i)-4*up(i-1)+3*up(i-2))
-	isun(1) = aux1 * (un(i)-2*un(i+1)+un(i+2))*(un(i)-2*un(i+1)+un(i+2)) &
-	+ aux2 * (un(i)-4*un(i+1)+3*un(i+2))*(un(i)-4*un(i+1)+3*un(i+2))
+	isup(1) = (up(i)-up(i-1))*(up(i)-up(i-1)) 
+	isun(1) = (un(i)-un(i+1))*(un(i)-un(i+1)) 
 
-	isup(2) = aux1 * (up(i-1)-2*up(i-2)+up(i-3))*(up(i-1)-2*up(i-2)+up(i-3)) + aux2 * (up(i-1)-up(i-3))*(up(i-1)-up(i-3))
-	isun(2) = aux1 * (un(i+1)-2*un(i+2)+un(i+3))*(un(i+1)-2*un(i+2)+un(i+3)) + aux2 * (un(i+1)-un(i+3))*(un(i+1)-un(i+3))
+	isup(2) = (up(i-1)-up(i))*(up(i-1)-up(i)) 
+	isun(2) = (un(i+1)-un(i))*(un(i+1)-un(i))  
 
-	isup(3) = aux1 * (up(i-2)-2*up(i-3)+up(i-4))*(up(i-2)-2*up(i-3)+up(i-4)) &
-	+ aux2 * (3*up(i-2)-4*up(i-3)+up(i-4))*(3*up(i-2)-4*up(i-3)+up(i-4))
-	isun(3) = aux1 * (un(i+2)-2*un(i+3)+un(i+4))*(un(i+2)-2*un(i+3)+un(i+4)) &
-	+ aux2 * (3*un(i+2)-4*un(i+3)+un(i+4))*(3*un(i+2)-4*un(i+3)+un(i+4))
-
-	do kk = 1, 3
-	alpup(kk) = auxx(kk) / ((aux6 + isup(kk))*(aux6 + isup(kk)))
-	alpun(kk) = auxx(kk) / ((aux6 + isun(kk))*(aux6 + isun(kk)))
+	do kk = 1, 2
+	alpup(kk) = auxx(kk)* (1.+ abs(isup(1)-isup(2)) / (1.+(aux6 + isup(kk))))
+	alpun(kk) = auxx(kk)* (1. + abs(isun(1)-isun(2)) / (1.+(aux6 + isun(kk))))
 	enddo
 
-	do kk = 1, 3
-	omgup(kk) = alpup(kk) / (alpup(1)+alpup(2)+alpup(3))
-	omgun(kk) = alpun(kk) / (alpun(1)+alpun(2)+alpun(3))
+	do kk = 1, 2
+	omgup(kk) = alpup(kk) / (alpup(1)+alpup(2))
+	omgun(kk) = alpun(kk) / (alpun(1)+alpun(2))
 	enddo
 
-	dphidxp(i) = aux3* (omgup(1) * (2*up(i)-7*up(i-1)+11*up(i-2)) + &
-	omgup(2) * (-up(i-1)+5*up(i-2)+2*up(i-3)) + omgup(3) * (2*up(i-2)+5*up(i-3)-up(i-4)) )
-	dphidxn(i) = aux3* (omgun(1) * (2*un(i)-7*un(i+1)+11*un(i+2)) + &
-	omgun(2) * (-un(i+1)+5*un(i+2)+2*un(i+3)) + omgun(3) * (2*un(i+2)+5*un(i+3)-un(i+4)) )
+	!dphidxp(i) = aux3* (omgup(1) * (-1*up(i-1)+3*up(i-2)) + omgup(2) * (3*up(i-3)-up(i-4)))
+	!dphidxn(i) = aux3* (omgup(1) * (-1*up(i+1)+3*up(i+2)) + omgup(2) * (3*up(i+3)-up(i+4)))
+	dphidxp(i) = aux3* (omgup(1) * 0.5*(-1*up(i+1)+3*up(i)) + omgup(2) * 0.5*(up(i)+up(i-1)))
+	dphidxn(i) = aux3* (omgup(1) * 0.5*(-1*up(i-1)+3*up(i)) + omgup(2) * 0.5*(up(i)+up(i+1)))
 	enddo
 	
 END SUBROUTINE weno1
@@ -624,7 +602,7 @@ SUBROUTINE heaviside()
 
 	integer :: i, j, k, coefa1,ihs
 	real(8),save :: aux1, aux2, aux3, aux4
-	real(8),save,dimension(nx,ny,nz) :: sy60, sy61,ta1,tb1,tc1,td1,te1,tf1
+	real(8),dimension(nx,ny,nz) :: sy60, sy61,ta1,tb1,tc1,td1,te1,tf1
 
 	!ihs = 2
 	CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
@@ -661,7 +639,7 @@ SUBROUTINE heaviside()
 	!dmidy = 0.
 	!dmidz = 0.
 
-	aux1 = mi_f1 * 10000.
+	aux1 = mi_f1 * 10000. !aaaaaaaaaaaaaaaaaaaaaaaaaaa
 	aux2 = mi_f2 * 10000.
 
 	do k = 1, nz
@@ -720,7 +698,7 @@ SUBROUTINE mod_ls1()
 
 	integer :: i, j, k,ihs
 	real(8),save :: aux1, aux2
-	real(8),save,dimension(nx,ny,nz) :: ta1,tb1,tc1,td1,te1,tf1,dlsdxa,dlsdya,dlsdza
+	real(8),dimension(nx,ny,nz) :: ta1,tb1,tc1,td1,te1,tf1,dlsdxa,dlsdya,dlsdza
 	!ihs = 1
 	CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
 

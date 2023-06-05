@@ -37,3 +37,4 @@ allclean:
 	rm -rf arquivos
 	rm -rf dados
 	rm -f saida
+	rm -rf fort.*

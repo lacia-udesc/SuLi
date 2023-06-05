@@ -24,36 +24,32 @@ PROGRAM PNH
 
 !Declaração de Variáveis!
 	!$ USE omp_lib
-	USE disc
-	USE restart
+	USE disc, only : it, ts, t, dt, t_press, wave_t, mms_t, a_dt, numb_threads, tt, ntt
+	USE restart, only : irest, interv_rest
 
 	IMPLICIT NONE
-
-	!$ CALL OMP_set_num_threads(6)
-	!$ write(*,*) "CÓDIGO EM PARALELO"
-	!$ CALL OMP_set_dynamic(.FALSE.)
-	!$ CALL OMP_set_nested(.FALSE.)	
 	
-	write(*,*) "tamanho do domínio", nx*ny*nz
-		
-	if (nx*ny*nz > 30000000) then
-		write(*,*) "Verifique se o seu computador tem capacidade para a simulação, se sim, cancele esta condicional no código."
-		STOP
-	endif
-
-
 	!Condições iniciais
+	CALL parametros()
+	
 	if (irest.eq.0) then
 		CALL iniciais()
 	else
 		CALL restart_ini()
 	endif
+	
 
+	!$ CALL OMP_set_num_threads(numb_threads)
+	!$OMP PARALLEL
+	numb_threads = OMP_GET_NUM_THREADS()
+	!$OMP END PARALLEL
+	!$ write(*,*) "CÓDIGO EM PARALELO, quantidade de núcleos utilizados = ", numb_threads
+	!$ CALL OMP_set_dynamic(.FALSE.)
+	!$ CALL OMP_set_nested(.FALSE.)
 
 	!Adicionar os contornos na plotagem inicial
 	CALl contorno(1)
 	CALl contorno(3)
-
 
 	!Solução manufaturada
 	if (mms_t > 0) CALL mms()

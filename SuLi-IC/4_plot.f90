@@ -21,15 +21,15 @@ SUBROUTINE plot_i()
 	IMPLICIT NONE
 
 	!Declarado também no programa
-	real(8),save,dimension(nx1,ny1,nz1) :: uaux, vaux, waux, x11, y11, z11
-	real(8),save,dimension(nx,ny,nz)    :: dudy, dudz, dvdx, dvdz, dwdx, dwdy
-	real(8),save,dimension(nx,ny,nz)    ::nutaux, prdaux, div, kaux, vorti, vortj, vortk, lasux
-	real(8),save,dimension(nx1,ny,nz)   :: xnuta
-	real(8),save,dimension(nx,ny1,nz)   :: ynuta	
-	real(8),save,dimension(nx,ny,nz1)   :: znuta
-	real(8),save,dimension(nx1,ny,nz1)  :: auxy
-	real(8),save,dimension(nx1,ny1,nz)  :: auxz
-	real(8),save,dimension(0:nx1,0:ny1,0:nz1) :: x1, y1, z1
+	real(8),dimension(nx1,ny1,nz1) :: uaux, vaux, waux, x11, y11, z11
+	real(8),dimension(nx,ny,nz)    :: dudy, dudz, dvdx, dvdz, dwdx, dwdy
+	real(8),dimension(nx,ny,nz)    ::nutaux, prdaux, div, kaux, vorti, vortj, vortk, lasux
+	real(8),dimension(nx1,ny,nz)   :: xnuta
+	real(8),dimension(nx,ny1,nz)   :: ynuta	
+	real(8),dimension(nx,ny,nz1)   :: znuta
+	real(8),dimension(nx1,ny,nz1)  :: auxy
+	real(8),dimension(nx1,ny1,nz)  :: auxz
+	real(8),dimension(0:nx1,0:ny1,0:nz1) :: x1, y1, z1
 	integer :: i, j, k, ii
 
 
@@ -233,12 +233,12 @@ SUBROUTINE plot_f()
 	IMPLICIT NONE
 	!Declarado também no programa
 
-	real(8),save,dimension(nx1,ny1,nz1) :: uaux, vaux, waux, x11, y11, z11
-	real(8),save,dimension(nx,ny,nz) :: dudy, dudz, dvdx, dvdz, dwdx, dwdy
-	real(8),save,dimension(nx,ny,nz)    ::nutaux, prdaux, div, kaux, vorti, vortj, vortk
-	real(8),save,dimension(nx1,ny,nz1) :: auxy
-	real(8),save,dimension(nx1,ny1,nz) :: auxz
-	real(8),save,dimension(0:nx1,0:ny1,0:nz1) :: x1, y1, z1
+	real(8),dimension(nx1,ny1,nz1) :: uaux, vaux, waux, x11, y11, z11
+	real(8),dimension(nx,ny,nz) :: dudy, dudz, dvdx, dvdz, dwdx, dwdy
+	real(8),dimension(nx,ny,nz)    ::nutaux, prdaux, div, kaux, vorti, vortj, vortk
+	real(8),dimension(nx1,ny,nz1) :: auxy
+	real(8),dimension(nx1,ny1,nz) :: auxz
+	real(8),dimension(0:nx1,0:ny1,0:nz1) :: x1, y1, z1
 	integer :: ifile, nfil, i, j, k, ii
 
 	!Número do arquivo de saída
@@ -247,9 +247,9 @@ SUBROUTINE plot_f()
 	!Nome do arquivo de saída
 	character(5) chits
 
-	real(8),save,dimension(nx1,ny,nz) :: xnuta
-	real(8),save,dimension(nx,ny1,nz) :: ynuta	
-	real(8),save,dimension(nx,ny,nz1) :: znuta
+	real(8),dimension(nx1,ny,nz) :: xnuta
+	real(8),dimension(nx,ny1,nz) :: ynuta	
+	real(8),dimension(nx,ny,nz1) :: znuta
 
 	!Cálculo para o a estimativa do tempo restante
 	ciclo = (agora(5)-agora1(5)) * 60 * 60 + (agora(6)-agora1(6)) * 60 + (agora(7)-agora1(7)) + real(agora(8)-agora1(8))/1000
@@ -503,8 +503,6 @@ SUBROUTINE plot_atrib()
 	write(9,*) "dx = ", dx, ", dy = ", dy, ", dz = ", dz
 	write(9,*) "nx = ", nx, "ny = ", ny, "nz = ", nz
 	write(9,*) "dt = ", dt, "ts = ", ts, "duração da sim =", (t_a-t_i)/60.
-	write(9,*) "amp = ", amp, "comp = ", comp
-	write(9,*) "elev = ", elev
 	close (unit=9)
 
 	END SUBROUTINE plot_atrib

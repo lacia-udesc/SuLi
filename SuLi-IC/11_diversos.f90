@@ -273,7 +273,7 @@ END SUBROUTINE tempo
 SUBROUTINE complementos()
 
 	USE velpre
-	USE parametros
+	USE param
 	USE ls_param
 	USE vartempo
 	USE mms_m
@@ -283,10 +283,10 @@ SUBROUTINE complementos()
 
 	!Contadores
 	integer :: i, j, k
-	real(8),save,dimension(nx,ny,nz) :: aux
-	real(8),save,dimension(nx1,ny,nz) :: dhsdx
-	real(8),save,dimension(nx,ny1,nz) :: dhsdy
-	real(8),save,dimension(nx,ny,nz1) :: dhsdz, epis_z
+	real(8),dimension(nx,ny,nz) :: aux
+	real(8),dimension(nx1,ny,nz) :: dhsdx
+	real(8),dimension(nx,ny1,nz) :: dhsdy
+	real(8),dimension(nx,ny,nz1) :: dhsdz, epis_z
 	
 
 	!! tensão superficial, MMS, rugosidade, gravidade e camada esponja

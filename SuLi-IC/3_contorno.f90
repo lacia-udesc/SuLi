@@ -21,9 +21,9 @@ SUBROUTINE contorno(nlock)
 	real(8), save :: zi, zj, zk
 
 
-	real(8),save,dimension(0:nx1+1,0:ny+1,0:nz+1) :: dpdx
-	real(8),save,dimension(0:nx+1,0:ny1+1,0:nz+1) :: dpdy
-	real(8),save,dimension(0:nx+1,0:ny+1,0:nz1+1) :: dpdz
+	real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: dpdx
+	real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: dpdy
+	real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: dpdz
 
 	!RESOLUÇÃO DO PROBLEMA
 
@@ -502,7 +502,7 @@ SUBROUTINE obstaculo()
 	IMPLICIT NONE
 
 	real(8),save :: x, y, x0, y0, a, d, sigx, sigy, tgaux, aux1, aux2, dz_v, erro, raio		!x mostra a localização atual
-	real(8),save,dimension(-1:nx1*2+2,-1:ny1*2+2) :: auxx
+	real(8),dimension(-1:nx1*2+2,-1:ny1*2+2) :: auxx
 	integer :: i,j, nxx, nyy
 
 	nxx = nx1*2
@@ -516,15 +516,7 @@ SUBROUTINE obstaculo()
 		write(*,*) "Sem obstáculo."
 	return
 
-	elseif (obst_t == 1) then !Dunas (Daniel, Leonardo)
-		do j = -1,nyy+2
-		do i = -1, nxx+2
-			x = (i-1.)*(dx*0.5)
-			auxx(i,j) = elev + amp*(1.+sin(fase+2.*pi*x/comp)) !Número de velocidades U zeradas, dependente da funçao altura da duna na parede esquerda do diferencial de volume
-			!auxy(i,j) = elev + amp*(1.+sin(fase+2.*pi*x1/comp))-0.5*dz1 !Número de velocidades V zeradas
-			!auxz(i,j) = elev + amp*(1.+sin(fase+2.*pi*x1/comp)) !Número de velocidades W zeradas
-		enddo	
-		enddo	
+	elseif (obst_t == 1) then !Dunas (Daniel, Leonardo) ! Desativado
 
 	elseif (obst_t == 2) then !Duna de Yue et al. (2003) (Luisa, Leonardo)
 
@@ -790,9 +782,9 @@ SUBROUTINE sponge_layer(epis_z)
 	!Declarado apenas na rotina
 
 	!Profundidade do domínio
-	real(8),save,dimension(nx,ny,0:nz1) :: z_x
-	real(8),save,dimension(nx) :: zpfs
-	real(8),save,dimension(nx) :: xp,zpt
+	real(8),dimension(nx,ny,0:nz1) :: z_x
+	real(8),dimension(nx) :: zpfs
+	real(8),dimension(nx) :: xp,zpt
 
 	!Parâmetro da camada esponja (permeabilidade)
 	real(8),save :: alfa, alfa0, alfa1, aux1, alt1, alt2
@@ -886,7 +878,7 @@ SUBROUTINE prd_corr(dpdx,dpdy,dpdz) !! arrumar rotina para eficiência!!
 !Derivadas das pressões para adicionar nas condições de contorno (aproximar o valor em u^n+1 ...)
 
 	USE velpre
-	USE parametros
+	USE param
 
 	IMPLICIT NONE
 	!Declarado também no programa
@@ -894,9 +886,9 @@ SUBROUTINE prd_corr(dpdx,dpdy,dpdz) !! arrumar rotina para eficiência!!
 	real(8),intent(out),dimension(0:nx+1,0:ny1+1,0:nz+1) :: dpdy
 	real(8),intent(out),dimension(0:nx+1,0:ny+1,0:nz1+1) :: dpdz
 
-	real(8),save,dimension(nx1,ny,nz) :: rhox
-	real(8),save,dimension(nx,ny1,nz) :: rhoy
-	real(8),save,dimension(nx,ny,nz1) :: rhoz
+	real(8),dimension(nx1,ny,nz) :: rhox
+	real(8),dimension(nx,ny1,nz) :: rhoy
+	real(8),dimension(nx,ny,nz1) :: rhoz
 
 	integer :: i, j, k
 
@@ -967,7 +959,7 @@ END SUBROUTINE prd_corr
 SUBROUTINE boundary_waves()
 
 	USE wave_c
-	USE parametros
+	USE param
 	USE velpre
 	USE ls_param
 
@@ -976,13 +968,13 @@ SUBROUTINE boundary_waves()
 	integer :: i, j, k
 	real(8),save :: aux1, aux2, aux3, aux4, aux5, h_fa, l_wa
 
-	real(8),save,dimension(0:nx) :: h_f
+	real(8),dimension(0:nx) :: h_f
 
-	real(8),save,dimension(0:nx1+1,0:ny+1,0:nz+1) :: u1
-	real(8),save,dimension(0:nx+1,0:ny1+1,0:nz+1) :: v1
-	real(8),save,dimension(0:nx+1,0:ny+1,0:nz1+1) :: w1
+	real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: u1
+	real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: v1
+	real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: w1
 
-	real(4),save,dimension(0:nx+1,0:ny+1,0:nz+1) :: ls1
+	real(4),dimension(0:nx+1,0:ny+1,0:nz+1) :: ls1
 
 
 	!Reference: Coubilla, 2015 (Thesis)
@@ -1098,14 +1090,14 @@ END SUBROUTINE boundary_waves
 
 SUBROUTINE waves_coef()
 	USE wave_c
-	USE parametros
+	USE param
 	IMPLICIT NONE
 
 	integer :: i, k, ii, nxii
 	real(8),save :: aux1, aux2, aux3, aux4, aux5, h_fa, l_wa, lamb, lamb1, lamb2, erro, erro0, l_w1
 	real(8),save :: s, c, a11, a13, a15, a22, a24, a33, a35, a44, a55, b22, b24, b33, b35, b44, b55, c1, c2
 
-	real(8),save,dimension(nx) :: h_f
+	real(8),dimension(nx) :: h_f
 
 	!Reference: Coubilla, 2015 (Thesis)
 	do k = 0, nz+1

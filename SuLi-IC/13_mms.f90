@@ -12,7 +12,7 @@
 SUBROUTINE mms_i()
 
 	USE velpre
-	USE parametros
+	USE param
 	USE cond
 	use mms_m
 	use ls_param
@@ -21,12 +21,12 @@ SUBROUTINE mms_i()
 	!==================================================================================================================
 	integer :: i, j, k
 	real(8),save :: x,y,z,h,ha, hpi, dpi
-	real(8),save,dimension(nx,ny)     :: h_m
-	real(8),save,dimension(nx1,ny)    :: h_mx
-	real(8),save,dimension(nx,ny1)    :: h_my
-	real(8),save,dimension(nx1,ny,nz) :: lsx
-	real(8),save,dimension(nx,ny1,nz) :: lsy
-	real(8),save,dimension(nx,ny,nz1) :: lsz
+	real(8),dimension(nx,ny)     :: h_m
+	real(8),dimension(nx1,ny)    :: h_mx
+	real(8),dimension(nx,ny1)    :: h_my
+	real(8),dimension(nx1,ny,nz) :: lsx
+	real(8),dimension(nx,ny1,nz) :: lsy
+	real(8),dimension(nx,ny,nz1) :: lsz
 
 	hpi=0.5*pi
 	dpi=2.0*pi
@@ -217,7 +217,7 @@ END SUBROUTINE mms_i
 SUBROUTINE mms()
 
 	USE velpre
-	USE parametros
+	USE param
 	use mms_m
 	use ls_param
 
@@ -225,16 +225,16 @@ SUBROUTINE mms()
 	!==================================================================================================================
 	integer :: i, j, k, nxc, nyc, nzc, npc
 
-	real(8),save,dimension(nx1,ny,nz) :: u_m
-	real(8),save,dimension(nx,ny1,nz) :: v_m
-	real(8),save,dimension(nx,ny,nz1) :: w_m
-	real(8),save,dimension(nx,ny,nz)  :: p_m
-	real(8),save,dimension(nx,ny)     :: h_m
-	real(8),save,dimension(nx1,ny)    :: h_mx
-	real(8),save,dimension(nx,ny1)    :: h_my
-	real(8),save,dimension(nx1,ny,nz) :: lsx
-	real(8),save,dimension(nx,ny1,nz) :: lsy
-	real(8),save,dimension(nx,ny,nz1) :: lsz
+	real(8),dimension(nx1,ny,nz) :: u_m
+	real(8),dimension(nx,ny1,nz) :: v_m
+	real(8),dimension(nx,ny,nz1) :: w_m
+	real(8),dimension(nx,ny,nz)  :: p_m
+	real(8),dimension(nx,ny)     :: h_m
+	real(8),dimension(nx1,ny)    :: h_mx
+	real(8),dimension(nx,ny1)    :: h_my
+	real(8),dimension(nx1,ny,nz) :: lsx
+	real(8),dimension(nx,ny1,nz) :: lsy
+	real(8),dimension(nx,ny,nz1) :: lsz
 
 	real(8),save :: x,y,z,h, hpi
 
@@ -469,7 +469,7 @@ END SUBROUTINE mms
 SUBROUTINE mms_bc()
 
 	USE velpre
-	USE parametros
+	USE param
 	USE cond
 	use mms_m
 	use ls_param

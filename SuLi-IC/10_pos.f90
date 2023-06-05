@@ -1,15 +1,15 @@
 SUBROUTINE posdin()
 
 	USE velpre
-	USE parametros
+	USE param
 	USE mms_m
 	USE ls_param
 	IMPLICIT NONE
 	integer :: i, j, k
 	real(8),save :: aux1, aux2
-	real(8),save,dimension(nx1,ny,nz) :: rhox, hs_x
-	real(8),save,dimension(nx,ny1,nz) :: rhoy, hs_y
-	real(8),save,dimension(nx,ny,nz1) :: rhoz, hs_z
+	real(8),dimension(nx1,ny,nz) :: rhox, hs_x
+	real(8),dimension(nx,ny1,nz) :: rhoy, hs_y
+	real(8),dimension(nx,ny,nz1) :: rhoz, hs_z
 
 !PARTE 5	!%%%!-- Correção das Velocidades e do Desnível --!%%%!
 

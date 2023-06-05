@@ -10,7 +10,7 @@
 SUBROUTINE graddin()
 
 	USE velpre
-	USE parametros
+	USE param
 	USE cond
 	USE obst
 	!$ USE omp_lib
@@ -21,11 +21,11 @@ SUBROUTINE graddin()
 	!DECLARADO SOMENTE NA SUBROTINA (ou não precisam de entrada)
 
 	real(8),save :: alfapr, alfamupr, alfadipr, betapr, betamupr
-	real(8),save,dimension(nx1,ny,nz) :: matspri
-	real(8),save,dimension(nx,ny1,nz) :: matsprj
-	real(8),save,dimension(nx,ny,nz1) :: matsprk
-	real(8),save,dimension(nx,ny,nz) :: matqpr
-	real(8),save,dimension(0:nx1,0:ny1,0:nz1) :: matdpr, matepr, erropr, erroppr, mppr
+	real(8),dimension(nx1,ny,nz) :: matspri
+	real(8),dimension(nx,ny1,nz) :: matsprj
+	real(8),dimension(nx,ny,nz1) :: matsprk
+	real(8),dimension(nx,ny,nz) :: matqpr
+	real(8),dimension(0:nx1,0:ny1,0:nz1) :: matdpr, matepr, erropr, erroppr, mppr
 
 	!contadores
 	integer :: i, j, k, cont
@@ -33,9 +33,9 @@ SUBROUTINE graddin()
 	!auxiliares
 	real(8),save :: aux1, aux2, aux3
 
-	real(8),save,dimension(nx1,ny,nz) :: rhox
-	real(8),save,dimension(nx,ny1,nz) :: rhoy
-	real(8),save,dimension(nx,ny,nz1) :: rhoz
+	real(8),dimension(nx1,ny,nz) :: rhox
+	real(8),dimension(nx,ny1,nz) :: rhoy
+	real(8),dimension(nx,ny,nz1) :: rhoz
 
 	!===================================================================================================================
 	!RESOLUÇÃO DO PROBLEMA
@@ -43,20 +43,29 @@ SUBROUTINE graddin()
 
 	!%%%!-- Método do Gradiente Conjugado - Para Pressão Dinâmica --!%%%!
 
+	!$OMP PARALLEL
+	!$OMP WORKSHARE
 	aux1 = dt / (dx*dx)
 	aux2 = dt / (dy*dy)
 	aux3 = dt / (dz*dz)
+	!$OMP END WORKSHARE
+	!$OMP END PARALLEL
 
 	call interpx_cf(rho,nx,ny,nz,rhox) !(nx1,ny,nz)
 	call interpy_cf(rho,nx,ny,nz,rhoy) !(nx,ny1,nz)
 	call interpz_cf(rho,nx,ny,nz,rhoz) !(nx,ny,nz1)
 
+	!$OMP PARALLEL
+	!$OMP WORKSHARE
 	matspri = aux1/rhox
 	matsprj = aux2/rhoy
 	matsprk = aux3/rhoz
+	!$OMP END WORKSHARE
+	!$OMP END PARALLEL
 
 
 	! Matrizes p e q
+	!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) SHARED(matdpr,matspri,matsprj,matsprk,matqpr,u,v,w)
 	do k = 1, nz
 	do j = 1, ny
 	do i = 1, nx
@@ -65,6 +74,7 @@ SUBROUTINE graddin()
 	enddo
 	enddo
 	enddo
+	!$OMP END PARALLEL DO 
 
 	!dentro do obstáculo, divergência nula
 	!do j = 1, ny
@@ -76,26 +86,60 @@ SUBROUTINE graddin()
 
 
 	! Condições de contorno, von Neumann
+	!$OMP PARALLEL
 	if (ccx0.eq.0) then  ! Condição periódica
-		matdpr(0,:,:)   = matdpr(nx,:,:)
-		matdpr(nx1,:,:) = matdpr(1,:,:)
+		!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+		do k = 0, nz1
+		do j = 0, ny1
+			matdpr(0,j,k) = matdpr(nx,j,k)
+			matdpr(nx+1,j,k) = matdpr(1,j,k)
+		enddo
+		enddo
+		!$OMP END DO NOWAIT
 	else
-		matdpr(0,:,:)   = matdpr(1,:,:)
-		matdpr(nx1,:,:) = matdpr(nx,:,:)
+		!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+		do k = 0, nz1		
+		do j = 0, ny1
+			matdpr(0,j,k) = matdpr(1,j,k)
+			matdpr(nx+1,j,k) = matdpr(nx,j,k)
+		enddo
+		enddo
+		!$OMP END DO NOWAIT
 	endif
 
 	if (ccy0.eq.0) then  ! Condição periódica
-		matdpr(:,0,:)   = matdpr(:,ny,:)
-		matdpr(:,ny1,:) = matdpr(:,1,:)
+		!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+		do k = 0, nz1		
+		do i = 0, nx1
+			matdpr(i,0,k) = matdpr(i,ny,k)
+			matdpr(i,ny+1,k) = matdpr(i,1,k)
+		enddo
+		enddo
+		!$OMP END DO NOWAIT
 	else
-		matdpr(:,0,:)   = matdpr(:,1,:)
-		matdpr(:,ny1,:) = matdpr(:,ny,:)
+		!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+		do k = 0, nz1		
+		do i = 0, nx1
+			matdpr(i,0,k)  = matdpr(i,1,k)
+			matdpr(i,ny+1,k) = matdpr(i,ny,k)
+		enddo
+		enddo
+	!$OMP END DO NOWAIT
 	endif
 
-	matdpr(:,:,0)   = matdpr(:,:,1)
-	matdpr(:,:,nz1) = matdpr(:,:,nz)
+	!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+	do j = 0, ny1
+	do i = 0, nx1
+		matdpr(i,j,0)   = matdpr(i,j,1)
+		matdpr(i,j,nz+1) = matdpr(i,j,nz)
+	enddo
+	enddo
+	!$OMP END DO
+	!$OMP END PARALLEL
 	
 	! Normalização da pressão dinâmica
+	!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) 
+	!SHARED(matspr,matdpr,matdpr)
 	do k = 0, nz1
 	do j = 0, ny1
 	do i = 0, nx1
@@ -103,9 +147,12 @@ SUBROUTINE graddin()
 	enddo
 	enddo
 	enddo
+	!$OMP END PARALLEL DO
 
 	!Normalização das matrizes s e cálculo do primeiro erro
-
+	
+	!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) 
+	!SHARED(matspri,matdpr,matdpr)
 	do k = 1, nz
 	do j = 1, ny
 	do i = 1, nx1
@@ -113,8 +160,10 @@ SUBROUTINE graddin()
 	enddo
 	enddo
 	enddo
+	!$OMP END PARALLEL DO
 
-
+	!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) 
+	!SHARED(matsprj,matdpr,matdpr)
 	do k = 1, nz
 	do j = 1, ny1
 	do i = 1, nx
@@ -122,7 +171,10 @@ SUBROUTINE graddin()
 	enddo
 	enddo
 	enddo
-
+	!$OMP END PARALLEL DO
+	
+	!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) 
+	!SHARED(matsprk,matdpr,matdpr)
 	do k = 1, nz1
 	do j = 1, ny
 	do i = 1, nx
@@ -130,53 +182,107 @@ SUBROUTINE graddin()
 	enddo
 	enddo
 	enddo
-
+	!$OMP END PARALLEL DO
+	
+	!$OMP SINGLE
 	alfamupr = 0.
+	!$OMP END SINGLE
+	
+	!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) 
+	!SHARED(erropr,matepr,matspri,matsprj,matsprk,matqpr,matdpr)
 	do k = 1, nz
 	do j = 1, ny
 	do i = 1, nx
 		erropr(i,j,k) = matepr(i,j,k) - matspri(i+1,j,k) * matepr(i+1,j,k) - matspri(i,j,k) * matepr(i-1,j,k) &
 			- matsprj(i,j+1,k) * matepr(i,j+1,k) - matsprj(i,j,k) * matepr(i,j-1,k) &
 			- matsprk(i,j,k+1) * matepr(i,j,k+1) - matsprk(i,j,k) * matepr(i,j,k-1) - matqpr(i,j,k)/sqrt(matdpr(i,j,k))
-		
+	enddo
+	enddo
+	enddo
+	!$OMP END PARALLEL DO
+	
+	do k = 1, nz
+	do j = 1, ny
+	do i = 1, nx
 		alfamupr = alfamupr + erropr(i,j,k) * erropr(i,j,k)
 	enddo
 	enddo
 	enddo
-
+	
+	!$OMP PARALLEL
 	if (ccx0.eq.0) then  ! Condição periódica
-		erropr(0,:,:)   = erropr(nx,:,:)
-		erropr(nx1,:,:) = erropr(1,:,:)
+		!$OMP  DO COLLAPSE(2) PRIVATE(i,j,k) 
+		do k = 0, nz1
+		do j = 0, ny1		
+			erropr(0,j,k) = erropr(nx,j,k)
+			erropr(nx+1,j,k) = erropr(1,j,k)
+		enddo
+		enddo
+		!$OMP END DO NOWAIT
 	else
-		erropr(0,:,:)   = erropr(1,:,:)
-		erropr(nx1,:,:) = erropr(nx,:,:)
+		!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+		do k = 0, nz1		
+		do j = 0, ny1
+			erropr(0,j,k) = erropr(1,j,k)
+			erropr(nx+1,j,k) = erropr(nx,j,k)
+		enddo
+		enddo
+		!$OMP END DO NOWAIT
 	endif
 
 	if (ccy0.eq.0) then  ! Condição periódica
-		erropr(:,0,:)   = erropr(:,ny,:)
-		erropr(:,ny1,:) = erropr(:,1,:)
+		!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+		do k = 0, nz1		
+		do i = 0, nx1
+			erropr(i,0,k) = erropr(i,ny,k)
+			erropr(i,ny+1,k) = erropr(i,1,k)
+		enddo
+		enddo
+		!$OMP END DO NOWAIT
 	else
-		erropr(:,0,:)   = erropr(:,1,:)
-		erropr(:,ny1,:) = erropr(:,ny,:)
+		!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+		do k = 0, nz1		
+		do i = 0, nx1
+			erropr(i,0,k) = erropr(i,1,k)
+			erropr(i,ny+1,k) = erropr(i,ny,k)
+		enddo
+		enddo
+		!$OMP END DO NOWAIT
 	endif
 
-	erropr(:,:,0)   = erropr(:,:,1)
-	erropr(:,:,nz1) = erropr(:,:,nz)
-
+	!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+		do j = 0, ny1
+		do i = 0, nx1
+		erropr(i,j,0) = erropr(i,j,1)
+		erropr(i,j,nz+1) = erropr(i,j,nz)
+		enddo
+		enddo
+	!$OMP END DO
+	!$OMP END PARALLEL
+	
+	!$OMP PARALLEL
+	!$OMP WORKSHARE
 	erroppr = erropr
-
+	!$OMP END WORKSHARE
+	!$OMP END PARALLEL
+	
+	!$OMP SINGLE
 	cont = 0
+	!$OMP END SINGLE
+	
 	!%%%%%%%%%%%%%   loop da redução do erro   %%%%%%%%%%%%%%!
 	do while ((abs(alfamupr) > (0.0001/(nx*ny*nz))) .and. (cont < 10000) )
 
 			cont = cont +1
-
+			
 			!inicialização
+			
 			alfadipr = 0.
 			betamupr = 0.
+			
 
 			! Parâmetro mp e alfa
-			!$OMP  PARALLEL DO PRIVATE(i,j,k)
+			!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) SHARED(mppr,erroppr,matspri,matsprj,matsprk)
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
@@ -191,15 +297,17 @@ SUBROUTINE graddin()
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
-					alfadipr = alfadipr + erroppr(i,j,k) * mppr(i,j,k)
+				alfadipr = alfadipr + erroppr(i,j,k) * mppr(i,j,k)
 			enddo
 			enddo
 			enddo
-
+			
+			
 			alfapr = alfamupr / alfadipr
+			
 
 			! Recálculo das matrizes e, erro e parâmetro beta
-			!$OMP PARALLEL DO PRIVATE(i,j,k)
+			!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) SHARED(matepr,alfapr,erroppr)
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
@@ -209,7 +317,7 @@ SUBROUTINE graddin()
 			enddo
 			!$OMP END PARALLEL DO
 
-			!$OMP PARALLEL DO PRIVATE(i,j,k)
+			!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) SHARED(erropr,alfapr,mppr)
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
@@ -226,12 +334,17 @@ SUBROUTINE graddin()
 			enddo
 			enddo
 			enddo
-	
+			
+			!$OMP PARALLEL
+			!$OMP WORKSHARE
 			betapr = betamupr/alfamupr
 			alfamupr = betamupr
-			
+			!$OMP END WORKSHARE
+			!$OMP END PARALLEL
+										
 			! Recálculo de erroppr
-			!$OMP PARALLEL DO PRIVATE(i,j,k)
+			!$OMP PARALLEL DO PRIVATE(i,j,k) 
+			!SHARED(erroppr,erropr,betapr,erroppr)
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
@@ -242,52 +355,121 @@ SUBROUTINE graddin()
 			!$OMP END PARALLEL DO
 
 			! Condições de contorno
+			
+			!$OMP PARALLEL
 			if (ccx0.eq.0) then  ! Condição periódica
-				erroppr(0,:,:)   = erroppr(nx,:,:)
-				erroppr(nx1,:,:) = erroppr(1,:,:)
+				!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+				do k = 0, nz1
+				do j = 0, ny1
+					erroppr(0,j,k) = erroppr(nx,j,k)
+					erroppr(nx+1,j,k) = erroppr(1,j,k)
+				enddo
+				enddo
+				!$OMP END DO NOWAIT
 			else
-				erroppr(0,:,:)   = erroppr(1,:,:)
-				erroppr(nx1,:,:) = erroppr(nx,:,:)
+				!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+				do k = 0, nz1		
+				do j = 0, ny1
+					erroppr(0,j,k) = erroppr(1,j,k)
+					erroppr(nx+1,j,k) = erroppr(nx,j,k)
+				enddo
+				enddo
+				!$OMP END DO NOWAIT
 			endif
 
 			if (ccy0.eq.0) then  ! Condição periódica
-				erroppr(:,0,:)   = erroppr(:,ny,:)
-				erroppr(:,ny1,:) = erroppr(:,1,:)
+				!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+				do k = 0, nz1		
+				do i = 0, nx1
+					erroppr(i,0,k) = erroppr(i,ny,k)
+					erroppr(i,ny+1,k) = erroppr(i,1,k)
+				enddo
+				enddo
+				!$OMP END DO NOWAIT
 			else
-				erroppr(:,0,:)   = erroppr(:,1,:)
-				erroppr(:,ny1,:) = erroppr(:,ny,:)
+				!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+				do k = 0, nz1		
+				do i = 0, nx1
+					erroppr(i,0,k) = erroppr(i,1,k)
+					erroppr(i,ny+1,k) = erroppr(i,ny,k)
+				enddo
+				enddo
+				!$OMP END DO NOWAIT
 			endif
 
-			erroppr(:,:,0)   = erroppr(:,:,1)
-			erroppr(:,:,nz1) = erroppr(:,:,nz)
+			!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+			do j = 0, ny1
+			do i = 0, nx1
+				erroppr(i,j,0) = erroppr(i,j,1)
+				erroppr(i,j,nz+1) = erroppr(i,j,nz)
+			enddo
+			enddo
+			!$OMP END DO
+			!$OMP END PARALLEL
 		enddo
 
 		! se pular pressão ele vai avisar
 		if (cont == 10000) write(*,*) "pulou pressão; ", "erro =", abs(alfamupr)
 
 		! Condições de contorno
-		if (ccx0.eq.0) then  ! Condição periódica
-			matepr(0,:,:)   = matepr(nx,:,:)
-			matepr(nx1,:,:) = matepr(1,:,:)
-		else
-			matepr(0,:,:)   = matepr(1,:,:)
-			matepr(nx1,:,:) = matepr(nx,:,:)
-		endif
+		
+		!$OMP PARALLEL
+			if (ccx0.eq.0) then  ! Condição periódica
+				!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+				do k = 0, nz1
+				do j = 0, ny1
+					matepr(0,j,k) = matepr(nx,j,k)
+					matepr(nx+1,j,k) = matepr(1,j,k)
+				enddo
+				enddo
+				!$OMP END DO NOWAIT
+			else
+				!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+				do k = 0, nz1		
+				do j = 0, ny1
+					matepr(0,j,k) = matepr(1,j,k)
+					matepr(nx+1,j,k) = matepr(nx,j,k)
+				enddo
+				enddo
+				!$OMP END DO NOWAIT
+			endif
 
-		if (ccy0.eq.0) then  ! Condição periódica
-			matepr(:,0,:)   = matepr(:,ny,:)
-			matepr(:,ny1,:) = matepr(:,1,:)
-		else
-			matepr(:,0,:)   = matepr(:,1,:)
-			matepr(:,ny1,:) = matepr(:,ny,:)
-		endif
+			if (ccy0.eq.0) then  ! Condição periódica
+				!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+				do k = 0, nz1		
+				do i = 0, nx1
+					matepr(i,0,k) = matepr(i,ny,k)
+					matepr(i,ny+1,k) = matepr(i,1,k)
+				enddo
+				enddo
+				!$OMP END DO NOWAIT
+			else
+				!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+				do k = 0, nz1		
+				do i = 0, nx1
+					matepr(i,0,k) = matepr(i,1,k)
+					matepr(i,ny+1,k) = matepr(i,ny,k)
+				enddo
+				enddo
+				!$OMP END DO NOWAIT
+			endif
 
-		matepr(:,:,0)   = matepr(:,:,1)
-		matepr(:,:,nz1) = matepr(:,:,nz)
-
-
+			!$OMP DO COLLAPSE(2) PRIVATE(i,j,k) 
+			do j = 0, ny1
+			do i = 0, nx1
+				matepr(i,j,0) = matepr(i,j,1)
+				matepr(i,j,nz+1) = matepr(i,j,nz)			
+			enddo
+			enddo
+			!$OMP END DO
+			!$OMP END PARALLEL
+		
+		
+		!write(*,*) "o erro do Gradiente Conjugado foi", alfamupr
+		
 		!%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		! Desnormalização de matriz e para a pressão dinâmica
+		!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) SHARED(prd1,matepr,matdpr)
 		do k = 0, nz+1
 		do j = 0, ny+1
 		do i = 0, nx+1
@@ -295,6 +477,7 @@ SUBROUTINE graddin()
 		enddo
 		enddo
 		enddo
+		!$OMP END PARALLEL DO
 
 	!===============================================================================================================
 
@@ -305,7 +488,7 @@ SUBROUTINE graddin()
 SUBROUTINE pressh()
 
 	USE velpre
-	USE parametros
+	USE param
 
 	IMPLICIT NONE
 
@@ -313,6 +496,7 @@ SUBROUTINE pressh()
 	real(8),save :: intz
 
 	!WORK Z-PENCILS
+
 	   do k = nz,1 ,-1
 	   do j = 1, ny
 	   do i = 1, nx
@@ -333,6 +517,7 @@ SUBROUTINE pressh()
 	   enddo
 	   enddo
 	   enddo
+
 
 
 END SUBROUTINE pressh

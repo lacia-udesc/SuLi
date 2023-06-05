@@ -4,9 +4,8 @@ subroutine visu ()
 
   implicit none
 	
-  real(8),save :: lx, ly, lz
   integer :: nfiles, icrfile, file1, filen, ifile, dig1, dig2, dig3, dig4, dig5
-  real(8),save,allocatable :: y1(:), y2(:), y3(:)
+  real(8),allocatable :: y1(:), y2(:), y3(:)
   integer :: i, j, k, num, aig, ii, nfil
 
   character(100) :: a
@@ -21,10 +20,6 @@ subroutine visu ()
   filen = ts / ceiling(dt_frame/real(dt)) + file1 !valor do último arquivo de leitura ex: campo_000800
   icrfile = 1 !incremento entre arquivos de leitura
   nfiles = int((filen-file1)/icrfile) ! número total de arquivos lidos
-
- lx = real(dx) * real ( nx, 8 )
- ly = real(dy) * real ( ny, 8 )
- lz = real(dz) * real ( nz, 8 )
 
 ! chits = "0010"
 
