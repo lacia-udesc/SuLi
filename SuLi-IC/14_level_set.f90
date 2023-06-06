@@ -506,30 +506,30 @@ SUBROUTINE weno1(dphidxp,dphidxn,nx1,dx1,phi0,ihs)
 
 	real(8),save :: mod_phi1,aux1,aux2,aux3,aux4,aux5,aux6,aux,aux11, aux12
 	
-	real(8),dimension(-1:nx1+2) :: phi1
-	real(8),dimension(0:nx1+1)    :: un
-	real(8),dimension(0:nx1+1)   :: up
+	real(8),dimension(-2:nx1+3) :: phi1
+	real(8),dimension(nx1+4)    :: un
+	real(8),dimension(-3:nx1)   :: up
 	real(8),dimension(nx1)   :: phiaux
 	
 	
-	aux1 = 1./5.
-	aux2 = 1./11.
-	aux3 = 1./2.
-	auxx(1) = 1./3.
-	auxx(2) = 2./3.
+	aux1 = 13./12.
+	aux2 = 1./4.
+	aux3 = 1./6.
+	auxx(1) = 0.1
+	auxx(2) = 0.6
 	auxx(3) = 0.3
-	aux6 = 0.000000000000000000000000000000000000000001
+	aux6 = 0.00000001
 	phi1(1:nx1) = phi0(1:nx1)
 
 	if (ihs == 0) then !Contorno periódico
 		phi1(0)  = phi1(nx1-1)
 		phi1(-1) = phi1(nx1-2)
-		!phi1(-2) = phi1(nx1-3)
+		phi1(-2) = phi1(nx1-3)
 
 
 		phi1(nx1+1) = phi1(2)
 		phi1(nx1+2) = phi1(3)
-		!phi1(nx1+3) = phi1(4)
+		phi1(nx1+3) = phi1(4)
 	elseif (ihs == 1) then !Distance extrapolation
 		!phi1(0)     = 2*phi1(1)     - phi1(2)
 		!phi1(-1)    = 2*phi1(0)     - phi1(1)
@@ -537,15 +537,15 @@ SUBROUTINE weno1(dphidxp,dphidxn,nx1,dx1,phi0,ihs)
 		!phi1(nx1+1) = 2*phi1(nx1)   - phi1(nx1-1)
 		!phi1(nx1+2) = 2*phi1(nx1+1) - phi1(nx1)
 		!phi1(nx1+3) = 2*phi1(nx1+2) - phi1(nx1+1)
-		phi1(0)  = aux1 * (12.*phi1(1)  - 9.*phi1(2) + 2.*phi1(3) )
-		phi1(-1) = aux1 * (12.*phi1(0)  - 9.*phi1(1) + 2.*phi1(2) )
-		!phi1(-2) = aux1 * (12.*phi1(-1) - 9.*phi1(0) + 2.*phi1(1) )
+		phi1(0)  = 1./5. * (12.*phi1(1)  - 9.*phi1(2) + 2.*phi1(3) )
+		phi1(-1) = 1./5. * (12.*phi1(0)  - 9.*phi1(1) + 2.*phi1(2) )
+		phi1(-2) = 1./5. * (12.*phi1(-1) - 9.*phi1(0) + 2.*phi1(1) )
 		!phi1(nx1+1) = 1./5. * (12.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
 		!phi1(nx1+2) = 1./5. * (12.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
 		!phi1(nx1+3) = 1./5. * (12.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
-		phi1(nx1+1) = aux2 * (18.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
-		phi1(nx1+2) = aux2 * (18.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
-		!phi1(nx1+3) = aux2 * (18.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
+		phi1(nx1+1) = 1./11. * (18.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
+		phi1(nx1+2) = 1./11. * (18.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
+		phi1(nx1+3) = 1./11. * (18.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
 	elseif (ihs == 2) then !Dderivative zero
 		!phi1(0)     = phi1(1)
 		!phi1(nx1+1) = phi1(nx1)
@@ -553,43 +553,50 @@ SUBROUTINE weno1(dphidxp,dphidxn,nx1,dx1,phi0,ihs)
 		!phi1(nx1+2) = phi1(nx1-1)
 		!phi1(-2)    = phi1(3)
 		!phi1(nx1+3) = phi1(nx1-2)
-		phi1(0)  = aux2 * (18.*phi1(1)  - 9.*phi1(2) + 2.*phi1(3) )
-		phi1(-1) = aux2 * (18.*phi1(0)  - 9.*phi1(1) + 2.*phi1(2) )
-		!phi1(-2) = aux2 * (18.*phi1(-1) - 9.*phi1(0) + 2.*phi1(1) )
-		phi1(nx1+1) = aux2 * (18.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
-		phi1(nx1+2) = aux2 * (18.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
-		!phi1(nx1+3) = aux2 * (18.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
+		phi1(0)  = 1./11. * (18.*phi1(1)  - 9.*phi1(2) + 2.*phi1(3) )
+		phi1(-1) = 1./11. * (18.*phi1(0)  - 9.*phi1(1) + 2.*phi1(2) )
+		phi1(-2) = 1./11. * (18.*phi1(-1) - 9.*phi1(0) + 2.*phi1(1) )
+		phi1(nx1+1) = 1./11. * (18.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
+		phi1(nx1+2) = 1./11. * (18.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
+		phi1(nx1+3) = 1./11. * (18.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
 	endif
 
-	do i=0,nx1+1
-	up(i)=(phi1(i+1)-phi1(i))/dx1
+	do i=-3,nx1
+	up(i)=(phi1(i+3)-phi1(i+2))/dx1
 	enddo
 
-	do i=0,nx1+1
-	un(i)=(phi1(i)-phi1(i-1))/dx1
+	do i=1,nx1+4
+	un(i)=(phi1(i-2)-phi1(i-3))/dx1
 	enddo
 
 	do i=1,nx1
-	isup(1) = (up(i)-up(i-1))*(up(i)-up(i-1)) 
-	isun(1) = (un(i)-un(i+1))*(un(i)-un(i+1)) 
+	isup(1) = aux1 * (up(i)-2*up(i-1)+up(i-2))*(up(i)-2*up(i-1)+up(i-2)) &
+	+ aux2 * (up(i)-4*up(i-1)+3*up(i-2))*(up(i)-4*up(i-1)+3*up(i-2))
+	isun(1) = aux1 * (un(i)-2*un(i+1)+un(i+2))*(un(i)-2*un(i+1)+un(i+2)) &
+	+ aux2 * (un(i)-4*un(i+1)+3*un(i+2))*(un(i)-4*un(i+1)+3*un(i+2))
 
-	isup(2) = (up(i-1)-up(i))*(up(i-1)-up(i)) 
-	isun(2) = (un(i+1)-un(i))*(un(i+1)-un(i))  
+	isup(2) = aux1 * (up(i-1)-2*up(i-2)+up(i-3))*(up(i-1)-2*up(i-2)+up(i-3)) + aux2 * (up(i-1)-up(i-3))*(up(i-1)-up(i-3))
+	isun(2) = aux1 * (un(i+1)-2*un(i+2)+un(i+3))*(un(i+1)-2*un(i+2)+un(i+3)) + aux2 * (un(i+1)-un(i+3))*(un(i+1)-un(i+3))
 
-	do kk = 1, 2
-	alpup(kk) = auxx(kk)* (1.+ abs(isup(1)-isup(2)) / (1.+(aux6 + isup(kk))))
-	alpun(kk) = auxx(kk)* (1. + abs(isun(1)-isun(2)) / (1.+(aux6 + isun(kk))))
+	isup(3) = aux1 * (up(i-2)-2*up(i-3)+up(i-4))*(up(i-2)-2*up(i-3)+up(i-4)) &
+	+ aux2 * (3*up(i-2)-4*up(i-3)+up(i-4))*(3*up(i-2)-4*up(i-3)+up(i-4))
+	isun(3) = aux1 * (un(i+2)-2*un(i+3)+un(i+4))*(un(i+2)-2*un(i+3)+un(i+4)) &
+	+ aux2 * (3*un(i+2)-4*un(i+3)+un(i+4))*(3*un(i+2)-4*un(i+3)+un(i+4))
+
+	do kk = 1, 3
+	alpup(kk) = auxx(kk) / ((aux6 + isup(kk))*(aux6 + isup(kk)))
+	alpun(kk) = auxx(kk) / ((aux6 + isun(kk))*(aux6 + isun(kk)))
 	enddo
 
-	do kk = 1, 2
-	omgup(kk) = alpup(kk) / (alpup(1)+alpup(2))
-	omgun(kk) = alpun(kk) / (alpun(1)+alpun(2))
+	do kk = 1, 3
+	omgup(kk) = alpup(kk) / (alpup(1)+alpup(2)+alpup(3))
+	omgun(kk) = alpun(kk) / (alpun(1)+alpun(2)+alpun(3))
 	enddo
 
-	!dphidxp(i) = aux3* (omgup(1) * (-1*up(i-1)+3*up(i-2)) + omgup(2) * (3*up(i-3)-up(i-4)))
-	!dphidxn(i) = aux3* (omgup(1) * (-1*up(i+1)+3*up(i+2)) + omgup(2) * (3*up(i+3)-up(i+4)))
-	dphidxp(i) = aux3* (omgup(1) * 0.5*(-1*up(i+1)+3*up(i)) + omgup(2) * 0.5*(up(i)+up(i-1)))
-	dphidxn(i) = aux3* (omgup(1) * 0.5*(-1*up(i-1)+3*up(i)) + omgup(2) * 0.5*(up(i)+up(i+1)))
+	dphidxp(i) = aux3* (omgup(1) * (2*up(i)-7*up(i-1)+11*up(i-2)) + &
+	omgup(2) * (-up(i-1)+5*up(i-2)+2*up(i-3)) + omgup(3) * (2*up(i-2)+5*up(i-3)-up(i-4)) )
+	dphidxn(i) = aux3* (omgun(1) * (2*un(i)-7*un(i+1)+11*un(i+2)) + &
+	omgun(2) * (-un(i+1)+5*un(i+2)+2*un(i+3)) + omgun(3) * (2*un(i+2)+5*un(i+3)-un(i+4)) )
 	enddo
 	
 END SUBROUTINE weno1
