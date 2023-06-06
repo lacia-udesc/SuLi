@@ -28,6 +28,39 @@ SUBROUTINE contorno(nlock)
 	!RESOLUÇÃO DO PROBLEMA
 
 	if ((nlock == 1).or.(nlock == 2)) then
+	
+	
+		!Obstáculo de fundo
+		!Ativar se tiver osbstáculo de fundo
+		!ku, kv, kw indicam até que altura as velocidades tem que ser zeradas (até qual índice k)
+		if (obst_t .ne. 0) then
+			do j=0,ny+1
+			do i=0,nx+1
+				u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
+				v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
+				w(i,j,0:kw(i,j))=0. !+ dpdz(i,j,0:kw(i,j))
+				!Rugosidade Interna
+				ub(i,j,ku(i,j)) = u(i,j,ku(i,j)+1)
+				vb(i,j,kv(i,j)) = v(i,j,kv(i,j)+1)
+				wb(i,j,kw(i,j)) = w(i,j,kw(i,j)+1)
+				!ub(i,j,ku(i,j)+1) = 0.
+				!vb(i,j,kv(i,j)+1) = 0.
+				!wb(i,j,kw(i,j)+1) = 0.
+			
+			enddo
+			enddo
+				
+			i = nx1+1 !j=todos
+			do j=0,ny+1
+				u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
+			enddo
+
+			j=ny1+1 !i=todos
+			do i=0,nx+1
+				v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
+			enddo
+		endif
+
 		if (mms_t > 0) call mms_bc()
 			!Velocidades de atrito
 			!ub = 0.
@@ -237,59 +270,6 @@ SUBROUTINE contorno(nlock)
 				v(:,:,nz+1)  = bzyf(:,:)
 				w(:,:,nz1+1) = bzzf1(:,:)
 			endif
-		
-			!Obstáculo de fundo
-			!Ativar se tiver osbstáculo de fundo
-			!ku, kv, kw indicam até que altura as velocidades tem que ser zeradas (até qual índice k)
-
-			if (obst_t == 0) then
-				if (ccz0.eq.2) then
-					ub(:,:,2) = u(:,:,2)
-					vb(:,:,2) = v(:,:,2)
-					wb(:,:,2) = w(:,:,2)
-				endif
-					
-				if (ccy0.eq.2) then
-					ub(:,2,:) = u(:,2,:)
-					vb(:,2,:) = v(:,2,:)
-					wb(:,2,:) = w(:,2,:)
-				endif
-					
-				if (ccyf.eq.2) then
-					ub(:,ny1-1,:) = u(:,ny1-1,:)
-					vb(:,ny1-1,:) = v(:,ny1-1,:)
-					wb(:,ny1-1,:) = w(:,ny1-1,:)
-				endif	
-				
-			else
-				do j=0,ny+1
-				do i=0,nx+1
-					u(i,j,0:ku(i,j)-1)=0. !+ dpdx(i,j,0:ku(i,j))
-					v(i,j,0:kv(i,j)-1)=0. !+ dpdy(i,j,0:kv(i,j))
-					w(i,j,0:kw(i,j)-1)=0. !+ dpdz(i,j,0:kw(i,j))
-					!Rugosidade Interna
-					ub(i,j,ku(i,j)) = u(i,j,ku(i,j)+1)
-					vb(i,j,kv(i,j)) = v(i,j,kv(i,j)+1)
-					wb(i,j,kw(i,j)) = w(i,j,kw(i,j)+1)
-					!ub(i,j,ku(i,j)+1) = 0.
-					!vb(i,j,kv(i,j)+1) = 0.
-					!wb(i,j,kw(i,j)+1) = 0.
-					 
-				enddo
-				enddo
-				
-				i = nx1+1 !j=todos
-					do j=0,ny+1
-						u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
-					enddo
-
-				j=ny1+1 !i=todos
-					do i=0,nx+1
-						v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
-					enddo
-			endif
-
-
 	endif
 
 	if (nlock == 2) then
@@ -501,9 +481,9 @@ SUBROUTINE obstaculo()
 
 	IMPLICIT NONE
 
-	real(8),save :: x, y, x0, y0, a, d, sigx, sigy, tgaux, aux1, aux2, dz_v, erro, raio		!x mostra a localização atual
+	real(8),save :: x, y, z,x0, y0, a, d, sigx, sigy, tgaux, aux1, aux2, dz_v, erro, raio		!x mostra a localização atual
 	real(8),dimension(-1:nx1*2+2,-1:ny1*2+2) :: auxx
-	integer :: i,j, nxx, nyy
+	integer :: i,j,k,nxx,nyy
 
 	nxx = nx1*2
 	nyy = ny1*2
@@ -740,6 +720,20 @@ SUBROUTINE obstaculo()
 		enddo
 		enddo
 		
+	elseif (obst_t == 13) then !zampiron2022 (Bruna)
+		
+		
+		do j = -1,nyy+2
+		do i = -1, nxx+2
+		x = (i-1.)*dx*0.5
+		y = (j-1.)*dy*0.5
+
+		auxx(i,j) = 0.008 + 0.008*(abs(sin(pi*x/0.016))*abs(sin(pi*y/0.016)))**0.5
+
+		enddo
+		enddo	
+		
+				
 	endif
 
 
@@ -759,11 +753,24 @@ SUBROUTINE obstaculo()
 
 	do j = 0, ny+1
 	do i = 0, nx+1
-		 kw(i,j) = floor(auxx(i*2,j*2)/dz+1.)
+		 kw(i,j) = nint(auxx(i*2,j*2)/dz+1.)
 		if (kw(i,j) > nz1) kw(i,j) = nz1
 	enddo
 	enddo
 
+
+	do k = 1, nz1
+	do j = 1, ny1
+	do i = 1, nx1
+		z = (k-1.0)*dz
+		auxx_ls(i,j,k) = nint(auxx(i*2-1,j*2-1)/dz)*dz - z !!ainda não está pegando a submalha
+		!auxx_ls(i,j,k) = auxx(i*2-1,j*2-1) - z !! esse seria com as discretização submalha em z
+	enddo
+	enddo
+	enddo	
+		
+		
+		
 END SUBROUTINE obstaculo
 
 SUBROUTINE sponge_layer(epis_z)

@@ -154,17 +154,7 @@ SUBROUTINE plot_i()
 	enddo
 
 	if (obst_t == 0) then
-		kaux = 0
-	else
-		kaux = 0.
-		do j = 1, ny
-		do i = 1, nx
-		do k = 1, kw(i,j)-1 !-1 pois o kw está posicionado na aresta inferior e não no centro da célula
-	    !print *, ku(i,j)
-	    kaux(i,j,k)=1.
-	    enddo
-	    enddo
-	    enddo
+		auxx_ls = 0
 	endif
 
 	prdaux(1:nx,1:ny,1:nz) = prd1(1:nx,1:ny,1:nz)
@@ -185,7 +175,7 @@ SUBROUTINE plot_i()
 	if (t_plot == 0) then
 		open (unit=cont, file='arquivos//campos_00010',form='unformatted',status='unknown')
 		write(cont) real(x11,4),real(y11,4),real(z11,4),real(uaux,4), & 
-		real(vaux,4),real(waux,4),real(ls,4),real(kaux,4) !,real(prdaux,4)
+		real(vaux,4),real(waux,4),real(ls,4),real(auxx_ls,4) !,real(prdaux,4)
 	elseif (t_plot == 1) then
 		do k = 1, nz
 		do j = 1, ny
@@ -210,7 +200,7 @@ SUBROUTINE plot_i()
 
 		open (unit=cont, file='arquivos//campos_00010',form='unformatted',status='unknown')
 		write(cont) real(x11,4),real(y11,4),real(z11,4),real(uaux,4), & 
-		real(vaux,4),real(waux,4),real(ls,4),real(kaux,4),real(prdaux,4), &
+		real(vaux,4),real(waux,4),real(ls,4),real(auxx_ls,4),real(prdaux,4), &
 		real(vorti,4),real(vortj,4),real(vortk,4),real(xnuta,4),real(ynuta,4),real(znuta,4)
 	endif
 	 close (unit=cont)
@@ -294,18 +284,9 @@ SUBROUTINE plot_f()
 		enddo
 		enddo
 			if (obst_t == 0) then
-				kaux = 0
-			else
-				kaux=0.
-				do j = 1, ny
-				do i = 1, nx
-				do k = 1, kw(i,j)-1!-1 prq o kw está posicionado na aresta inferior e não no centro da célula
-				!print *, ku(i,j)
-				kaux(i,j,k)=1.
-				enddo
-				enddo
-				enddo
+				auxx_ls = 0
 			endif
+			
 			do ifile = 1, cont
 			dig1 =    ifile/10000 + 48
 			dig2 = ( ifile - 10000*( ifile/10000 ) )/1000 + 48
@@ -331,7 +312,7 @@ SUBROUTINE plot_f()
 		if (t_plot == 0) then
 			open (unit=cont, action= 'write', file= 'arquivos//campos_'//chits,form='unformatted',status='unknown')
 			write(cont) real(x11,4),real(y11,4),real(z11,4),real(uaux,4), & 
-			real(vaux,4),real(waux,4),real(ls,4),real(kaux,4)!,real(prdaux,4)
+			real(vaux,4),real(waux,4),real(ls,4),real(auxx_ls,4)!,real(prdaux,4)
 		elseif (t_plot == 1) then
 			do k = 1, nz
 			do j = 1, ny
@@ -357,7 +338,7 @@ SUBROUTINE plot_f()
 			!*********************************************************************
 			open (unit=cont, action= 'write', file= 'arquivos//campos_'//chits,form='unformatted',status='unknown')
 			write(cont) real(x11,4),real(y11,4),real(z11,4),real(uaux,4), & 
-			real(vaux,4),real(waux,4),real(ls,4),real(kaux,4),real(prdaux,4), &
+			real(vaux,4),real(waux,4),real(ls,4),real(auxx_ls,4),real(prdaux,4), &
 			real(vorti,4),real(vortj,4),real(vortk,4),real(xnuta,4),real(ynuta,4),real(znuta,4)
 		endif
 		close (unit=cont)

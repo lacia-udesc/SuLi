@@ -101,7 +101,7 @@ module obst
 
 	!Obstáculo: indicam até que altura as velocidades tem que ser zeradas (até qual índice k)
 	integer, allocatable, dimension(:,:)  :: ku, kv, kw
-
+	real(8), allocatable,dimension(:,:,:) :: auxx_ls
 end module obst
 
 subroutine init_variables1
@@ -117,6 +117,7 @@ implicit none
 	allocate(ku(0:nx1+1,0:ny+1))
 	allocate(kv(0:nx+1,0:ny1+1))
 	allocate(kw(0:nx+1,0:ny+1))
+	allocate(auxx_ls(nx1,ny1,nz1))
 	
 end subroutine init_variables1
 

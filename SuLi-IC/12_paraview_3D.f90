@@ -107,10 +107,10 @@ subroutine visu ()
     write(nfil,*)'            </Attribute>'
 
 
-    write(nfil,*)'            <Attribute Name="obstaculo" Center="Cell">'
+    write(nfil,*)'            <Attribute Name="obstaculo" Center="Node">'
     write(nfil,*)'               <DataItem Format="Binary" '
     write(nfil,*)'                DataType="Float" Precision="4" Endian="little" Seek="',nx1*ny1*nz1*4*6+nx*ny*nz*4*1+4,'"'
-    write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
+    write(nfil,*)'                Dimensions="',nz1,ny1,nx1,'">'
     write(nfil,*)'                  '//trim(a)//chits
     write(nfil,*)'               </DataItem>'
     write(nfil,*)'            </Attribute>'
@@ -120,7 +120,7 @@ subroutine visu ()
 
     write(nfil,*)'            <Attribute Name="pressure" Center="Cell">'
     write(nfil,*)'               <DataItem Format="Binary" '
-    write(nfil,*)'                DataType="Float" Precision="4" Endian="little" Seek="',nx1*ny1*nz1*4*6+nx*ny*nz*4*2+4,'"'
+    write(nfil,*)'                DataType="Float" Precision="4" Endian="little" Seek="',nx1*ny1*nz1*4*7+nx*ny*nz*4*1+4,'"'
     write(nfil,*)'                Dimensions="',nz,ny,nx,'">'
     write(nfil,*)'                  '//trim(a)//chits
     write(nfil,*)'               </DataItem>'
@@ -131,17 +131,17 @@ subroutine visu ()
     write(nfil,*)'               <DataItem Dimensions="',nz,ny,nx,'3" Function="JOIN($0, $1, $2)"'
     write(nfil,*)'                         ItemType="Function">'
     write(nfil,*)'                  <DataItem  Format="Binary" DataType="Float" Precision="4" '
-    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*6+nx*ny*nz*4*3+4,'" '
+    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*7+nx*ny*nz*4*2+4,'" '
     write(nfil,*)'                     Dimensions="',nz,ny,nx,' 1"> '    
     write(nfil,*)'                     '//trim(a)//chits
     write(nfil,*)'                  </DataItem>'
     write(nfil,*)'                  <DataItem  Format="Binary" DataType="Float" Precision="4" '
-    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*6+nx*ny*nz*4*4+4,'" '
+    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*7+nx*ny*nz*4*3+4,'" '
     write(nfil,*)'                     Dimensions="',nz,ny,nx,' 1"> '
     write(nfil,*)'                     '//trim(a)//chits
     write(nfil,*)'                  </DataItem>'
     write(nfil,*)'                  <DataItem  Format="Binary" DataType="Float" Precision="4" '
-    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*6+nx*ny*nz*4*5+4,'" '
+    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*7+nx*ny*nz*4*4+4,'" '
     write(nfil,*)'                     Dimensions="',nz,ny,nx,' 1"> '
     write(nfil,*)'                     '//trim(a)//chits
     write(nfil,*)'                  </DataItem>'
@@ -153,17 +153,17 @@ subroutine visu ()
     write(nfil,*)'               <DataItem Dimensions="',nz,ny,nx,'3" Function="JOIN($0, $1, $2)"'
     write(nfil,*)'                         ItemType="Function">'
     write(nfil,*)'                  <DataItem  Format="Binary" DataType="Float" Precision="4" '
-    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*6+nx*ny*nz*4*6+4,'" '
+    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*7+nx*ny*nz*4*5+4,'" '
     write(nfil,*)'                     Dimensions="',nz,ny,nx,' 1"> '
     write(nfil,*)'                     '//trim(a)//chits
     write(nfil,*)'                  </DataItem>'
     write(nfil,*)'                  <DataItem  Format="Binary" DataType="Float" Precision="4" '
-    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*6+nx*ny*nz*4*7+4,'" '
+    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*7+nx*ny*nz*4*6+4,'" '
     write(nfil,*)'                     Dimensions="',nz,ny,nx,' 1"> '
     write(nfil,*)'                     '//trim(a)//chits
     write(nfil,*)'                  </DataItem>'
     write(nfil,*)'                  <DataItem  Format="Binary" DataType="Float" Precision="4" '
-    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*8+nx*ny*nz*4*3+4,'" '
+    write(nfil,*)'                     Endian="little" Seek="',nx1*ny1*nz1*4*7+nx*ny*nz*4*7+4,'" '
     write(nfil,*)'                     Dimensions="',nz,ny,nx,' 1"> '
     write(nfil,*)'                     '//trim(a)//chits
     write(nfil,*)'                  </DataItem>'
