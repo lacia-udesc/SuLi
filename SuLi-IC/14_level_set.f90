@@ -76,24 +76,24 @@ SUBROUTINE level_set_ini()
 		    enddo
 		    enddo
 	   	else
-			distz = 1.
+			distz = 0.
 	    	endif
 
 		if (lambdax .ne. 0.) then
 			do k = 1, nz
 			do j = 1, ny
 			do i = 1, nx
-				distz(i,j,k) = -ampl * distz(i,j,k) * cos(2.*pi/lambdax *x(i)) +  prof !Variação em x
+				distz(i,j,k) = -ampl * distz(i,j,k) * cos(2.*pi/lambdax *x(i)) !Variação em x
 			enddo
 			enddo
 			enddo
 	    	endif
-	    	
+	    
 		!Melhorar
 		do k = 1, nz
 		do j = 1, ny
 		do i = 1, nx
-	  		ls(i,j,k) =  distz(i,j,k) - z(k)
+	  		ls(i,j,k) =  distz(i,j,k) - z(k) + prof !Variação em x
 			!dist_sign(i,j,k) =  distz1(i,j,k) - z1(i,j,k) !function sign
 		enddo
 		enddo

@@ -42,6 +42,7 @@ SUBROUTINE plot_i()
 
 	write(*,*) "nx = ", nx,"ny = ", ny, "nz = ", nz
 	write(*,*) "dx = ", dx,"dy = ", dy, "dz = ", dz
+	write(*,*) "Lx = ", dx*nx,"Ly = ", dy*ny, "Lz = ", dz*nz
 	write(*,*) "dt = ", dt,"dt_frame = ", dt_frame, "ts = ", ts
 	write(*,*) "der = ", der,"advectivo = ", adv_type, "modelo de turb. = ", m_turb
 	write(*,*) "ccx0 = ", ccx0 ,"ccxf = ", ccxf, "ccy0 = ", ccy0, "ccyf = ", ccyf, "ccz0 = ", ccz0, "cczf = ", cczf
@@ -515,10 +516,12 @@ SUBROUTINE plot_atrib()
 
 		if (a > 0.3 .or. b > 0.3 .or. c > 0.3) then
 			dt = dt - 0.1*dt0
+			write(*,*) "t", "   ", "maxval(abs(div))", "   ", "a", "   ","b", "   ","c" ,  "   ", "dt"
 			write(*,*) t, maxval(abs(div)), a,b,c   , dt
 			call coef_tempo()
 		elseif (a < 0.1 .and. b < 0.1 .and. c < 0.1) then
 			dt = dt + 0.01*dt0
+			write(*,*) "t", "   ", "maxval(abs(div))", "   ", "a", "   ","b", "   ","c" ,  "   ", "dt"
 			write(*,*) t, maxval(abs(div)), a,b,c   , dt
 			call coef_tempo()
 		endif
