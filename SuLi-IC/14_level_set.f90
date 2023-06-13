@@ -75,8 +75,10 @@ SUBROUTINE level_set_ini()
 		    enddo
 		    enddo
 		    enddo
-	   	else
+	   	elseif (lambday == 0 .and. lambdax == 0) then
 			distz = 0.
+		elseif (lambday == 0 .and. lambdax .ne. 0) then
+			distz = 1.		
 	    	endif
 
 		if (lambdax .ne. 0.) then
