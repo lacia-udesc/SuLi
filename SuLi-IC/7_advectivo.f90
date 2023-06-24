@@ -110,7 +110,7 @@ SUBROUTINE classico(uint,vint,wint)
 
 
 	elseif (der == 2) then
-
+	! centrado de segunda ordem
 
 	CALL derivax(u,nx1,ny,nz,dudx)
 	CALL derivay(u,nx1,ny,nz,dudy)
