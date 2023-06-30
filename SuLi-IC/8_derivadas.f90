@@ -1,4 +1,5 @@
 SUBROUTINE derivax(a1,dimx,dimy,dimz,campo_saida)
+! derivada centrada de segunda ordem na direção x
 
 	USE disc
 
@@ -23,6 +24,7 @@ END SUBROUTINE derivax
 !##############################################################
 
 SUBROUTINE derivay(a1,dimx,dimy,dimz,campo_saida)
+! derivada centrada de segunda ordem na direção y
 
 	USE disc
 
@@ -46,9 +48,9 @@ END SUBROUTINE derivay
 !##############################################################
 
 SUBROUTINE derivaz(a1,dimx,dimy,dimz,campo_saida)
+! derivada centrada de segunda ordem na direção z
 
 	USE disc
-
 
 	IMPLICIT NONE
 	integer :: i, j, k
@@ -71,6 +73,7 @@ END SUBROUTINE derivaz
 !##############################################################
 
 SUBROUTINE derivaxu2p(a1,dimx,dimy,dimz,campo_saida)
+! derivada por frontward de segunda ordem na direção x (usado para upwind)
 
 	USE disc
 
@@ -103,6 +106,7 @@ END SUBROUTINE derivaxu2p
 !##############################################################
 
 SUBROUTINE derivayu2p(a1,dimx,dimy,dimz,campo_saida)
+! derivada por frontward de segunda ordem na direção y (usado para upwind)
 
 	USE disc
 
@@ -134,6 +138,7 @@ END SUBROUTINE derivayu2p
 !##############################################################
 
 SUBROUTINE derivazu2p(a1,dimx,dimy,dimz,campo_saida)
+! derivada por frontward de segunda ordem na direção z (usado para upwind)
 
 	USE disc
 
@@ -162,10 +167,10 @@ SUBROUTINE derivazu2p(a1,dimx,dimy,dimz,campo_saida)
 
 END SUBROUTINE derivazu2p
 
-
 !##############################################################
 
 SUBROUTINE derivaxu2n(a1,dimx,dimy,dimz,campo_saida)
+! derivada por backward de segunda ordem na direção x (usado para upwind)
 
 USE disc
 
@@ -199,6 +204,7 @@ END SUBROUTINE derivaxu2n
 !##############################################################
 
 SUBROUTINE derivayu2n(a1,dimx,dimy,dimz,campo_saida)
+! derivada por backward de segunda ordem na direção y (usado para upwind)
 
 	USE disc
 
@@ -231,6 +237,7 @@ END SUBROUTINE derivayu2n
 !##############################################################
 
 SUBROUTINE derivazu2n(a1,dimx,dimy,dimz,campo_saida)
+! derivada por backward de segunda ordem na direção z (usado para upwind)
 
 	USE disc
 
@@ -261,7 +268,8 @@ END SUBROUTINE derivazu2n
 
 !##############################################################
 
-SUBROUTINE interpx_cf(a1,dimx,dimy,dimz,campo_saida) !cf --> centro pra face fc--> face pro centro
+SUBROUTINE interpx_cf(a1,dimx,dimy,dimz,campo_saida) 
+! interpolação linear: cf --> centro pra face fc--> face pro centro
 
 	IMPLICIT NONE
 	integer :: i, j, k
@@ -288,7 +296,8 @@ END SUBROUTINE interpx_cf
 
 !##############################################################
 
-SUBROUTINE interpx_fc(a1,dimx,dimy,dimz,campo_saida) !cf --> centro pra face fc--> face pro centro
+SUBROUTINE interpx_fc(a1,dimx,dimy,dimz,campo_saida) 
+! interpolação linear: cf --> centro pra face fc--> face pro centro
 
 	IMPLICIT NONE
 	integer :: i, j, k
@@ -310,7 +319,8 @@ END SUBROUTINE interpx_fc
 
 !##############################################################
 
-SUBROUTINE interpy_cf(a1,dimx,dimy,dimz,campo_saida) !cf --> centro pra face fc--> face pro centro
+SUBROUTINE interpy_cf(a1,dimx,dimy,dimz,campo_saida) 
+! interpolação linear: cf --> centro pra face fc--> face pro centro
 
 	IMPLICIT NONE
 	integer :: i, j, k
@@ -341,7 +351,8 @@ END SUBROUTINE interpy_cf
 
 !##############################################################
 
-SUBROUTINE interpy_fc(a1,dimx,dimy,dimz,campo_saida) !cf --> centro pra face fc--> face pro centro
+SUBROUTINE interpy_fc(a1,dimx,dimy,dimz,campo_saida) 
+! interpolação linear: cf --> centro pra face fc--> face pro centro
 
 	IMPLICIT NONE
 	integer :: i, j, k
@@ -363,7 +374,8 @@ END SUBROUTINE interpy_fc
 
 !##############################################################
 
-SUBROUTINE interpz_cf(a1,dimx,dimy,dimz,campo_saida) !cf --> centro pra face fc--> face pro centro
+SUBROUTINE interpz_cf(a1,dimx,dimy,dimz,campo_saida) 
+! interpolação linear: cf --> centro pra face fc--> face pro centro
 
 	IMPLICIT NONE
 	integer :: i, j, k
@@ -395,7 +407,8 @@ END SUBROUTINE interpz_cf
 
 !##############################################################
 
-SUBROUTINE interpz_fc(a1,dimx,dimy,dimz,campo_saida) !cf --> centro pra face fc--> face pro centro
+SUBROUTINE interpz_fc(a1,dimx,dimy,dimz,campo_saida) 
+! interpolação linear: cf --> centro pra face fc--> face pro centro
 
 	IMPLICIT NONE
 	integer :: i, j, k
