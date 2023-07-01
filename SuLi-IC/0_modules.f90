@@ -262,7 +262,7 @@ module ls_param
 
 	USE disc
 
-	real(8), allocatable :: ls(:,:,:), mod_ls(:,:,:), kurv(:,:,:), hs(:,:,:), ddlsdx(:,:,:), ddlsdy(:,:,:), ddlsdz(:,:,:)
+	real(8), allocatable :: ls(:,:,:), mod_ls(:,:,:), kurv(:,:,:), hs(:,:,:)
 	real(8), allocatable :: hsx(:,:,:), hsy(:,:,:), hsz(:,:,:)
 	real(8) :: dtau, alpha1, mi_f1, mi_f2, rho_f1, rho_f2 , vol_ini, vol_ins, ls_m, rho_m, sigma
 	real(8), dimension(3) :: adtl, bdtl, gdtl
@@ -279,7 +279,7 @@ subroutine init_variables6
 	
 	implicit none
 	
-	allocate(ls(nx,ny,nz), mod_ls(nx,ny,nz), kurv(nx,ny,nz), hs(nx,ny,nz), ddlsdx(nx,ny,nz), ddlsdy(nx,ny,nz), ddlsdz(nx,ny,nz))
+	allocate(ls(nx,ny,nz), mod_ls(nx,ny,nz), kurv(nx,ny,nz), hs(nx,ny,nz))
 	allocate(hsx(nx,ny,nz), hsy(nx,ny,nz), hsz(nx,ny,nz))
 
 end subroutine init_variables6

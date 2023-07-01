@@ -14,6 +14,7 @@ SUBROUTINE level_set_ini()
 
 	!Declarado também no programa
 	integer :: i, j, k, ii, jj, ilamb
+	real(8),dimension(nx,ny,nz) :: dlsdxa,dlsdya,dlsdza
 	real(8),dimension(nx,ny,nz) :: dist_sign, distx, disty, distz
 	real(8),dimension(nx,ny) :: b
 	real(8),dimension(nx) :: x
@@ -39,13 +40,6 @@ SUBROUTINE level_set_ini()
 	dx1 =  max(dx,dy,dz) !(dx+dy+dz)/3. !
 	dt1 =0.1 * dx1
 	
-	!Resolução do problema
-	if (t_hs == 0) then
-	  ls_m = 0.
-	else
-	  ls_m = 0.481803535*dx1*alpha1
-	endif
-
 	do i = 1, nx
 	x(i) = (i-0.5) * dx
 	enddo
@@ -183,16 +177,7 @@ SUBROUTINE level_set_ini()
 		enddo
 	endif
 
-	do k = 1, nz
-	do j = 1, ny
-	do i = 1, nx
-	ls(i,j,k) = ls(i,j,k) + ls_m !corrigir por causa na nova HS
-	enddo
-	enddo
-	enddo
-
 	CALL heaviside()
-
 
 	vol_ini = 0.
 	do k = 1, nz
@@ -203,7 +188,6 @@ SUBROUTINE level_set_ini()
 	enddo
 	enddo
 
-	CALL mod_ls1()
 
 END SUBROUTINE level_set_ini
 
@@ -215,6 +199,8 @@ SUBROUTINE level_set()
 	USE velpre
 
 	IMPLICIT NONE
+	
+	real(8),dimension(nx,ny,nz) :: dlsdxa,dlsdya,dlsdza
 	real(8),dimension(nx,ny,nz) :: sy7_ls,gx_ls,ta1_ls,sy7_ls1,gx_ls1,ta1_ls1
 	integer :: i, j, k, itrl
 	real(8),save :: aux1, aux2, dtaux
@@ -225,16 +211,14 @@ SUBROUTINE level_set()
 	! cálculo da advecção
 	do itrl=1,3
 		CALL conv_weno(sy7_ls)
-		CALL intt_ls(sy7_ls,gx_ls,ta1_ls,itrl,ls)
+		CALL intt_ls(sy7_ls,gx_ls,ta1_ls,itrl,ls,nx,ny,nz)
 	enddo
 
 	dt1 = dtaux
 	
 	! cálculo da reinicialização
-	CALL reinic_weno(sy7_ls1,gx_ls1,ta1_ls1)
+	CALL reinic_weno(ls,nx,ny,nz)
 
-	! cálculo do módulo de phi para a correção do volume (verificar como otimizar)
-	CALL mod_ls1()
 	CALL heaviside()
 
 	! cálculo do volume "inicial - ins" antes da correção
@@ -246,7 +230,6 @@ SUBROUTINE level_set()
 	enddo
 	enddo
 	enddo
-	
 	
 	! verifica se o volume está variando de acordo com o primeiro volume de todos. Tomar cuidado se volume for acrescentado no modelo, como uma adição de onda!
 	do while ((abs(vol_ins-vol_ini)/vol_ins > 0.1) .and. (mms_t .ne. 2)) !Erro aceitável de 1 % para conservação de volume e se não tiver obstáculos
@@ -260,8 +243,6 @@ SUBROUTINE level_set()
 		enddo
 		enddo
 
-		! cálculo do módulo de phi (verificar como otimizar)
-		CALL mod_ls1()
 		CALL heaviside()
 	
 		! cálculo do volume "inicial - ins" antes da correção
@@ -275,24 +256,23 @@ SUBROUTINE level_set()
 		enddo
 	enddo
 
-	! cálculo do módulo de phi (verificar como otimizar)
-	CALL mod_ls1() !Função para plotagem e cálculo da curvatura
-	CALL heaviside()
-
-
+	CALL mod_ls1(ls,dlsdxa,dlsdya,dlsdza,nx,ny,nz) !Função para plotagem e cálculo da curvatura
+	CALL curv_ls1(dlsdxa,dlsdya,dlsdza)
+	
+	
 END SUBROUTINE level_set
 
 !!!####################################################################################
 
-SUBROUTINE intt_ls(hx,gx,ta1,itrl,ls1)
+SUBROUTINE intt_ls(hx,gx,ta1,itrl,ls1,dimx,dimy,dimz)
 !rotina para fazer a integração temporal do Level-Set
 
 	USE ls_param
 
 	implicit none
 
-	integer :: i,j,k,itrl
-	real(8),intent(inout),dimension(nx,ny,nz) :: hx,gx,ta1,ls1
+	integer :: i,j,k,itrl,dimx,dimy,dimz
+	real(8),intent(inout),dimension(dimx,dimy,dimz) :: hx,gx,ta1,ls1
 
 	!RK3 TVD
 	if (adtl(itrl)==1.) then
@@ -322,9 +302,7 @@ SUBROUTINE conv_weno(sy7)
 	real(8),dimension(nx,ny,nz) :: ta1,tb1,tc1,td1,te1,tf1
 	real(8),save :: apos, aneg, bpos, bneg, cpos, cneg
 
-
-	!ihs = 1
-	CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
+	CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs,nx,ny,nz)
 
 	do k = 1, nz
 	do j = 1, ny
@@ -347,16 +325,16 @@ end subroutine conv_weno
 
 !!!####################################################################################
 
-SUBROUTINE der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
+SUBROUTINE der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs,dimx,dimy,dimz)
 !cálculo da derivada de WENO
 
-	USE disc
+	USE disc, only : dx,dy,dz
 	USE cond
 
 	implicit none
 
-	integer :: i,j,k,ihs
-	real(8),intent(inout),dimension(nx,ny,nz) :: ls,ta1,tb1,tc1,td1,te1,tf1
+	integer :: i,j,k,ihs,dimx,dimy,dimz
+	real(8),intent(inout),dimension(dimx,dimy,dimz) :: ls,ta1,tb1,tc1,td1,te1,tf1
 
 	if (ccx0 == 0) then
 		ihs = 0
@@ -364,9 +342,9 @@ SUBROUTINE der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
 		ihs = 2
 	endif
 
-	do k = 1, nz
-	do j = 1, ny
-	call weno1(ta1(:,j,k),td1(:,j,k),nx,dx,ls(:,j,k),ihs)
+	do k = 1, dimz
+	do j = 1, dimy
+	call weno1(ta1(:,j,k),td1(:,j,k),dimx,dx,ls(:,j,k),ihs)
 	enddo
 	enddo
 
@@ -376,16 +354,17 @@ SUBROUTINE der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
 		ihs = 2
 	endif
 
-	do k = 1, nz
-	do i = 1, nx
-	call weno1(tb1(i,:,k),te1(i,:,k),ny,dy,ls(i,:,k),ihs)
+	do k = 1, dimz
+	do i = 1, dimx
+	call weno1(tb1(i,:,k),te1(i,:,k),dimy,dy,ls(i,:,k),ihs)
 	enddo
-	enddo
+    enddo
 
+    ! em cima em baixo vai ser sempre ihs 1!
 	ihs = 1
-	do j = 1, ny
-	do i = 1, nx
-	call weno1(tc1(i,j,:),tf1(i,j,:),nz,dz,ls(i,j,:),ihs)
+	do j = 1, dimy
+	do i = 1, dimx
+	call weno1(tc1(i,j,:),tf1(i,j,:),dimz,dz,ls(i,j,:),ihs)
 	enddo
 	enddo
 
@@ -393,30 +372,30 @@ END SUBROUTINE der_weno
 
 !!!####################################################################################
 
-SUBROUTINE reinic_weno(sy7_ls1,gx_ls1,ta1_ls1)
+SUBROUTINE reinic_weno(ls1,dimx,dimy,dimz)
 !cálculo da reinicialização da função distância
 
 	USE ls_param
-	
+
 	IMPLICIT NONE
-	
+    
+	integer :: i, j, k, l, il, nr,ihs,itrl,dimx,dimy,dimz	
 	real(8),dimension(nx,ny,nz) :: sy1,sy4,func_s,ddd,ta1,tb1,tc1,td1,te1,tf1,lsaux,ls0
-	real(8),intent(inout),dimension(nx,ny,nz) :: sy7_ls1,gx_ls1,ta1_ls1
+	real(8),intent(inout),dimension(nx,ny,nz) :: ls1
+	real(8),dimension(nx,ny,nz) :: sy7_ls1,gx_ls1,ta1_ls1
 	real(8) :: error
-	integer :: i, j, k, l, il, nr,ihs,itrl
 	real(8),save :: mod_ls1, aux1, aux2
 
-	ls0 = ls
-	l = 3
+	ls0 = ls1
+	l = 3 ! número máximo de iterações
 
-	!ihs = 1
-	CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
+	CALL der_weno(ls1,ta1,tb1,tc1,td1,te1,tf1,ihs,dimx,dimy,dimz)
 
-	do k = 1, nz
-	do j = 1, ny
-	do i = 1, nx
+	do k = 1, dimz
+	do j = 1, dimy
+	do i = 1, dimx
 
-		if (ls(i,j,k) > 0. ) then
+		if (ls1(i,j,k) > 0. ) then
 			aux1 = max(td1(i,j,k),0.00000001)
 			aux2 = -min(ta1(i,j,k),0.00000001)
 			ta1(i,j,k) = max(aux1, aux2)
@@ -442,7 +421,7 @@ SUBROUTINE reinic_weno(sy7_ls1,gx_ls1,ta1_ls1)
 			tc1(i,j,k) = max(aux1, aux2)
 		endif
 			mod_ls1 = sqrt(ta1(i,j,k)*ta1(i,j,k) + tb1(i,j,k)*tb1(i,j,k) + tc1(i,j,k)*tc1(i,j,k))
-			func_s(i,j,k) = ls(i,j,k) / sqrt(ls(i,j,k)*ls(i,j,k) + mod_ls1*mod_ls1*dx1*dx1)
+			func_s(i,j,k) = ls1(i,j,k) / sqrt(ls1(i,j,k)*ls1(i,j,k) + mod_ls1*mod_ls1*dx1*dx1)
 	enddo
 	enddo
 	enddo
@@ -456,45 +435,48 @@ SUBROUTINE reinic_weno(sy7_ls1,gx_ls1,ta1_ls1)
 	! RK3 - TVD
 	do itrl=1,3
 
-	CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
+		CALL der_weno(ls1,ta1,tb1,tc1,td1,te1,tf1,ihs,dimx,dimy,dimz)
 
-	do k = 1, nz
-	do j = 1, ny
-	do i = 1, nx
+		do k = 1, dimz
+		do j = 1, dimy
+		do i = 1, dimx
 
-	if (ls(i,j,k) > 0. ) then
-		aux1 = max(td1(i,j,k),0.00000001)
-		aux2 = -min(ta1(i,j,k),0.00000001)
-		ta1(i,j,k) = max(aux1, aux2)
+			if (ls1(i,j,k) > 0. ) then
+				aux1 = max(td1(i,j,k),0.00000001)
+				aux2 = -min(ta1(i,j,k),0.00000001)
+				ta1(i,j,k) = max(aux1, aux2)
 
-		aux1 = max(te1(i,j,k),0.00000001)
-		aux2 = -min(tb1(i,j,k),0.00000001)
-		tb1(i,j,k) = max(aux1, aux2)
+				aux1 = max(te1(i,j,k),0.00000001)
+				aux2 = -min(tb1(i,j,k),0.00000001)
+				tb1(i,j,k) = max(aux1, aux2)
 
-		aux1 = max(tf1(i,j,k),0.00000001)
-		aux2 = -min(tc1(i,j,k),0.00000001)
-		tc1(i,j,k) = max(aux1, aux2)
-	else
-		aux1 = max(ta1(i,j,k),0.00000001)
-		aux2 = -min(td1(i,j,k),0.00000001)
-		ta1(i,j,k) = max(aux1, aux2)
+				aux1 = max(tf1(i,j,k),0.00000001)
+				aux2 = -min(tc1(i,j,k),0.00000001)
+				tc1(i,j,k) = max(aux1, aux2)
+			else
+				aux1 = max(ta1(i,j,k),0.00000001)
+				aux2 = -min(td1(i,j,k),0.00000001)
+				ta1(i,j,k) = max(aux1, aux2)
 
-		aux1 = max(tb1(i,j,k),0.00000001)
-		aux2 = -min(te1(i,j,k),0.00000001)
-		tb1(i,j,k) = max(aux1, aux2)
+				aux1 = max(tb1(i,j,k),0.00000001)
+				aux2 = -min(te1(i,j,k),0.00000001)
+				tb1(i,j,k) = max(aux1, aux2)
 
-		aux1 = max(tc1(i,j,k),0.00000001)
-		aux2 = -min(tf1(i,j,k),0.00000001)
-		tc1(i,j,k) = max(aux1, aux2)
-	endif
-	mod_ls1      = sqrt(ta1(i,j,k)*ta1(i,j,k) + tb1(i,j,k)*tb1(i,j,k) + tc1(i,j,k)*tc1(i,j,k))
-	sy7_ls1(i,j,k) = func_s(i,j,k) * (1.-mod_ls1 )
-	lsaux(i,j,k)  = ls(i,j,k)
+				aux1 = max(tc1(i,j,k),0.00000001)
+				aux2 = -min(tf1(i,j,k),0.00000001)
+				tc1(i,j,k) = max(aux1, aux2)
+			endif
+    
+			mod_ls1      = sqrt(ta1(i,j,k)*ta1(i,j,k) + tb1(i,j,k)*tb1(i,j,k) + tc1(i,j,k)*tc1(i,j,k))
+			sy7_ls1(i,j,k) = func_s(i,j,k) * (1.-mod_ls1 )
+			lsaux(i,j,k)  = ls1(i,j,k)
 
-	enddo
-	enddo
-	enddo
-	CALL intt_ls(sy7_ls1,gx_ls1,ta1_ls1,itrl,ls)
+		enddo
+		enddo
+		enddo
+    
+		CALL intt_ls(sy7_ls1,gx_ls1,ta1_ls1,itrl,ls1,dimx,dimy,dimz)
+    
 	enddo
 
 	if (il == l ) then !Número máximo de iterações
@@ -504,11 +486,11 @@ SUBROUTINE reinic_weno(sy7_ls1,gx_ls1,ta1_ls1)
 	else
 		error = 0.
 		nr = 0
-		do k = 1, nz
-		do j = 1, ny
-		do i = 1, nx
-		if (abs(ls(i,j,k)) <= 2.*alpha1 * dx1) then
-			error = error + ls(i,j,k) - lsaux(i,j,k)
+		do k = 1, dimz
+		do j = 1, dimy
+		do i = 1, dimx
+		if (abs(ls1(i,j,k)) <= 2.*alpha1 * dx1) then
+			error = error + ls1(i,j,k) - lsaux(i,j,k)
 			nr = nr + 1
 		endif
 		enddo
@@ -643,11 +625,10 @@ SUBROUTINE heaviside()
 	IMPLICIT NONE
 
 	integer :: i, j, k, coefa1,ihs
-	real(8),save :: aux1, aux2, aux3, aux4
 	real(8),dimension(nx,ny,nz) :: sy60, sy61,ta1,tb1,tc1,td1,te1,tf1
 
 	!ihs = 2
-	CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
+	CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs,nx,ny,nz)
 
 	do k = 1, nz
 	do j = 1, ny
@@ -672,17 +653,6 @@ SUBROUTINE heaviside()
 	enddo
 	enddo
 	enddo
-
-	!drhodx = 0.
-	!drhody = 0.
-	!drhodz = 0.
-
-	!dmidx = 0.
-	!dmidy = 0.
-	!dmidz = 0.
-
-	aux1 = mi_f1 * 10000. !aaaaaaaaaaaaaaaaaaaaaaaaaaa
-	aux2 = mi_f2 * 10000.
 
 	do k = 1, nz
 	do j = 1, ny
@@ -721,13 +691,9 @@ SUBROUTINE heaviside()
 		!endif
 	endif
 
-	if (t_hs == 0) then
-		rho(i,j,k) = rho_f1 * (1.-hs(i,j,k)) + rho_f2 * hs(i,j,k)
-		ls_nu(i,j,k) = mi_f1  * (1.-hs(i,j,k)) + mi_f2  * hs(i,j,k)
-	else
-		rho(i,j,k) = rho_f1**(1.-hs(i,j,k)) + rho_f2**hs(i,j,k) -1.
-		ls_nu(i,j,k) = (aux1** (1.-hs(i,j,k)) + aux2**hs(i,j,k) -1.)/10000.
-	endif
+    rho(i,j,k) = rho_f1 * (1.-hs(i,j,k)) + rho_f2 * hs(i,j,k)
+    ls_nu(i,j,k) = mi_f1  * (1.-hs(i,j,k)) + mi_f2  * hs(i,j,k)
+
 	enddo
 	enddo
 	enddo
@@ -736,24 +702,24 @@ END SUBROUTINE heaviside
 
 !!!####################################################################################
 
-SUBROUTINE mod_ls1()
+SUBROUTINE mod_ls1(ls1,dlsdxa,dlsdya,dlsdza,dimx,dimy,dimz)
 ! cálculo do vetor normal e da curvatura
  
-	USE ls_param
+	USE ls_param, only : mod_ls
 	
 	IMPLICIT NONE
 
-	integer :: i, j, k,ihs
+	integer :: i, j, k,ihs,dimx,dimy,dimz
 	real(8),save :: aux1, aux2
-	real(8),dimension(nx,ny,nz) :: ta1,tb1,tc1,td1,te1,tf1,dlsdxa,dlsdya,dlsdza
-	
+	real(8),dimension(dimx,dimy,dimz) :: ta1,tb1,tc1,td1,te1,tf1,dlsdxa,dlsdya,dlsdza,ls1
+
 	!cálculo das derivadas
-	CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs)
+	CALL der_weno(ls1,ta1,tb1,tc1,td1,te1,tf1,ihs,dimx,dimy,dimz)
 
 	!utilizar o maior valor em absoluto como derivada representativa (o WENO tem o positivo e o negativo)
-	do k = 1, nz
-	do j = 1, ny
-	do i = 1, nx
+	do k = 1, dimz
+	do j = 1, dimy
+	do i = 1, dimx
 		if (abs(ta1(i,j,k)) > abs(td1(i,j,k))) then
 			ta1(i,j,k) = ta1(i,j,k)
 		else
@@ -776,9 +742,9 @@ SUBROUTINE mod_ls1()
 	enddo
 
 	!cálculo do vetor normal dlsdxa, dlsdya e dlsdza
-	do k = 1, nz
-	do j = 1, ny
-	do i = 1, nx
+	do k = 1, dimz
+	do j = 1, dimy
+	do i = 1, dimx
 		mod_ls(i,j,k) = sqrt(ta1(i,j,k)*ta1(i,j,k) + tb1(i,j,k)*tb1(i,j,k) + tc1(i,j,k)*tc1(i,j,k))
 
 		if (mod_ls(i,j,k) == 0) then 
@@ -794,6 +760,24 @@ SUBROUTINE mod_ls1()
 	enddo
 	enddo
 
+	
+END SUBROUTINE mod_ls1
+
+
+!!!####################################################################################
+
+SUBROUTINE curv_ls1(dlsdxa,dlsdya,dlsdza)
+! cálculo do vetor normal e da curvatura
+ 
+	USE ls_param
+	
+	IMPLICIT NONE
+
+	integer :: i, j, k,ihs
+	real(8),save :: aux1, aux2
+	real(8),dimension(nx,ny,nz) :: ta1,tb1,tc1,td1,te1,tf1,dlsdxa,dlsdya,dlsdza,ddlsdx,ddlsdy,ddlsdz
+
+	ihs = 1
 	!derivada segunda para curvatura
 	do k = 1, nz
 	do j = 1, ny
@@ -839,4 +823,4 @@ SUBROUTINE mod_ls1()
 	enddo
 	enddo
 
-END SUBROUTINE mod_ls1
+END SUBROUTINE curv_ls1
