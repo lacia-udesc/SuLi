@@ -369,9 +369,9 @@ SUBROUTINE reinic_weno(ls1,dimx,dimy,dimz)
 	IMPLICIT NONE
     
 	integer :: i, j, k, l, il, nr,ihs,itrl,dimx,dimy,dimz	
-	real(8),dimension(nx,ny,nz) :: sy1,sy4,func_s,ddd,ta1,tb1,tc1,td1,te1,tf1,lsaux,ls0
-	real(8),intent(inout),dimension(nx,ny,nz) :: ls1
-	real(8),dimension(nx,ny,nz) :: sy7_ls1,gx_ls1,ta1_ls1
+	real(8),dimension(dimx,dimy,dimz) :: sy1,sy4,func_s,ddd,ta1,tb1,tc1,td1,te1,tf1,lsaux,ls0
+	real(8),intent(inout),dimension(dimx,dimy,dimz) :: ls1
+	real(8),dimension(dimx,dimy,dimz) :: sy7_ls1,gx_ls1,ta1_ls1
 	real(8) :: error
 	real(8),save :: mod_ls1, aux1, aux2
 
