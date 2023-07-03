@@ -426,3 +426,428 @@ SUBROUTINE interpz_fc(a1,dimx,dimy,dimz,campo_saida)
 	enddo
 
 END SUBROUTINE interpz_fc
+
+!##############################################################
+
+SUBROUTINE wenox(a,dimx,dimy,dimz,dx1,dphidxp,dphidxn,ihs)
+
+	IMPLICIT NONE
+	integer :: i,j,k,kk,ii,ihs,dimx,dimy,dimz
+	real(8),intent(in) :: dx1
+	real(8),intent(in),dimension(dimx,dimy,dimz) :: a
+				
+	real(8),intent(out),dimension(dimx,dimy,dimz) :: dphidxp,dphidxn
+	real(8),save,dimension(3) ::isup, isun, auxx
+	real(8),save,dimension(3) ::alpup, omgup,alpun, omgun
+
+	real(8),save :: mod_phi1,aux1,aux2,aux3,aux4,aux5,aux6,aux,aux11, aux12
+	
+	real(8),dimension(-2:dimx+3,dimy,dimz) :: phi1
+	real(8),dimension(dimx+4,dimy,dimz)    :: un
+	real(8),dimension(-3:dimx,dimy,dimz)   :: up
+	
+	
+	aux1 = 13./12.
+	aux2 = 1./4.
+	aux3 = 1./6.
+	auxx(1) = 0.1
+	auxx(2) = 0.6
+	auxx(3) = 0.3
+	aux6 = 0.00000001
+	phi1(1:dimx,1:dimy,1:dimz) = a(1:dimx,1:dimy,1:dimz)
+
+	if (ihs == 0) then !Contorno periódico
+		do k = 1, dimz
+		do j = 1, dimy
+			phi1(0,j,k)  = phi1(dimx-1,j,k)
+			phi1(-1,j,k) = phi1(dimx-2,j,k)
+			phi1(-2,j,k) = phi1(dimx-3,j,k)
+
+			phi1(dimx+1,j,k) = phi1(2,j,k)
+			phi1(dimx+2,j,k) = phi1(3,j,k)
+			phi1(dimx+3,j,k) = phi1(4,j,k)
+			
+		enddo
+		enddo
+		
+	elseif (ihs == 1) then !Distance extrapolation
+		do k = 1, dimz
+		do j = 1, dimy
+			! arrumar
+			phi1(0,j,k)  = 1./5. * (12.*phi1(1,j,k)  - 9.*phi1(2,j,k) + 2.*phi1(3,j,k) )
+			phi1(-1,j,k) = 1./5. * (12.*phi1(0,j,k)  - 9.*phi1(1,j,k) + 2.*phi1(2,j,k) )
+			phi1(-2,j,k) = 1./5. * (12.*phi1(-1,j,k) - 9.*phi1(0,j,k) + 2.*phi1(1,j,k) )
+
+
+			phi1(dimx+1,j,k) = 1./11. * (18.*phi1(dimx,j,k)   - 9.*phi1(dimx-1,j,k) + 2.*phi1(dimx-2,j,k))
+			phi1(dimx+2,j,k) = 1./11. * (18.*phi1(dimx+1,j,k) - 9.*phi1(dimx,j,k)   + 2.*phi1(dimx-1,j,k))
+			phi1(dimx+3,j,k) = 1./11. * (18.*phi1(dimx+2,j,k) - 9.*phi1(dimx+1,j,k) + 2.*phi1(dimx,j,k)  )
+		
+
+			!phi1(1,j,k)  = 0.
+			!phi1(0,j,k)  = 1./11. * (12.*phi1(1,j,k)  - 3.*phi1(2,j,k) + 2.*phi1(3,j,k) )
+			!phi1(-1,j,k) = 1./11. * (12.*phi1(0,j,k)  - 3.*phi1(1,j,k) + 2.*phi1(2,j,k) )
+			!phi1(-2,j,k) = 1./11. * (12.*phi1(-1,j,k) - 3.*phi1(0,j,k) + 2.*phi1(1,j,k) )
+
+			!phi1(i,dimy,k) = 0.
+			!phi1(dimx+1,j,k) = 1./11. * (24.*phi1(dimx,j,k)   - 15.*phi1(dimx-1,j,k) + 2.*phi1(dimx-2,j,k))
+			!phi1(dimx+2,j,k) = 1./11. * (24.*phi1(dimx+1,j,k) - 15.*phi1(dimx,j,k)   + 2.*phi1(dimx-1,j,k))
+			!phi1(dimx+3,j,k) = 1./11. * (24.*phi1(dimx+2,j,k) - 15.*phi1(dimx+1,j,k) + 2.*phi1(dimx,j,k)  )
+		enddo
+		enddo
+		
+	elseif (ihs == 2) then !Derivative zero
+
+		do k = 1, dimz
+		do j = 1, dimy
+					
+			phi1(0,j,k)  = 1./11. * (18.*phi1(1,j,k)  - 9.*phi1(2,j,k) + 2.*phi1(3,j,k) )
+			phi1(-1,j,k) = 1./11. * (18.*phi1(0,j,k)  - 9.*phi1(1,j,k) + 2.*phi1(2,j,k) )
+			phi1(-2,j,k) = 1./11. * (18.*phi1(-1,j,k) - 9.*phi1(0,j,k) + 2.*phi1(1,j,k) )
+
+			phi1(dimx+1,j,k) = 1./11. * (18.*phi1(dimx,j,k)   - 9.*phi1(dimx-1,j,k) + 2.*phi1(dimx-2,j,k))
+			phi1(dimx+2,j,k) = 1./11. * (18.*phi1(dimx+1,j,k) - 9.*phi1(dimx,j,k)   + 2.*phi1(dimx-1,j,k))
+			phi1(dimx+3,j,k) = 1./11. * (18.*phi1(dimx+2,j,k) - 9.*phi1(dimx+1,j,k) + 2.*phi1(dimx,j,k)  )
+			
+		enddo
+		enddo
+	endif
+
+	do k = 1, dimz
+	do j = 1, dimy
+	do i =-3, dimx
+	up(i,j,k)=(phi1(i+3,j,k)-phi1(i+2,j,k))/dx1
+	enddo
+	enddo
+	enddo
+	
+	do k = 1, dimz
+	do j = 1, dimy
+	do i = 1, dimx+4
+	un(i,j,k)=(phi1(i-2,j,k)-phi1(i-3,j,k))/dx1
+	enddo
+	enddo
+	enddo
+	
+	do k = 1, dimz
+	do j = 1, dimy
+	do i = 1, dimx
+	isup(1) = aux1 * (up(i,j,k)-2*up(i-1,j,k)+up(i-2,j,k))*(up(i,j,k)-2*up(i-1,j,k)+up(i-2,j,k)) &
+	+ aux2 * (up(i,j,k)-4*up(i-1,j,k)+3*up(i-2,j,k))*(up(i,j,k)-4*up(i-1,j,k)+3*up(i-2,j,k))
+	isun(1) = aux1 * (un(i,j,k)-2*un(i+1,j,k)+un(i+2,j,k))*(un(i,j,k)-2*un(i+1,j,k)+un(i+2,j,k)) &
+	+ aux2 * (un(i,j,k)-4*un(i+1,j,k)+3*un(i+2,j,k))*(un(i,j,k)-4*un(i+1,j,k)+3*un(i+2,j,k))
+
+	isup(2) = aux1 * (up(i-1,j,k)-2*up(i-2,j,k)+up(i-3,j,k))*(up(i-1,j,k)-2*up(i-2,j,k)+up(i-3,j,k)) + aux2 * &
+	(up(i-1,j,k)-up(i-3,j,k))*(up(i-1,j,k)-up(i-3,j,k))
+	isun(2) = aux1 * (un(i+1,j,k)-2*un(i+2,j,k)+un(i+3,j,k))*(un(i+1,j,k)-2*un(i+2,j,k)+un(i+3,j,k)) + aux2 * &
+	(un(i+1,j,k)-un(i+3,j,k))*(un(i+1,j,k)-un(i+3,j,k))
+
+	isup(3) = aux1 * (up(i-2,j,k)-2*up(i-3,j,k)+up(i-4,j,k))*(up(i-2,j,k)-2*up(i-3,j,k)+up(i-4,j,k)) &
+	+ aux2 * (3*up(i-2,j,k)-4*up(i-3,j,k)+up(i-4,j,k))*(3*up(i-2,j,k)-4*up(i-3,j,k)+up(i-4,j,k))
+	isun(3) = aux1 * (un(i+2,j,k)-2*un(i+3,j,k)+un(i+4,j,k))*(un(i+2,j,k)-2*un(i+3,j,k)+un(i+4,j,k)) &
+	+ aux2 * (3*un(i+2,j,k)-4*un(i+3,j,k)+un(i+4,j,k))*(3*un(i+2,j,k)-4*un(i+3,j,k)+un(i+4,j,k))
+
+	do kk = 1, 3
+	alpup(kk) = auxx(kk) / ((aux6 + isup(kk))*(aux6 + isup(kk)))
+	alpun(kk) = auxx(kk) / ((aux6 + isun(kk))*(aux6 + isun(kk)))
+	enddo
+
+	do kk = 1, 3
+	omgup(kk) = alpup(kk) / (alpup(1)+alpup(2)+alpup(3))
+	omgun(kk) = alpun(kk) / (alpun(1)+alpun(2)+alpun(3))
+	enddo
+
+	dphidxp(i,j,k) = aux3* (omgup(1) * (2*up(i,j,k)-7*up(i-1,j,k)+11*up(i-2,j,k)) + &
+	omgup(2) * (-up(i-1,j,k)+5*up(i-2,j,k)+2*up(i-3,j,k)) + omgup(3) * (2*up(i-2,j,k)+5*up(i-3,j,k)-up(i-4,j,k)))
+	dphidxn(i,j,k) = aux3* (omgun(1) * (2*un(i,j,k)-7*un(i+1,j,k)+11*un(i+2,j,k)) + &
+	omgun(2) * (-un(i+1,j,k)+5*un(i+2,j,k)+2*un(i+3,j,k)) + omgun(3) * (2*un(i+2,j,k)+5*un(i+3,j,k)-un(i+4,j,k)))
+	enddo
+	enddo
+	enddo
+	
+END SUBROUTINE wenox
+
+!##############################################################
+
+SUBROUTINE wenoy(b,dimx,dimy,dimz,dy1,dphidyp,dphidyn,ihs)
+
+	IMPLICIT NONE
+	integer :: i,j,k,kk,ii,ihs,dimx,dimy,dimz
+	real(8),intent(in) :: dy1
+	real(8),intent(in),dimension(dimx,dimy,dimz) :: b
+				
+	real(8),intent(out),dimension(dimx,dimy,dimz) :: dphidyp,dphidyn
+	real(8),save,dimension(3) ::isvp, isvn, auxx
+	real(8),save,dimension(3) ::alpvp, omgvp,alpvn, omgvn
+
+	real(8),save :: mod_phi1,aux1,aux2,aux3,aux4,aux5,aux6,aux,aux11,aux12
+	
+	real(8),dimension(dimx,-2:dimy+3,dimz) :: phi1
+	real(8),dimension(dimx,dimy+4,dimz)    :: vn
+	real(8),dimension(dimx,-3:dimy,dimz)   :: vp
+	
+	
+	aux1 = 13./12.
+	aux2 = 1./4.
+	aux3 = 1./6.
+	auxx(1) = 0.1
+	auxx(2) = 0.6
+	auxx(3) = 0.3
+	aux6 = 0.00000001
+	phi1(1:dimx,1:dimy,1:dimz) = b(1:dimx,1:dimy,1:dimz)
+
+	if (ihs == 0) then !Contorno periódico
+		do k = 1, dimz
+		do i = 1, dimx
+			phi1(i,0,k)  = phi1(i,dimy-1,k)
+			phi1(i,-1,k) = phi1(i,dimy-2,k)
+			phi1(i,-2,k) = phi1(i,dimy-3,k)
+
+			phi1(i,dimy+1,k) = phi1(i,2,k)
+			phi1(i,dimy+2,k) = phi1(i,3,k)
+			phi1(i,dimy+3,k) = phi1(i,4,k)
+			
+		enddo
+		enddo
+		
+	elseif (ihs == 1) then !Distance extrapolation
+		do k = 1, dimz
+		do i = 1, dimx
+			!arrumar
+			phi1(i,0,k)  = 1./5. * (12.*phi1(i,1,k)  - 9.*phi1(i,2,k) + 2.*phi1(i,3,k) )
+			phi1(i,-1,k) = 1./5. * (12.*phi1(i,0,k)  - 9.*phi1(i,1,k) + 2.*phi1(i,2,k) )
+			phi1(i,-2,k) = 1./5. * (12.*phi1(i,-1,k) - 9.*phi1(i,0,k) + 2.*phi1(i,1,k) )
+
+
+			phi1(i,dimy+1,k) = 1./11. * (18.*phi1(i,dimy,k)   - 9.*phi1(i,dimy-1,k) + 2.*phi1(i,dimy-2,k))
+			phi1(i,dimy+2,k) = 1./11. * (18.*phi1(i,dimy+1,k) - 9.*phi1(i,dimy,k)   + 2.*phi1(i,dimy-1,k))
+			phi1(i,dimy+3,k) = 1./11. * (18.*phi1(i,dimy+2,k) - 9.*phi1(i,dimy+1,k) + 2.*phi1(i,dimy,k)  )
+
+			!phi1(i,1,k)  = 0.
+			!phi1(i,0,k)  = 1./11. * (12.*phi1(i,1,k)  - 3.*phi1(i,2,k) + 2.*phi1(i,3,k) )
+			!phi1(i,-1,k) = 1./11. * (12.*phi1(i,0,k)  - 3.*phi1(i,1,k) + 2.*phi1(i,2,k) )
+			!phi1(i,-2,k) = 1./11. * (12.*phi1(i,-1,k) - 3.*phi1(i,0,k) + 2.*phi1(i,1,k) )
+
+			!phi1(i,dimy,k) = 0.
+			!phi1(i,dimy+1,k) = 1./11. * (24.*phi1(i,dimy,k)   - 15.*phi1(i,dimy-1,k) + 2.*phi1(i,dimy-2,k))
+			!phi1(i,dimy+2,k) = 1./11. * (24.*phi1(i,dimy+1,k) - 15.*phi1(i,dimy,k)   + 2.*phi1(i,dimy-1,k))
+			!phi1(i,dimy+3,k) = 1./11. * (24.*phi1(i,dimy+2,k) - 15.*phi1(i,dimy+1,k) + 2.*phi1(i,dimy,k)  )
+			
+		enddo
+		enddo
+		
+	elseif (ihs == 2) then !Derivative zero
+
+		do k = 1, dimz
+		do i = 1, dimx
+						
+			phi1(i,0,k)  = 1./11. * (18.*phi1(i,1,k)  - 9.*phi1(i,2,k) + 2.*phi1(i,3,k) )
+			phi1(i,-1,k) = 1./11. * (18.*phi1(i,0,k)  - 9.*phi1(i,1,k) + 2.*phi1(i,2,k) )
+			phi1(i,-2,k) = 1./11. * (18.*phi1(i,-1,k) - 9.*phi1(i,0,k) + 2.*phi1(i,1,k) )
+
+			phi1(i,dimy+1,k) = 1./11. * (18.*phi1(i,dimy,k)   - 9.*phi1(i,dimy-1,k) + 2.*phi1(i,dimy-2,k))
+			phi1(i,dimy+2,k) = 1./11. * (18.*phi1(i,dimy+1,k) - 9.*phi1(i,dimy,k)   + 2.*phi1(i,dimy-1,k))
+			phi1(i,dimy+3,k) = 1./11. * (18.*phi1(i,dimy+2,k) - 9.*phi1(i,dimy+1,k) + 2.*phi1(i,dimy,k)  )
+			
+		enddo
+		enddo
+	endif
+
+	do k = 1, dimz
+	do j = -3, dimy
+	do i = 1, dimx
+	vp(i,j,k)=(phi1(i,j+3,k)-phi1(i,j+2,k))/dy1
+	enddo
+	enddo
+	enddo
+	
+	do k = 1, dimz
+	do j = 1, dimy+4
+	do i = 1, dimx
+	vn(i,j,k)=(phi1(i,j-2,k)-phi1(i,j-3,k))/dy1
+	enddo
+	enddo
+	enddo
+	
+	do k = 1, dimz
+	do j = 1, dimy
+	do i = 1, dimx
+	isvp(1) = aux1 * (vp(i,j,k)-2*vp(i,j-1,k)+vp(i,j-2,k))*(vp(i,j,k)-2*vp(i,j-1,k)+vp(i,j-2,k)) &
+	+ aux2 * (vp(i,j,k)-4*vp(i,j-1,k)+3*vp(i,j-2,k))*(vp(i,j,k)-4*vp(i,j-1,k)+3*vp(i,j-2,k))
+	isvn(1) = aux1 * (vn(i,j,k)-2*vn(i,j+1,k)+vn(i,j+2,k))*(vn(i,j,k)-2*vn(i,j+1,k)+vn(i,j+2,k)) &
+	+ aux2 * (vn(i,j,k)-4*vn(i,j+1,k)+3*vn(i,j+2,k))*(vn(i,j,k)-4*vn(i,j+1,k)+3*vn(i,j+2,k))
+
+	isvp(2) = aux1 * (vp(i,j-1,k)-2*vp(i,j-2,k)+vp(i,j-3,k))*(vp(i,j-1,k)-2*vp(i,j-2,k)+vp(i,j-3,k)) + aux2 * &
+	(vp(i,j-1,k)-vp(i,j-3,k))*(vp(i,j-1,k)-vp(i,j-3,k))
+	isvn(2) = aux1 * (vn(i,j+1,k)-2*vn(i,j+2,k)+vn(i,j+3,k))*(vn(i,j+1,k)-2*vn(i,j+2,k)+vn(i,j+3,k)) + aux2 * &
+	(vn(i,j+1,k)-vn(i,j+3,k))*(vn(i,j+1,k)-vn(i,j+3,k))
+
+	isvp(3) = aux1 * (vp(i,j-2,k)-2*vp(i,j-3,k)+vp(i,j-4,k))*(vp(i,j-2,k)-2*vp(i,j-3,k)+vp(i,j-4,k)) &
+	+ aux2 * (3*vp(i,j-2,k)-4*vp(i,j-3,k)+vp(i,j-4,k))*(3*vp(i,j-2,k)-4*vp(i,j-3,k)+vp(i,j-4,k))
+	isvn(3) = aux1 * (vn(i,j+2,k)-2*vn(i,j+3,k)+vn(i,j+4,k))*(vn(i,j+2,k)-2*vn(i,j+3,k)+vn(i,j+4,k)) &
+	+ aux2 * (3*vn(i,j+2,k)-4*vn(i,j+3,k)+vn(i,j+4,k))*(3*vn(i,j+2,k)-4*vn(i,j+3,k)+vn(i,j+4,k))
+
+	do kk = 1, 3
+	alpvp(kk) = auxx(kk) / ((aux6 + isvp(kk))*(aux6 + isvp(kk)))
+	alpvn(kk) = auxx(kk) / ((aux6 + isvn(kk))*(aux6 + isvn(kk)))
+	enddo
+
+	do kk = 1, 3
+	omgvp(kk) = alpvp(kk) / (alpvp(1)+alpvp(2)+alpvp(3))
+	omgvn(kk) = alpvn(kk) / (alpvn(1)+alpvn(2)+alpvn(3))
+	enddo
+
+	dphidyp(i,j,k) = aux3* (omgvp(1) * (2*vp(i,j,k)-7*vp(i,j-1,k)+11*vp(i,j-2,k)) + &
+	omgvp(2) * (-vp(i,j-1,k)+5*vp(i,j-2,k)+2*vp(i,j-3,k)) + omgvp(3) * (2*vp(i,j-2,k)+5*vp(i,j-3,k)-vp(i,j-4,k)))
+	dphidyn(i,j,k) = aux3* (omgvn(1) * (2*vn(i,j,k)-7*vn(i,j+1,k)+11*vn(i,j+2,k)) + &
+	omgvn(2) * (-vn(i,j+1,k)+5*vn(i,j+2,k)+2*vn(i,j+3,k)) + omgvn(3) * (2*vn(i,j+2,k)+5*vn(i,j+3,k)-vn(i,j+4,k)))
+	enddo
+	enddo
+	enddo
+	
+END SUBROUTINE wenoy
+
+!##############################################################
+
+SUBROUTINE wenoz(d,dimx,dimy,dimz,dz1,dphidzp,dphidzn,ihs)
+
+	IMPLICIT NONE
+	integer :: i,j,k,kk,ii,ihs,dimx,dimy,dimz
+	real(8),intent(in) :: dz1
+	real(8),intent(in),dimension(dimx,dimy,dimz) :: d
+				
+	real(8),intent(out),dimension(dimx,dimy,dimz) :: dphidzp,dphidzn
+	real(8),save,dimension(3) ::iswp, iswn, auxx
+	real(8),save,dimension(3) ::alpwp, omgwp,alpwn, omgwn
+
+	real(8),save :: mod_phi1,aux1,aux2,aux3,aux4,aux5,aux6,aux,aux11,aux12
+	
+	real(8),dimension(dimx,dimy,-2:dimz+3) :: phi1
+	real(8),dimension(dimx,dimy,dimz+4)    :: wn
+	real(8),dimension(dimx,dimy,-3:dimz)   :: wp
+	
+	
+	aux1 = 13./12.
+	aux2 = 1./4.
+	aux3 = 1./6.
+	auxx(1) = 0.1
+	auxx(2) = 0.6
+	auxx(3) = 0.3
+	aux6 = 0.00000001
+
+	phi1(1:dimx,1:dimy,1:dimz) = d(1:dimx,1:dimy,1:dimz)
+
+	if (ihs == 0) then !Contorno periódico
+		do j = 1, dimy
+		do i = 1, dimx
+			phi1(i,j,0)  = phi1(i,j,dimz-1)
+			phi1(i,j,-1) = phi1(i,j,dimz-2)
+			phi1(i,j,-2) = phi1(i,j,dimz-3)
+
+			phi1(i,j,dimz+1) = phi1(i,j,2)
+			phi1(i,j,dimz+2) = phi1(i,j,3)
+			phi1(i,j,dimz+3) = phi1(i,j,4)
+			
+		enddo
+		enddo
+		
+	elseif (ihs == 1) then !Velocidade zero com derivada de 1a ordem 
+	! no-slip de velocidade = 0 ou free-slip para velocidade perpendicular 
+		do j = 1, dimy
+		do i = 1, dimx
+			!certo
+			!phi1(i,j,1)  = 0.
+			!phi1(i,j,0)  = 1./11. * (12.*phi1(i,j,1)  - 3.*phi1(i,j,2) + 2.*phi1(i,j,3) )
+			!phi1(i,j,-1) = 1./11. * (12.*phi1(i,j,0)  - 3.*phi1(i,j,1) + 2.*phi1(i,j,2) )
+			!phi1(i,j,-2) = 1./11. * (12.*phi1(i,j,-1) - 3.*phi1(i,j,0) + 2.*phi1(i,j,1) )
+
+			!phi1(i,j,dimz) = 0.
+			!phi1(i,j,dimz+1) = 1./11. * (24.*phi1(i,j,dimz)   - 15.*phi1(i,j,dimz-1) + 2.*phi1(i,j,dimz-2))
+			!phi1(i,j,dimz+2) = 1./11. * (24.*phi1(i,j,dimz+1) - 15.*phi1(i,j,dimz)   + 2.*phi1(i,j,dimz-1))
+			!phi1(i,j,dimz+3) = 1./11. * (24.*phi1(i,j,dimz+2) - 15.*phi1(i,j,dimz+1) + 2.*phi1(i,j,dimz)  )
+			!certo
+			
+			! teste
+			phi1(i,j,0)  = 1./5. * (12.*phi1(i,j,1)  - 9.*phi1(i,j,2) + 2.*phi1(i,j,3) )
+			phi1(i,j,-1) = 1./5. * (12.*phi1(i,j,0)  - 9.*phi1(i,j,1) + 2.*phi1(i,j,2) )
+			phi1(i,j,-2) = 1./5. * (12.*phi1(i,j,-1) - 9.*phi1(i,j,0) + 2.*phi1(i,j,1) )
+
+			phi1(i,j,dimz+1) = 1./11. * (18.*phi1(i,j,dimz)   - 9.*phi1(i,j,dimz-1) + 2.*phi1(i,j,dimz-2))
+			phi1(i,j,dimz+2) = 1./11. * (18.*phi1(i,j,dimz+1) - 9.*phi1(i,j,dimz)   + 2.*phi1(i,j,dimz-1))
+			phi1(i,j,dimz+3) = 1./11. * (18.*phi1(i,j,dimz+2) - 9.*phi1(i,j,dimz+1) + 2.*phi1(i,j,dimz)  )			
+			!teste
+		
+		enddo
+		enddo
+		
+	elseif (ihs == 2) then !Derivative zero
+
+		do j = 1, dimy
+		do i = 1, dimx
+			
+			phi1(i,j,0)  = 1./11. * (18.*phi1(i,j,1)  - 9.*phi1(i,j,2) + 2.*phi1(i,j,3) )
+			phi1(i,j,-1) = 1./11. * (18.*phi1(i,j,0)  - 9.*phi1(i,j,1) + 2.*phi1(i,j,2) )
+			phi1(i,j,-2) = 1./11. * (18.*phi1(i,j,-1) - 9.*phi1(i,j,0) + 2.*phi1(i,j,1) )
+
+			phi1(i,j,dimz+1) = 1./11. * (18.*phi1(i,j,dimz)   - 9.*phi1(i,j,dimz-1) + 2.*phi1(i,j,dimz-2))
+			phi1(i,j,dimz+2) = 1./11. * (18.*phi1(i,j,dimz+1) - 9.*phi1(i,j,dimz)   + 2.*phi1(i,j,dimz-1))
+			phi1(i,j,dimz+3) = 1./11. * (18.*phi1(i,j,dimz+2) - 9.*phi1(i,j,dimz+1) + 2.*phi1(i,j,dimz)  )
+			
+			
+		enddo
+		enddo
+	endif
+
+	do k = -3, dimz
+	do j = 1, dimy
+	do i = 1, dimx
+	wp(i,j,k)=(phi1(i,j,k+3)-phi1(i,j,k+2))/dz1
+	enddo
+	enddo
+	enddo
+	
+	do k = 1, dimz+4
+	do j = 1, dimy
+	do i = 1, dimx
+	wn(i,j,k)=(phi1(i,j,k-2)-phi1(i,j,k-3))/dz1
+	enddo
+	enddo
+	enddo
+	
+	do k = 1, dimz
+	do j = 1, dimy
+	do i = 1, dimx
+	iswp(1) = aux1 * (wp(i,j,k)-2*wp(i,j,k-1)+wp(i,j,k-2))*(wp(i,j,k)-2*wp(i,j,k-1)+wp(i,j,k-2)) &
+	+ aux2 * (wp(i,j,k)-4*wp(i,j,k-1)+3*wp(i,j,k-2))*(wp(i,j,k)-4*wp(i,j,k-1)+3*wp(i,j,k-2))
+	iswn(1) = aux1 * (wn(i,j,k)-2*wn(i,j,k+1)+wn(i,j,k+2))*(wn(i,j,k)-2*wn(i,j,k+1)+wn(i,j,k+2)) &
+	+ aux2 * (wn(i,j,k)-4*wn(i,j,k+1)+3*wn(i,j,k+2))*(wn(i,j,k)-4*wn(i,j,k+1)+3*wn(i,j,k+2))
+
+	iswp(2) = aux1 * (wp(i,j,k-1)-2*wp(i,j,k-2)+wp(i,j,k-3))*(wp(i,j,k-1)-2*wp(i,j,k-2)+wp(i,j,k-3)) + aux2 * &
+	(wp(i,j,k-1)-wp(i,j,k-3))*(wp(i,j,k-1)-wp(i,j,k-3))
+	iswn(2) = aux1 * (wn(i,j,k+1)-2*wn(i,j,k+2)+wn(i,j,k+3))*(wn(i,j,k+1)-2*wn(i,j,k+2)+wn(i,j,k+3)) + aux2 * &
+	(wn(i,j,k+1)-wn(i,j,k+3))*(wn(i,j,k+1)-wn(i,j,k+3))
+
+	iswp(3) = aux1 * (wp(i,j,k-2)-2*wp(i,j,k-3)+wp(i,j,k-4))*(wp(i,j,k-2)-2*wp(i,j,k-3)+wp(i,j,k-4)) &
+	+ aux2 * (3*wp(i,j,k-2)-4*wp(i,j,k-3)+wp(i,j,k-4))*(3*wp(i,j,k-2)-4*wp(i,j,k-3)+wp(i,j,k-4))
+	iswn(3) = aux1 * (wn(i,j,k+2)-2*wn(i,j,k+3)+wn(i,j,k+4))*(wn(i,j,k+2)-2*wn(i,j,k+3)+wn(i,j,k+4)) &
+	+ aux2 * (3*wn(i,j,k+2)-4*wn(i,j,k+3)+wn(i,j,k+4))*(3*wn(i,j,k+2)-4*wn(i,j,k+3)+wn(i,j,k+4))
+
+	do kk = 1, 3
+	alpwp(kk) = auxx(kk) / ((aux6 + iswp(kk))*(aux6 + iswp(kk)))
+	alpwn(kk) = auxx(kk) / ((aux6 + iswn(kk))*(aux6 + iswn(kk)))
+	enddo
+
+	do kk = 1, 3
+	omgwp(kk) = alpwp(kk) / (alpwp(1)+alpwp(2)+alpwp(3))
+	omgwn(kk) = alpwn(kk) / (alpwn(1)+alpwn(2)+alpwn(3))
+	enddo
+
+	dphidzp(i,j,k) = aux3* (omgwp(1) * (2*wp(i,j,k)-7*wp(i,j,k-1)+11*wp(i,j,k-2)) + &
+	omgwp(2) * (-wp(i,j,k-1)+5*wp(i,j,k-2)+2*wp(i,j,k-3)) + omgwp(3) * (2*wp(i,j,k-2)+5*wp(i,j,k-3)-wp(i,j,k-4)))
+	dphidzn(i,j,k) = aux3* (omgwn(1) * (2*wn(i,j,k)-7*wn(i,j,k+1)+11*wn(i,j,k+2)) + &
+	omgwn(2) * (-wn(i,j,k+1)+5*wn(i,j,k+2)+2*wn(i,j,k+3)) + omgwn(3) * (2*wn(i,j,k+2)+5*wn(i,j,k+3)-wn(i,j,k+4)))
+	enddo
+	enddo
+	enddo
+	
+END SUBROUTINE wenoz

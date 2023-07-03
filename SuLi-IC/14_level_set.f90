@@ -342,11 +342,7 @@ SUBROUTINE der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs,dimx,dimy,dimz)
 		ihs = 2
 	endif
 
-	do k = 1, dimz
-	do j = 1, dimy
-	call weno1(ta1(:,j,k),td1(:,j,k),dimx,dx,ls(:,j,k),ihs)
-	enddo
-	enddo
+	call wenox(ls,dimx,dimy,dimz,dx,ta1,td1,ihs)
 
 	if (ccy0 == 0) then
 		ihs = 0
@@ -354,19 +350,12 @@ SUBROUTINE der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs,dimx,dimy,dimz)
 		ihs = 2
 	endif
 
-	do k = 1, dimz
-	do i = 1, dimx
-	call weno1(tb1(i,:,k),te1(i,:,k),dimy,dy,ls(i,:,k),ihs)
-	enddo
-    enddo
+	call wenoy(ls,dimx,dimy,dimz,dy,tb1,te1,ihs)
 
-    ! em cima em baixo vai ser sempre ihs 1!
+    	! em cima em baixo vai ser sempre ihs 1!
 	ihs = 1
-	do j = 1, dimy
-	do i = 1, dimx
-	call weno1(tc1(i,j,:),tf1(i,j,:),dimz,dz,ls(i,j,:),ihs)
-	enddo
-	enddo
+	
+	call wenoz(ls,dimx,dimy,dimz,dz,tc1,tf1,ihs)
 
 END SUBROUTINE der_weno
 
@@ -505,7 +494,9 @@ SUBROUTINE reinic_weno(ls1,dimx,dimy,dimz)
 END SUBROUTINE reinic_weno
 
 !!!####################################################################################
-
+!! subrotina antiga, não é mais utilizada
+!! subrotina antiga, não é mais utilizada
+!! subrotina antiga, não é mais utilizada
 SUBROUTINE weno1(dphidxp,dphidxn,nx1,dx1,phi0,ihs)
 !cálculo da derivada de WENO
 
@@ -614,7 +605,9 @@ SUBROUTINE weno1(dphidxp,dphidxn,nx1,dx1,phi0,ihs)
 	enddo
 	
 END SUBROUTINE weno1
-
+!! subrotina antiga, não é mais utilizada
+!! subrotina antiga, não é mais utilizada
+!! subrotina antiga, não é mais utilizada
 !!!####################################################################################
 
 SUBROUTINE heaviside()
@@ -778,24 +771,11 @@ SUBROUTINE curv_ls1(dlsdxa,dlsdya,dlsdza)
 	real(8),dimension(nx,ny,nz) :: ta1,tb1,tc1,td1,te1,tf1,dlsdxa,dlsdya,dlsdza,ddlsdx,ddlsdy,ddlsdz
 
 	ihs = 1
-	!derivada segunda para curvatura
-	do k = 1, nz
-	do j = 1, ny
-	call weno1(ta1(:,j,k),td1(:,j,k),nx,dx,dlsdxa(:,j,k),ihs)
-	enddo
-	enddo
 
-	do k = 1, nz
-	do i = 1, nx
-	call weno1(tb1(i,:,k),te1(i,:,k),ny,dy,dlsdya(i,:,k),ihs)
-	enddo
-	enddo
+	call wenox(dlsdxa,nx,ny,nz,dx,ta1,td1,ihs)
+	call wenoy(dlsdya,nx,ny,nz,dy,tb1,te1,ihs)
+	call wenoz(dlsdza,nx,ny,nz,dz,tc1,tf1,ihs)
 
-	do j = 1, ny
-	do i = 1, nx
-	call weno1(tc1(i,j,:),tf1(i,j,:),nz,dz,dlsdza(i,j,:),ihs)
-	enddo
-	enddo
 
 	!cálculo da curvatura em si
 	do k = 1, nz
