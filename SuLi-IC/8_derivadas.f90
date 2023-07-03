@@ -473,7 +473,6 @@ SUBROUTINE wenox(a,dimx,dimy,dimz,dx1,dphidxp,dphidxn,ihs)
 	elseif (ihs == 1) then !Distance extrapolation
 		do k = 1, dimz
 		do j = 1, dimy
-			! arrumar
 			phi1(0,j,k)  = 1./5. * (12.*phi1(1,j,k)  - 9.*phi1(2,j,k) + 2.*phi1(3,j,k) )
 			phi1(-1,j,k) = 1./5. * (12.*phi1(0,j,k)  - 9.*phi1(1,j,k) + 2.*phi1(2,j,k) )
 			phi1(-2,j,k) = 1./5. * (12.*phi1(-1,j,k) - 9.*phi1(0,j,k) + 2.*phi1(1,j,k) )
@@ -483,7 +482,7 @@ SUBROUTINE wenox(a,dimx,dimy,dimz,dx1,dphidxp,dphidxn,ihs)
 			phi1(dimx+2,j,k) = 1./11. * (18.*phi1(dimx+1,j,k) - 9.*phi1(dimx,j,k)   + 2.*phi1(dimx-1,j,k))
 			phi1(dimx+3,j,k) = 1./11. * (18.*phi1(dimx+2,j,k) - 9.*phi1(dimx+1,j,k) + 2.*phi1(dimx,j,k)  )
 		
-
+			!Dirichlet
 			!phi1(1,j,k)  = 0.
 			!phi1(0,j,k)  = 1./11. * (12.*phi1(1,j,k)  - 3.*phi1(2,j,k) + 2.*phi1(3,j,k) )
 			!phi1(-1,j,k) = 1./11. * (12.*phi1(0,j,k)  - 3.*phi1(1,j,k) + 2.*phi1(2,j,k) )
@@ -493,6 +492,7 @@ SUBROUTINE wenox(a,dimx,dimy,dimz,dx1,dphidxp,dphidxn,ihs)
 			!phi1(dimx+1,j,k) = 1./11. * (24.*phi1(dimx,j,k)   - 15.*phi1(dimx-1,j,k) + 2.*phi1(dimx-2,j,k))
 			!phi1(dimx+2,j,k) = 1./11. * (24.*phi1(dimx+1,j,k) - 15.*phi1(dimx,j,k)   + 2.*phi1(dimx-1,j,k))
 			!phi1(dimx+3,j,k) = 1./11. * (24.*phi1(dimx+2,j,k) - 15.*phi1(dimx+1,j,k) + 2.*phi1(dimx,j,k)  )
+  			!Dirichlet
 		enddo
 		enddo
 		
@@ -613,7 +613,6 @@ SUBROUTINE wenoy(b,dimx,dimy,dimz,dy1,dphidyp,dphidyn,ihs)
 	elseif (ihs == 1) then !Distance extrapolation
 		do k = 1, dimz
 		do i = 1, dimx
-			!arrumar
 			phi1(i,0,k)  = 1./5. * (12.*phi1(i,1,k)  - 9.*phi1(i,2,k) + 2.*phi1(i,3,k) )
 			phi1(i,-1,k) = 1./5. * (12.*phi1(i,0,k)  - 9.*phi1(i,1,k) + 2.*phi1(i,2,k) )
 			phi1(i,-2,k) = 1./5. * (12.*phi1(i,-1,k) - 9.*phi1(i,0,k) + 2.*phi1(i,1,k) )
@@ -623,6 +622,7 @@ SUBROUTINE wenoy(b,dimx,dimy,dimz,dy1,dphidyp,dphidyn,ihs)
 			phi1(i,dimy+2,k) = 1./11. * (18.*phi1(i,dimy+1,k) - 9.*phi1(i,dimy,k)   + 2.*phi1(i,dimy-1,k))
 			phi1(i,dimy+3,k) = 1./11. * (18.*phi1(i,dimy+2,k) - 9.*phi1(i,dimy+1,k) + 2.*phi1(i,dimy,k)  )
 
+			!Dirichlet
 			!phi1(i,1,k)  = 0.
 			!phi1(i,0,k)  = 1./11. * (12.*phi1(i,1,k)  - 3.*phi1(i,2,k) + 2.*phi1(i,3,k) )
 			!phi1(i,-1,k) = 1./11. * (12.*phi1(i,0,k)  - 3.*phi1(i,1,k) + 2.*phi1(i,2,k) )
@@ -632,7 +632,7 @@ SUBROUTINE wenoy(b,dimx,dimy,dimz,dy1,dphidyp,dphidyn,ihs)
 			!phi1(i,dimy+1,k) = 1./11. * (24.*phi1(i,dimy,k)   - 15.*phi1(i,dimy-1,k) + 2.*phi1(i,dimy-2,k))
 			!phi1(i,dimy+2,k) = 1./11. * (24.*phi1(i,dimy+1,k) - 15.*phi1(i,dimy,k)   + 2.*phi1(i,dimy-1,k))
 			!phi1(i,dimy+3,k) = 1./11. * (24.*phi1(i,dimy+2,k) - 15.*phi1(i,dimy+1,k) + 2.*phi1(i,dimy,k)  )
-			
+			!Dirichlet
 		enddo
 		enddo
 		
@@ -755,7 +755,7 @@ SUBROUTINE wenoz(d,dimx,dimy,dimz,dz1,dphidzp,dphidzn,ihs)
 	! no-slip de velocidade = 0 ou free-slip para velocidade perpendicular 
 		do j = 1, dimy
 		do i = 1, dimx
-			!certo
+			!Dirichlet
 			!phi1(i,j,1)  = 0.
 			!phi1(i,j,0)  = 1./11. * (12.*phi1(i,j,1)  - 3.*phi1(i,j,2) + 2.*phi1(i,j,3) )
 			!phi1(i,j,-1) = 1./11. * (12.*phi1(i,j,0)  - 3.*phi1(i,j,1) + 2.*phi1(i,j,2) )
@@ -765,9 +765,9 @@ SUBROUTINE wenoz(d,dimx,dimy,dimz,dz1,dphidzp,dphidzn,ihs)
 			!phi1(i,j,dimz+1) = 1./11. * (24.*phi1(i,j,dimz)   - 15.*phi1(i,j,dimz-1) + 2.*phi1(i,j,dimz-2))
 			!phi1(i,j,dimz+2) = 1./11. * (24.*phi1(i,j,dimz+1) - 15.*phi1(i,j,dimz)   + 2.*phi1(i,j,dimz-1))
 			!phi1(i,j,dimz+3) = 1./11. * (24.*phi1(i,j,dimz+2) - 15.*phi1(i,j,dimz+1) + 2.*phi1(i,j,dimz)  )
-			!certo
+			!Dirichlet
 			
-			! teste
+
 			phi1(i,j,0)  = 1./5. * (12.*phi1(i,j,1)  - 9.*phi1(i,j,2) + 2.*phi1(i,j,3) )
 			phi1(i,j,-1) = 1./5. * (12.*phi1(i,j,0)  - 9.*phi1(i,j,1) + 2.*phi1(i,j,2) )
 			phi1(i,j,-2) = 1./5. * (12.*phi1(i,j,-1) - 9.*phi1(i,j,0) + 2.*phi1(i,j,1) )
@@ -775,7 +775,6 @@ SUBROUTINE wenoz(d,dimx,dimy,dimz,dz1,dphidzp,dphidzn,ihs)
 			phi1(i,j,dimz+1) = 1./11. * (18.*phi1(i,j,dimz)   - 9.*phi1(i,j,dimz-1) + 2.*phi1(i,j,dimz-2))
 			phi1(i,j,dimz+2) = 1./11. * (18.*phi1(i,j,dimz+1) - 9.*phi1(i,j,dimz)   + 2.*phi1(i,j,dimz-1))
 			phi1(i,j,dimz+3) = 1./11. * (18.*phi1(i,j,dimz+2) - 9.*phi1(i,j,dimz+1) + 2.*phi1(i,j,dimz)  )			
-			!teste
 		
 		enddo
 		enddo
