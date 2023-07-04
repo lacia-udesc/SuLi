@@ -234,6 +234,8 @@ SUBROUTINE level_set()
 	! verifica se o volume está variando de acordo com o primeiro volume de todos. Tomar cuidado se volume for acrescentado no modelo, como uma adição de onda!
 	do while ((abs(vol_ins-vol_ini)/vol_ins > 0.1) .and. (mms_t .ne. 2)) !Erro aceitável de 1 % para conservação de volume e se não tiver obstáculos
 
+		CALL mod_ls1(ls,dlsdxa,dlsdya,dlsdza,nx,ny,nz) !calcula o mod_ls
+  
 		! correção do volume, evolui por euler explícito
 		do k = 1, nz
 		do j = 1, ny
