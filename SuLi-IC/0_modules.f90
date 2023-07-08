@@ -38,6 +38,8 @@ module disc
 	integer :: t_press  ! 0 = aproximacao hidrostatica de pressao, 1 = aproximacao nao-hidrostatica (1 mais indicado)
 
 	integer :: mms_t   ! 0 = sem MMS, 1 = MMS permanente, 2 = MMS não permanente
+    
+    integer :: t_tens   ! 0 = sem tensão superficial, 1 = com tensão superficial
 
 	integer :: it, tt ,ntt
 

@@ -259,7 +259,7 @@ SUBROUTINE level_set()
 	enddo
 
 	CALL mod_ls1(ls,dlsdxa,dlsdya,dlsdza,nx,ny,nz) !Função para plotagem e cálculo da curvatura
-	CALL curv_ls1(dlsdxa,dlsdya,dlsdza)
+	if (t_tens ==1) CALL curv_ls1(dlsdxa,dlsdya,dlsdza)
 	
 	
 END SUBROUTINE level_set
@@ -622,32 +622,41 @@ SUBROUTINE heaviside()
 	integer :: i, j, k, coefa1,ihs
 	real(8),dimension(nx,ny,nz) :: sy60, sy61,ta1,tb1,tc1,td1,te1,tf1
 
-	!ihs = 2
-	CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs,nx,ny,nz)
+    if (t_tens ==1) then
+    
+		CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs,nx,ny,nz)
 
-	do k = 1, nz
-	do j = 1, ny
-	do i = 1, nx
-	if (abs(ta1(i,j,k)) > abs(td1(i,j,k))) then
-		ta1(i,j,k) = ta1(i,j,k)
-	else
-		ta1(i,j,k) = td1(i,j,k)
-	endif
+		do k = 1, nz
+		do j = 1, ny
+		do i = 1, nx
+		if (abs(ta1(i,j,k)) > abs(td1(i,j,k))) then
+			ta1(i,j,k) = ta1(i,j,k)
+		else
+			ta1(i,j,k) = td1(i,j,k)
+		endif
 
-	if (abs(tb1(i,j,k)) > abs(te1(i,j,k))) then
-		tb1(i,j,k) = tb1(i,j,k)
-	else
-		tb1(i,j,k) = te1(i,j,k)
-	endif
+		if (abs(tb1(i,j,k)) > abs(te1(i,j,k))) then
+			tb1(i,j,k) = tb1(i,j,k)
+		else
+			tb1(i,j,k) = te1(i,j,k)
+		endif
 
-	if (abs(tc1(i,j,k)) > abs(tf1(i,j,k))) then
-		tc1(i,j,k) = tc1(i,j,k)
-	else
-		tc1(i,j,k) = tf1(i,j,k)
-	endif
-	enddo
-	enddo
-	enddo
+		if (abs(tc1(i,j,k)) > abs(tf1(i,j,k))) then
+			tc1(i,j,k) = tc1(i,j,k)
+		else
+			tc1(i,j,k) = tf1(i,j,k)
+		endif
+
+	    	hsx(i,j,k) = 0.	
+		hsy(i,j,k) = 0.	
+		hsz(i,j,k) = 0.	
+
+		enddo
+		enddo
+       	        enddo
+
+    endif    
+    
 
 	do k = 1, nz
 	do j = 1, ny
@@ -655,35 +664,18 @@ SUBROUTINE heaviside()
 	if (ls(i,j,k) < -alpha1 * dx1) then !rever este dx
 		hs(i,j,k) = 0.
 
-		hsx(i,j,k) = 0.	
-		hsy(i,j,k) = 0.	
-		hsz(i,j,k) = 0.	
 	elseif (ls(i,j,k) > alpha1 * dx1) then
 		hs(i,j,k) = 1.
-		hsx(i,j,k) = 0.	
-		hsy(i,j,k) = 0.	
-		hsz(i,j,k) = 0.	
+
 	else
 		hs(i,j,k) = 0.5*(1.+ls(i,j,k)/(alpha1*dx1) + 1./pi * sin(pi*ls(i,j,k)/(alpha1*dx1)))
-		hsx(i,j,k) = 0.5*ta1(i,j,k)*(1. + cos(pi*ls(i,j,k)/(alpha1*dx1)))/(alpha1*dx1)
-		hsy(i,j,k) = 0.5*tb1(i,j,k)*(1. + cos(pi*ls(i,j,k)/(alpha1*dx1)))/(alpha1*dx1)
-		hsz(i,j,k) = 0.5*tc1(i,j,k)*(1. + cos(pi*ls(i,j,k)/(alpha1*dx1)))/(alpha1*dx1)
-		!if (t_hs == 0) then
-			!drhodx(i,j,1) =  0.5* (rho_f2-rho_f1)*sy60(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1) 
-			!drhody(i,j,1) =  0.5* (rho_f2-rho_f1)*sy61(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1)
-			!dmidx(i,j,1) =  0.5* (mi_f2-mi_f1)*sy60(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1) 
-			!dmidy(i,j,1) =  0.5* (mi_f2-mi_f1)*sy61(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1)
-		!else
-			!drhodx(i,j,1) = (-rho_f1**(1.-hs(i,j,1))*log(rho_f1) + rho_f2**hs(i,j,1)*log(rho_f2)) * &
-			!	        sy60(i,j,1)/(alpha1*dx1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) 
-			!drhody(i,j,1) = (-rho_f1**(1.-hs(i,j,1))*log(rho_f1) + rho_f2**hs(i,j,1)*log(rho_f2)) * &
-			!	        sy61(i,j,1)/(alpha1*dx1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) 
+        
+        if (t_tens ==1) then
+			hsx(i,j,k) = 0.5*ta1(i,j,k)*(1. + cos(pi*ls(i,j,k)/(alpha1*dx1)))/(alpha1*dx1)
+			hsy(i,j,k) = 0.5*tb1(i,j,k)*(1. + cos(pi*ls(i,j,k)/(alpha1*dx1)))/(alpha1*dx1)
+			hsz(i,j,k) = 0.5*tc1(i,j,k)*(1. + cos(pi*ls(i,j,k)/(alpha1*dx1)))/(alpha1*dx1)
+        endif
 
-			!dmidx(i,j,1) = (-mi_f1**(1.-hs(i,j,1))*log(mi_f1) + mi_f2**hs(i,j,1)*log(mi_f2)) * &
-			!	        sy60(i,j,1)/(alpha1*dx1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) 
-			!dmidy(i,j,1) = (-mi_f1**(1.-hs(i,j,1))*log(mi_f1) + mi_f2**hs(i,j,1)*log(mi_f2)) * &
-			!	        sy61(i,j,1)/(alpha1*dx1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) 
-		!endif
 	endif
 
     rho(i,j,k) = rho_f1 * (1.-hs(i,j,k)) + rho_f2 * hs(i,j,k)

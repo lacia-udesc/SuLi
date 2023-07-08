@@ -49,6 +49,7 @@ read (1,*) esp_type
 read (1,*) wave_t 
 read (1,*) t_press
 read (1,*) mms_t 
+read (1,*) t_tens
 read (1,1000) a 
 read (1,1000) a 
 read (1,1000) a 
@@ -118,7 +119,7 @@ SUBROUTINE iniciais()
 	USE tempo
 	USE cond
 	USE mms_m
-	
+	USE ls_param
 	
 	IMPLICIT NONE
 
@@ -158,6 +159,9 @@ SUBROUTINE iniciais()
 	d_max = 0.
 	d_min = 0.
 
+    hsx = 0
+    hsy = 0
+    hsz = 0
 	!Utilizado para definir obstáculos de fundo
 	CALL obstaculo()
 

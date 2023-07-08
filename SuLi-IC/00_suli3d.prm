@@ -25,6 +25,7 @@
 0  	#= wave_t      #Ondas #0 = sem onda, 1 = Stokes I, 2 = Stokes II, 5 = Stokes V
 1  	#= t_press     #Tipo de pressão #0 = aproximção hidrostática de pressão, 1 = aproximação não-hidrostática (1 mais indicado)
 0  	#= mms_t       #Método da Solução Manufaturada #0 = sem MMS, 1 = MMS permanente, 2 = MMS não permanente
+1	#= t_tens	   #Ativação do cálculo do termo de tensão superficial #0 = sem tensão, 1 = com tensão superficial
 #
 # Variáveis para reinicialização
 #
