@@ -50,7 +50,7 @@ SUBROUTINE plot_i()
 	!Plotagens de condição inicial
 
 	!Perfil longitudinal do desnível
-
+	open (unit=99998799, action= 'write', file= 'dados//frente.txt', status= 'unknown')
 	ii = 0
 	do i = nx, 2, -1 !Tem que ser o último a variar
 	do k = 1, nz
