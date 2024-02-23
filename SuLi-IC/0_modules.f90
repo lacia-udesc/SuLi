@@ -1,11 +1,11 @@
 !Características básicas do domínio, escoamento e método numérico SuLi-IC
 module disc
 	
-	integer :: numb_threads
+	integer :: numb_threads, omp_t
 	real(8),parameter ::  pi = acos(-1.) 
 
 	!Discretizações espaciais em x e y (metros), discretização temporal (segundos)
-	real(8) :: dx, dy, dz, lx, ly, lz
+	real(8) :: dx, dy, dz, lx, ly, lz, delta, deltai
 	integer :: nx, ny, nz
 	integer :: nx1, ny1, nz1
 	integer :: ts
@@ -18,40 +18,49 @@ module disc
 
 	!Para fazer dz variável no espaço inicialmente criar uma função ...
 	real(8) :: uinicial
+	
+	real(8) :: iturb
 
-	integer :: t_plot ! 0 = modo simples (velocidade, Level Set e IBM), 1 = modo completo (pressão, vorticidade, viscosidade)
+	integer :: t_plot	! 0 = modo simples (velocidade, Level Set e IBM), 1 = modo completo (pressão, vorticidade, viscosidade)
 
-	integer :: t_tempo ! 0 = Euler Explícito, 1 = RK 2, 2 = RK 3, 3 = AB2, 4 = AB3
+	integer :: t_tempo 	! 0 = Euler Explícito, 1 = RK 2, 2 = RK 3, 3 = AB2, 4 = AB3
 	integer :: t_tempo_var  ! 0 = dt constante, 1 = dt adaptativo
 
-	integer :: der  ! 1 = upwind, 2 = centrado, 3 = upwind 2nd order (centrado só para advectivo clássico)
-	integer :: adv_type  ! 1 = advectivo clássico, 2 = rotacional, 3 = antissimétrico
-		
-	integer :: obst_t  ! 0 = sem obst, 1 = dunas, 2 = dunas2, 3 = gaussiano3D, 4 = beji, 5 = delft degrau, 6 = delft 1_2, 7 = SBRH calombos e buracos, 8 = fennema1990, 9 = aureli2008, bd_koshizuka1995eKleefsman2005
+	integer :: der  	! 1 = upwind, 2 = centrado, 3 = upwind 2nd order (centrado só para advectivo clássico)
+	integer :: adv_type  	! 1 = advectivo clássico, 2 = rotacional, 3 = antissimétrico
 
-	integer :: m_turb ! 0 = sem modelo, 1 = LES Smagorinsky-Lilly Clássico, 2 = LES Smagorinsky-Lilly Direcional
+	integer :: ibm_t	! 0 = sem ibm e sem obst, 1 = ibm forçado (zera velocidade), 2 = ibm induzido (Auguste, 2019) 
+	integer :: obst_t  	! 0 = sem obst, 1 = dunas, 2 = dunas2, 3 = gaussiano3D, 4 = beji, 5 = delft degrau, 6 = delft 1_2, 7 = SBRH calombos e buracos, 8 = fennema1990, 9 = aureli2008, bd_koshizuka1995eKleefsman2005
 
-	integer :: esp_type  ! 0 = sem camada esponja, 1 = leva em consideração a profundidade, 2 = não leva em consideração a profundidade, 3 = Método da Tangente Hiperbólica
+	integer :: m_turb 	! 0 = sem modelo, 1 = LES Smagorinsky-Lilly Clássico, 2 = DES
 
-	integer :: wave_t ! 0 = sem onda, 1 = Stokes I, 2 = Stokes II, 5 = Stokes V
+	integer :: esp_type  	! 0 = sem camada esponja, 1 = leva em consideração a profundidade, 2 = não leva em consideração a profundidade, 3 = Método da Tangente Hiperbólica
 
-	integer :: t_press  ! 0 = aproximacao hidrostatica de pressao, 1 = aproximacao nao-hidrostatica (1 mais indicado)
+	integer :: wave_t 	! 0 = sem onda, 1 = Stokes I, 2 = Stokes II, 5 = Stokes V
 
-	integer :: mms_t   ! 0 = sem MMS, 1 = MMS permanente, 2 = MMS não permanente
+	integer :: t_press  	! 0 = aproximacao hidrostatica de pressao, 1 = aproximacao nao-hidrostatica (1 mais indicado)
+
+	integer :: mms_t   	! 0 = sem MMS, 1 = MMS permanente, 2 = MMS não permanente
     
-    integer :: t_tens   ! 0 = sem tensão superficial, 1 = com tensão superficial
+    	integer :: t_tens   	! 0 = sem tensão superficial, 1 = com tensão superficial
 
 	integer :: it, tt ,ntt
 
 	real(8),dimension(3) :: a_dt
 	real(8) :: ampl, lambdax, lambday, prof, m
 
+	!Validação bottom friction (ZAMPIRON ET AL., 2022)**************
+	real(8) :: r 
+	!***************************************************************
+
 end module disc
+
 
 module restart
 	 real(8) :: irest !0=essa simulacao nao é um restart de outra 1 = o arquivo de restart vai ser lido e usado pra continuar a simulacao
 	 real(8) :: interv_rest !de quantas em quantas iteracoes salva o restart
 end module restart
+
 
 !Condicoes de contorno
 module cond 
@@ -63,17 +72,16 @@ module cond
 
 	integer :: ccy0 !condicao de contorno parede y=0 --> 0 é periodico, 1 é free-slip e 2 é no-slip, 3 é prescrita
 	integer :: ccyf !condicao de contorno parede y=yf --> 0 é periodico, 1 é free-slip e 2 é no-slip, 3 é prescrita
-	integer :: ccz0 !condicao de contorno parede z=0 --> 1 é free-slip, 2 é no-slip, 3 é prescrita
+	integer :: ccz0 !condicao de contorno parede z=0 --> 1 é free-slip, 2 é no-slip, 3 é prescrita, 4 é semi-slip
 	integer :: cczf !condicao de contorno parede z=zf --> 1 é free-slip, 3 é prescrita
 
-
 end module cond
+
 
 module param
 
 	!Parâmetros
-	!Viscosidade cinemática (m²/s), coeficiente de chezy (m(1/2)/s), aceleração da gravidade (m/s²) e implicitness parameter $Patnaik et al. 1987$ (-) 
-	real(8) :: chezy, decliv
+	real(8) :: chezy, decliv, z0, cka
 	real(8) :: gx, gz
 	
 	!real(8), parameter :: gx = 0. , gz = 0.
@@ -98,13 +106,15 @@ end module tempo
 module obst
 
 	!Velocidade de fundo (m/s)
-	!Velocidade de fundo (m/s)
 	real(8), allocatable, dimension(:,:,:)  :: ub, vb, wb
 
 	!Obstáculo: indicam até que altura as velocidades tem que ser zeradas (até qual índice k)
 	integer, allocatable, dimension(:,:)  :: ku, kv, kw
-	real(8), allocatable,dimension(:,:,:) :: auxx_ls
+	real(8), allocatable,dimension(:,:,:) :: obs_ls, obs_lsx, obs_lsy, obs_lsz, obs_lss, norm_xx,norm_yy,norm_zz
+	integer, allocatable,dimension(:,:,:) :: id_ibm, id_ibmx, id_ibmy, id_ibmz
+    
 end module obst
+
 
 subroutine init_variables1
 
@@ -119,8 +129,13 @@ implicit none
 	allocate(ku(0:nx1+1,0:ny+1))
 	allocate(kv(0:nx+1,0:ny1+1))
 	allocate(kw(0:nx+1,0:ny+1))
-	allocate(auxx_ls(nx1,ny1,nz1))
-	
+	allocate(obs_ls(nx1,ny1,nz1))
+	allocate(obs_lsx(nx1,ny,nz),id_ibmx(nx1,ny,nz))
+	allocate(obs_lsy(nx,ny1,nz),id_ibmy(nx,ny1,nz))
+	allocate(obs_lsz(nx,ny,nz1),id_ibmz(nx,ny,nz1))
+	allocate(obs_lss(nx,ny,nz),id_ibm(nx,ny,nz))
+	allocate(norm_xx(nx,ny,nz),norm_yy(nx,ny,nz),norm_zz(nx,ny,nz))
+				
 end subroutine init_variables1
 
 
@@ -138,7 +153,7 @@ module velpre
 	real(8), allocatable, dimension(:,:) :: bzx0, bzy0, bzz0, bzz1, bzxf, bzyf, bzzf, bzzf1
 
 	!Pressão não-hidrostática (m²/s²)
-	real(8), allocatable, dimension(:,:,:) :: prd1, prd0, prd, rho, ls_nu
+	real(8), allocatable, dimension(:,:,:) :: prd1, prd0, prd, rho, ls_mu, div
 
 	real(8) :: d_max, d_min, b_eta0, b_eta1
 
@@ -154,7 +169,9 @@ subroutine init_variables2
 	allocate(v(0:nx+1,0:ny1+1,0:nz+1))
 	allocate(w(0:nx+1,0:ny+1,0:nz1+1))
 
-	allocate(bxx0(0:ny+1,0:nz+1), bxx1(0:ny+1,0:nz+1), blx1(0:ny+1,0:nz+1), bxy0(0:ny1+1,0:nz+1))
+	allocate(div(nx,ny,nz))
+	
+	allocate(bxx0(0:ny+1,0:nz+1), bxx1(0:ny+1,0:nz+1), blx1(ny,nz), bxy0(0:ny1+1,0:nz+1))
 	allocate(bxz0(0:ny+1,0:nz1+1), bxxf(0:ny+1,0:nz+1), bxxf1(0:ny+1,0:nz+1))
 	allocate(bxyf(0:ny1+1,0:nz+1), bxzf(0:ny+1,0:nz1+1), byx0(0:nx1+1,0:nz+1))
 	
@@ -167,7 +184,7 @@ subroutine init_variables2
 	allocate(bzxf(0:nx1+1,0:ny+1), bzyf(0:nx+1,0:ny1+1), bzzf(0:nx+1,0:ny+1), bzzf1(0:nx+1,0:ny+1))
 	
 	allocate(prd1(0:nx+1,0:ny+1,0:nz+1), prd0(0:nx+1,0:ny+1,0:nz+1), prd(0:nx+1,0:ny+1,0:nz+1))
-	allocate(rho(nx,ny,nz), ls_nu(nx,ny,nz))
+	allocate(rho(nx,ny,nz), ls_mu(nx,ny,nz))
 
 end subroutine init_variables2
 
@@ -182,6 +199,7 @@ module vartempo
 	real(8), dimension(:,:,:), allocatable :: Fw, w0, fw0, fw1
 
 end module vartempo
+
 
 subroutine init_variables3
 
@@ -207,7 +225,6 @@ subroutine init_variables3
 end subroutine init_variables3
 
 
-
 module wave_c
 	USE disc
 
@@ -217,6 +234,7 @@ module wave_c
 	real(8), allocatable :: kp(:)
 
 end module wave_c
+
 
 subroutine init_variables4
 
@@ -228,45 +246,42 @@ subroutine init_variables4
 
 end subroutine init_variables4
 
-
-
-
-module smag
+!Variáveis para o LES
+module les
 
 	USE disc
 
-	real(8) :: csmag
-	real(8), allocatable :: nut(:,:,:)
-	real(8), allocatable :: xnut(:,:,:)
-	real(8), allocatable :: ynut(:,:,:)
-	real(8), allocatable :: znut(:,:,:) 
+	real(8) :: csmag, cmu, cdes
+	real(8), allocatable :: nut(:,:,:), mut(:,:,:), mu(:,:,:), ka(:,:,:)
+	real(8), allocatable :: xmu(:,:,:)
+	real(8), allocatable :: ymu(:,:,:)
+	real(8), allocatable :: zmu(:,:,:)
 
-end module smag
+end module les
+
 
 subroutine init_variables5
 
-	USE smag
+	USE les
 	
 	implicit none
 	
-	allocate(nut(nx,ny,nz))
-	allocate(xnut(nx1,ny,nz))
-	allocate(ynut(nx,ny1,nz))
-	allocate(znut(nx,ny,nz1))
+	allocate(nut(nx,ny,nz), mut(nx,ny,nz), mu(nx,ny,nz))
+	allocate(ka(0:nx+1,0:ny+1,0:nz+1))
+	allocate(xmu(nx1,ny,nz))
+	allocate(ymu(nx,ny1,nz))
+	allocate(zmu(nx,ny,nz1))
 
 end subroutine init_variables5
 
 
-
-
-!Variáveis para o LES
 module ls_param
 
 	USE disc
 
-	real(8), allocatable :: ls(:,:,:), mod_ls(:,:,:), kurv(:,:,:), hs(:,:,:)
+	real(8), allocatable :: ls(:,:,:), kurv(:,:,:), hs(:,:,:)
 	real(8), allocatable :: hsx(:,:,:), hsy(:,:,:), hsz(:,:,:)
-	real(8) :: dtau, alpha1, mi_f1, mi_f2, rho_f1, rho_f2 , vol_ini, vol_ins, ls_m, rho_m, sigma
+	real(8) :: dtau, alpha1, mu_f1, mu_f2, rho_f1, rho_f2 , vol_ini, vol_ins, ls_m, sigma
 	real(8), dimension(3) :: adtl, bdtl, gdtl
 	real(8) :: dx1
 	real(8) :: dt1
@@ -275,17 +290,17 @@ module ls_param
 	
 end module ls_param
 
+
 subroutine init_variables6
 
 	USE ls_param
 	
 	implicit none
 	
-	allocate(ls(nx,ny,nz), mod_ls(nx,ny,nz), kurv(nx,ny,nz), hs(nx,ny,nz))
+	allocate(ls(nx,ny,nz), kurv(nx,ny,nz), hs(nx,ny,nz))
 	allocate(hsx(nx,ny,nz), hsy(nx,ny,nz), hsz(nx,ny,nz))
 
 end subroutine init_variables6
-
 
 
 module mms_m
