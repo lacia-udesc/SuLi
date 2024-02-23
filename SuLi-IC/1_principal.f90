@@ -43,7 +43,7 @@ PROGRAM PNH
 	!$OMP PARALLEL
 	numb_threads = OMP_GET_NUM_THREADS()
 	!$OMP END PARALLEL
-	!$ write(*,*) "CÓDIGO EM PARALELO, quantidade de núcleos utilizados = ", numb_threads
+	!$ write(*,'(A,I2)') "CÓDIGO EM PARALELO, quantidade de núcleos utilizados: ", numb_threads
 	!$ CALL OMP_set_dynamic(.FALSE.)
 	!$ CALL OMP_set_nested(.FALSE.)
 
@@ -55,7 +55,7 @@ PROGRAM PNH
 	if (mms_t > 0) CALL mms()
 
 	!Plotagens iniciais
-	CALL plot_i()
+	CALL PLOT()
 
 	!RESOLUÇÃO DO PROBLEMA
 
@@ -77,11 +77,13 @@ PROGRAM PNH
 
 		CALL level_set()
 		CALl contorno(3)
-
+		
+		
+		CALL visco()
+			
 		do tt = 1, ntt
 			dt = a_dt(tt)
 			
-			CALL visco()
 			CALL convdiff()
 			CALL complementos()
 			CALL tempo()
@@ -109,25 +111,13 @@ PROGRAM PNH
 		if (mms_t > 0) CALL mms()
 
 		!Plotagens por passo de tempo
-		CALL plot_f()
+		CALL PLOT()
 
 		if (mod(it,ceiling(interv_rest/dt)).eq.0) then
 			CALL restart_salva()
 		endif
 
 	enddo
-
-	!Atributos finais da simulação
-	CALL plot_atrib()
-
-	!Em plot.f90
-	close (unit=100001)
-	close (unit=100002)
-	close (unit=200000)
-	close (unit=9999991)
-	close (unit=99998799)
-	close (unit=99998800)
-	close (unit=99998801)
 
 End program PNH
 

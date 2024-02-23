@@ -76,6 +76,7 @@ SUBROUTINE derivaxu2p(a1,dimx,dimy,dimz,campo_saida)
 ! derivada por frontward de segunda ordem na direção x (usado para upwind)
 
 	USE disc
+	USE cond, only : ccx0
 
 	IMPLICIT NONE
 	integer :: i, j, k
@@ -93,13 +94,29 @@ SUBROUTINE derivaxu2p(a1,dimx,dimy,dimz,campo_saida)
 	 enddo
 	enddo
 
+	!i = dimx
+	!do k=1,dimz
+	! do j=1,dimy
+	!    campo_saida(i,j,k)=0.5*(a1(i+1,j,k)-a1(i-1,j,k))/dx
+	! enddo
+	!enddo
+
+	if (ccx0 .ne. 0) then
+	 i = dimx
+	  do k=1,dimz
+	   do j=1,dimy
+	    campo_saida(i,j,k)=0.5*(a1(i+1,j,k)-a1(i-1,j,k))/dx
+	   enddo
+	  enddo
+	else
+	    !campo_saida(1,:,:)=campo_saida(dimx,:,:)
 	i = dimx
 	do k=1,dimz
 	 do j=1,dimy
-	    campo_saida(i,j,k)=0.5*(a1(i+1,j,k)-a1(i-1,j,k))/dx
+	    campo_saida(i,j,k)=0.5*(-a1(2,j,k)+4*a1(1,j,k)-3*a1(i,j,k))/dx
 	 enddo
 	enddo
-
+	endif
 
 END SUBROUTINE derivaxu2p
 
@@ -165,6 +182,7 @@ SUBROUTINE derivazu2p(a1,dimx,dimy,dimz,campo_saida)
 	enddo
 
 
+
 END SUBROUTINE derivazu2p
 
 !##############################################################
@@ -172,7 +190,8 @@ END SUBROUTINE derivazu2p
 SUBROUTINE derivaxu2n(a1,dimx,dimy,dimz,campo_saida)
 ! derivada por backward de segunda ordem na direção x (usado para upwind)
 
-USE disc
+	USE disc
+	USE cond, only : ccx0
 
 	IMPLICIT NONE
 	integer :: i, j, k
@@ -191,13 +210,28 @@ USE disc
 	 enddo
 	enddo
 
+	!i = 1
+	!do k=1,dimz
+	! do j=1,dimy
+	!    campo_saida(i,j,k)=0.5*(a1(i+1,j,k)-a1(i-1,j,k))/dx
+	! enddo
+	!enddo
+
+	if (ccx0 .ne. 0) then
+	 i = 1
+	  do k=1,dimz
+	   do j=1,dimy
+	    campo_saida(i,j,k)=0.5*(a1(i+1,j,k)-a1(i-1,j,k))/dx
+	   enddo
+	  enddo
+	else
 	i = 1
 	do k=1,dimz
 	 do j=1,dimy
-	    campo_saida(i,j,k)=0.5*(a1(i+1,j,k)-a1(i-1,j,k))/dx
+	    campo_saida(i,j,k)=0.5*(a1(dimx-1,j,k)-4*a1(dimx,j,k)+3*a1(i,j,k))/dx
 	 enddo
 	enddo
-
+	endif
 
 END SUBROUTINE derivaxu2n
 
@@ -271,26 +305,52 @@ END SUBROUTINE derivazu2n
 SUBROUTINE interpx_cf(a1,dimx,dimy,dimz,campo_saida) 
 ! interpolação linear: cf --> centro pra face fc--> face pro centro
 
+	USE cond, only : ccx0
+	!$ USE omp_lib
+	
 	IMPLICIT NONE
 	integer :: i, j, k
 	integer,intent(IN) :: dimx,dimy,dimz
 	real(8),intent(IN),dimension(dimx,dimy,dimz)  :: a1
 	real(8),intent(OUT),dimension(dimx+1,dimy,dimz) :: campo_saida
 
+
+	!$OMP PARALLEL DO PRIVATE(i,j,k) 
 	!a1=campo_entrada
 	do k=1,dimz
 	 do j=1,dimy
 	  do i=2,dimx
 	    campo_saida(i,j,k)=(a1(i,j,k)+a1(i-1,j,k))*0.5
 	  enddo
+	 enddo
+	enddo
+	!$OMP END PARALLEL DO
+
+	if (ccx0 .ne. 0) then
+
+	!$OMP PARALLEL DO PRIVATE(i,j,k) 
+	do k=1,dimz
+	 do j=1,dimy
 	  i=1
 	   !campo_saida(i,j,k)=2.*campo_saida(i+1,j,k)-campo_saida(i+2,j,k)
 	   campo_saida(i,j,k)=campo_saida(i+1,j,k)
 	  i=dimx+1
 	   !campo_saida(i,j,k)=2.*campo_saida(i-1,j,k)-campo_saida(i-2,j,k)
 	   campo_saida(i,j,k)=campo_saida(i-1,j,k)
+	  enddo
+	 enddo
+	!$OMP END PARALLEL DO
+
+	else
+	!$OMP PARALLEL DO PRIVATE(i,j,k) 
+	do k=1,dimz
+	 do j=1,dimy
+	   campo_saida(1,j,k)=(a1(1,j,k)+a1(dimx,j,k))*0.5
+	   campo_saida(dimx+1,j,k)=(a1(1,j,k)+a1(dimx,j,k))*0.5
 	 enddo
 	enddo
+	!$OMP END PARALLEL DO
+	endif
 
 END SUBROUTINE interpx_cf
 
@@ -314,7 +374,6 @@ SUBROUTINE interpx_fc(a1,dimx,dimy,dimz,campo_saida)
 	 enddo
 	enddo
 
-
 END SUBROUTINE interpx_fc
 
 !##############################################################
@@ -322,12 +381,15 @@ END SUBROUTINE interpx_fc
 SUBROUTINE interpy_cf(a1,dimx,dimy,dimz,campo_saida) 
 ! interpolação linear: cf --> centro pra face fc--> face pro centro
 
+	!$ USE omp_lib
+	
 	IMPLICIT NONE
 	integer :: i, j, k
 	integer,intent(IN) :: dimx,dimy,dimz
 	real(8),intent(IN),dimension(dimx,dimy,dimz)  :: a1
 	real(8),intent(OUT),dimension(dimx,dimy+1,dimz) :: campo_saida
 
+	!$OMP PARALLEL DO PRIVATE(i,j,k) 
 	!a1=campo_entrada
 	do k=1,dimz
 	 do j=2,dimy
@@ -336,6 +398,9 @@ SUBROUTINE interpy_cf(a1,dimx,dimy,dimz,campo_saida)
 	  enddo
 	 enddo
 	enddo
+	!$OMP END PARALLEL DO
+	
+	!$OMP PARALLEL DO PRIVATE(i,j,k) 
 	do k=1,dimz
 	 do i=1,dimx
 	  j=1
@@ -346,7 +411,8 @@ SUBROUTINE interpy_cf(a1,dimx,dimy,dimz,campo_saida)
 	   campo_saida(i,j,k)=campo_saida(i,j-1,k)
 	 enddo
 	enddo
-
+	!$OMP END PARALLEL DO
+	
 END SUBROUTINE interpy_cf
 
 !##############################################################
@@ -376,13 +442,16 @@ END SUBROUTINE interpy_fc
 
 SUBROUTINE interpz_cf(a1,dimx,dimy,dimz,campo_saida) 
 ! interpolação linear: cf --> centro pra face fc--> face pro centro
-
+	
+	!$ USE omp_lib
+	
 	IMPLICIT NONE
 	integer :: i, j, k
 	integer,intent(IN) :: dimx,dimy,dimz
 	real(8),intent(IN),dimension(dimx,dimy,dimz)  :: a1
 	real(8),intent(OUT),dimension(dimx,dimy,dimz+1) :: campo_saida
 
+	!$OMP PARALLEL DO PRIVATE(i,j,k) 
 	!a1=campo_entrada
 	do k=2,dimz
 	 do j=1,dimy
@@ -391,6 +460,9 @@ SUBROUTINE interpz_cf(a1,dimx,dimy,dimz,campo_saida)
 	  enddo
 	 enddo
 	enddo
+	!$OMP END PARALLEL DO
+	
+	!$OMP PARALLEL DO PRIVATE(i,j,k) 
 	do j=1,dimy
 	 do i=1,dimx
 	  k=1
@@ -402,7 +474,8 @@ SUBROUTINE interpz_cf(a1,dimx,dimy,dimz,campo_saida)
 
 	 enddo
 	enddo
-
+	!$OMP END PARALLEL DO
+	
 END SUBROUTINE interpz_cf
 
 !##############################################################
@@ -426,6 +499,176 @@ SUBROUTINE interpz_fc(a1,dimx,dimy,dimz,campo_saida)
 	enddo
 
 END SUBROUTINE interpz_fc
+
+!##############################################################
+
+SUBROUTINE interpxy_ff(u,nx,ny,nz,nx1,ny1,uy) !ff --> face pra face  !velocidade x na face y
+
+	IMPLICIT NONE
+	integer :: i, j, k
+	integer,intent(IN) :: nx,nx1,ny,ny1,nz
+	real(8),intent(IN),dimension(0:nx1+1,0:ny+1,0:nz+1)  :: u
+	real(8),intent(OUT),dimension(nx,ny1,nz) :: uy
+
+	do k=1,nz
+	 do j=1,ny1
+	  do i=1,nx
+		uy(i,j,k) = (u(i,j,k) + u(i+1,j,k) + u(i,j-1,k) + u(i+1,j-1,k)) * 0.25
+	  enddo
+	 enddo
+	enddo
+	
+END SUBROUTINE interpxy_ff
+
+!##############################################################
+
+SUBROUTINE interpxz_ff(u,nx,ny,nz,nx1,nz1,uz) !ff --> face pra face  !velocidade x na face z
+
+	IMPLICIT NONE
+	integer :: i, j, k
+	integer,intent(IN) :: nx,nx1,ny,nz,nz1
+	real(8),intent(IN),dimension(0:nx1+1,0:ny+1,0:nz+1)  :: u
+	real(8),intent(OUT),dimension(nx,ny,nz1) :: uz
+
+	do k=1,nz1
+	 do j=1,ny
+	  do i=1,nx
+		uz(i,j,k) = (u(i,j,k) + u(i+1,j,k) + u(i,j,k-1) + u(i+1,j,k-1)) * 0.25
+	  enddo
+	 enddo
+	enddo
+	
+END SUBROUTINE interpxz_ff
+
+!##############################################################
+
+SUBROUTINE interpyx_ff(v,nx,ny,nz,nx1,ny1,vx) !ff --> face pra face  !velocidade y na face x
+
+	IMPLICIT NONE
+	integer :: i, j, k
+	integer,intent(IN) :: nx,nx1,ny,ny1,nz
+	real(8),intent(IN),dimension(0:nx+1,0:ny1+1,0:nz+1)  :: v
+	real(8),intent(OUT),dimension(nx1,ny,nz) :: vx
+
+	do k=1,nz
+	 do j=1,ny
+	  do i=1,nx1
+		vx(i,j,k) = (v(i,j,k) + v(i-1,j,k) + v(i,j+1,k) + v(i-1,j+1,k)) * 0.25
+	  enddo
+	 enddo
+	enddo
+	
+END SUBROUTINE interpyx_ff
+
+!##############################################################
+
+SUBROUTINE interpyz_ff(v,nx,ny,nz,ny1,nz1,vz) !ff --> face pra face  !velocidade y na face z
+
+	IMPLICIT NONE
+	integer :: i, j, k
+	integer,intent(IN) :: nx,ny,ny1,nz,nz1
+	real(8),intent(IN),dimension(0:nx+1,0:ny1+1,0:nz+1)  :: v
+	real(8),intent(OUT),dimension(nx,ny,nz1) :: vz
+
+	do k=1,nz1
+	 do j=1,ny
+	  do i=1,nx
+		vz(i,j,k) = (v(i,j,k) + v(i,j,k-1) + v(i,j+1,k) + v(i,j+1,k-1)) * 0.25
+	  enddo
+	 enddo
+	enddo
+	
+END SUBROUTINE interpyz_ff
+
+!##############################################################
+
+SUBROUTINE interpzx_ff(w,nx,ny,nz,nx1,nz1,wx) !ff --> face pra face  !velocidade z na face x
+
+	IMPLICIT NONE
+	integer :: i, j, k
+	integer,intent(IN) :: nx,nx1,ny,nz,nz1
+	real(8),intent(IN),dimension(0:nx+1,0:ny+1,0:nz1+1) :: w
+	real(8),intent(OUT),dimension(nx1,ny,nz) :: wx
+
+	do k=1,nz
+	 do j=1,ny
+	  do i=1,nx1
+		wx(i,j,k) = (w(i,j,k) + w(i,j,k+1) + w(i-1,j,k) + w(i-1,j,k+1)) * 0.25
+	  enddo
+	 enddo
+	enddo
+	
+END SUBROUTINE interpzx_ff
+
+!##############################################################
+
+SUBROUTINE interpzy_ff(w,nx,ny,nz,ny1,nz1,wy) !ff --> face pra face  !velocidade z na face y
+
+	IMPLICIT NONE
+	integer :: i, j, k
+	integer,intent(IN) :: nx,ny,ny1,nz,nz1
+	real(8),intent(IN),dimension(0:nx+1,0:ny+1,0:nz1+1) :: w
+	real(8),intent(OUT),dimension(nx,ny1,nz) :: wy
+
+	do k=1,nz
+	 do j=1,ny1
+	  do i=1,nx
+		wy(i,j,k) = (w(i,j,k) + w(i,j,k+1) + w(i,j-1,k) + w(i,j-1,k+1)) * 0.25
+	  enddo
+	 enddo
+	enddo
+	
+END SUBROUTINE interpzy_ff
+	
+!##############################################################
+
+SUBROUTINE fantasmas_cf(a1,dimx,dimy,dimz,campo_saida) 
+! interpolação linear: cf --> centro pra face fc--> face pro centro
+
+	USE cond, only : ccx0
+	
+	IMPLICIT NONE
+	integer :: i, j, k
+	integer,intent(IN) :: dimx,dimy,dimz
+	real(8),intent(IN),dimension(dimx,dimy,dimz)  :: a1
+	real(8),intent(OUT),dimension(0:dimx+1,0:dimy+1,0:dimz+1) :: campo_saida
+
+	!a1=campo_entrada
+	do k=1,dimz
+	 do j=1,dimy
+	  do i=1,dimx
+	    campo_saida(i,j,k)=a1(i,j,k)
+	  enddo
+	 enddo
+	enddo
+
+	do k=1,dimz
+	  do i=1,dimx
+	  j=0
+	   campo_saida(i,j,k)=a1(i,j+1,k)
+	  j=dimy+1
+	   campo_saida(i,j,k)=a1(i,j-1,k)
+	 enddo
+	enddo	   
+	   
+	 do j=1,dimy
+	  do i=1,dimx	   
+	  k=0
+	   campo_saida(i,j,k)=a1(i,j,k+1)
+	  k=dimz+1
+	   campo_saida(i,j,k)=a1(i,j,k-1)
+	 enddo
+	enddo
+
+	if (ccx0 == 0) then
+	   campo_saida(0,:,:)=campo_saida(dimx,:,:)
+	   campo_saida(dimx+1,:,:)=campo_saida(1,:,:)
+	else
+	   campo_saida(0,:,:)=campo_saida(1,:,:)
+	   campo_saida(dimx+1,:,:)=campo_saida(dimx,:,:)
+	endif
+
+END SUBROUTINE fantasmas_cf
 
 !##############################################################
 

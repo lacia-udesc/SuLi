@@ -13,53 +13,78 @@ SUBROUTINE contorno(nlock)
 	USE obst
 	USE cond
 	USE ls_param
+	USE param
 
 	IMPLICIT NONE
 
 	!Declarado também no programa
-	integer :: i, j, k, niv, ii,nlock
-	real(8), save :: zi, zj, zk
-
+	integer :: i, j, k, niv, ii,nlock, ik, iik
+	real(8), save :: zi, zj, zk, coef, umed, cd
+	
+	real(8),dimension(nx1,ny,nz) :: ls_x, vx
+	real(8),dimension(nx,ny1,nz) :: uy
+	
+	real(8),dimension(nx1,ny) :: xtau, utau
+	real(8),dimension(nx,ny1) :: ytau, vtau
 
 	real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: dpdx
 	real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: dpdy
 	real(8),dimension(0:nx+1,0:ny+1,0:nz1+1) :: dpdz
-
+	real(8),dimension(0:nx+1,0:ny+1,0:nz+1) :: ls_v
+	
 	!RESOLUÇÃO DO PROBLEMA
 
 	if ((nlock == 1).or.(nlock == 2)) then
-	
-	
+		
 		!Obstáculo de fundo
 		!Ativar se tiver osbstáculo de fundo
 		!ku, kv, kw indicam até que altura as velocidades tem que ser zeradas (até qual índice k)
-		if (obst_t .ne. 0) then
-			do j=0,ny+1
-			do i=0,nx+1
-				u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
-				v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
-				w(i,j,0:kw(i,j))=0. !+ dpdz(i,j,0:kw(i,j))
-				!Rugosidade Interna
-				ub(i,j,ku(i,j)) = u(i,j,ku(i,j)+1)
-				vb(i,j,kv(i,j)) = v(i,j,kv(i,j)+1)
-				wb(i,j,kw(i,j)) = w(i,j,kw(i,j)+1)
-				!ub(i,j,ku(i,j)+1) = 0.
-				!vb(i,j,kv(i,j)+1) = 0.
-				!wb(i,j,kw(i,j)+1) = 0.
-			
-			enddo
-			enddo
-				
-			i = nx1+1 !j=todos
-			do j=0,ny+1
-				u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
-			enddo
+	
+	!if (ibm_t == 0) then
+	!	! rugosidade sendo aplicada apenas no fundo do canal
+	!	
+	!	do j=0,ny+1
+	!	do i=0,nx+1				
+	!		ub(i,j,1) = u(i,j,2) 
+	!		vb(i,j,1) = v(i,j,2)
+	!		wb(i,j,1) = w(i,j,2) 		
+	!	enddo
+	!	enddo
+	!elseif (ibm_t == 1) then
+		
+	if (ibm_t == 1) then
+		do j=0,ny+1
+		do i=0,nx+1
+			u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
+			v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
+			w(i,j,0:kw(i,j))=0. !+ dpdz(i,j,0:kw(i,j))
+		!Rugosidade Interna
+			ub(i,j,ku(i,j)) = u(i,j,ku(i,j)+1)
+			vb(i,j,kv(i,j)) = v(i,j,kv(i,j)+1)
+			wb(i,j,kw(i,j)) = w(i,j,kw(i,j)+1)
+			!ub(i,j,ku(i,j)+1) = 0.
+			!vb(i,j,kv(i,j)+1) = 0.
+			!wb(i,j,kw(i,j)+1) = 0.
 
-			j=ny1+1 !i=todos
-			do i=0,nx+1
-				v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
-			enddo
-		endif
+		enddo
+		enddo
+			
+		i = nx1+1 !j=todos
+		do j=0,ny+1
+			u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
+		enddo
+
+		j=ny1+1 !i=todos
+		do i=0,nx+1
+			v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
+		enddo
+
+	elseif (ibm_t == 2) then
+       		!cria as imagens interpoladas
+		CALL ibm_images(obs_lsx,u,nx1,ny,nz,id_ibmx,1)
+		CALL ibm_images(obs_lsy,v,nx,ny1,nz,id_ibmy,1)	
+		CALL ibm_images(obs_lsz,w,nx,ny,nz1,id_ibmz,1)	
+	endif
 
 		if (mms_t > 0) call mms_bc()
 			!Velocidades de atrito
@@ -144,12 +169,82 @@ SUBROUTINE contorno(nlock)
 				w(:,ny+1,:)  = byzf(:,:)
 			endif
 
+
+			!Parede do fundo (k = 1)
+			!Free-slip
+			if (ccz0.eq.1) then
+				u(:,:,0) = u(:,:,1)
+				v(:,:,0) = v(:,:,1)
+				w(:,:,0) = -w(:,:,2)
+			endif
+
+			!No-slip condition
+			if (ccz0.eq.2) then
+				u(:,:,0) = -u(:,:,1)
+				v(:,:,0) = -v(:,:,1)
+				w(:,:,0) = w(:,:,2)
+			endif
+
+			!Velocidade prescrita para manufaturada
+			if (ccz0.eq.3) then
+				u(:,:,0) = bzx0(:,:)
+				v(:,:,0) = bzy0(:,:)
+				w(:,:,0) = bzz0(:,:)
+			endif
+
+			!Semi-slip condition (Ferziger et al., 2020; Chow et al., 2005)
+			!Rugosidade sendo aplicada apenas no fundo do canal
+			!Sem obstáculo
+			if (ccz0.eq.4) then									
+				!Interpolação velocidades	
+				CALL interpxy_ff(u,nx,ny,nz,nx1,ny1,uy)
+				CALL interpyx_ff(v,nx,ny,nz,nx1,ny1,vx)
+				
+				!Coeficiente de arrasto
+				cd = (1./cka * log((dx/2. + z0) / z0))**(-2.)  
+				
+				!Cisalhamento de fundo (Ferziger et al., 2020) 
+				xtau(:,:) = cd * u(1:nx1,1:ny,1) * sqrt( u(1:nx1,1:ny,1)*u(1:nx1,1:ny,1) + vx(1:nx1,1:ny,1)*vx(1:nx1,1:ny,1) )
+				ytau(:,:) = cd * v(1:nx,1:ny1,1) * sqrt( uy(1:nx,1:ny1,1)*uy(1:nx,1:ny1,1) + v(1:nx,1:ny1,1)*v(1:nx,1:ny1,1) ) 
+				
+				!Velocidade de cisalhamento
+				utau(:,:) = sign(sqrt(abs(xtau(:,:))), xtau(:,:))
+				vtau(:,:) = sign(sqrt(abs(ytau(:,:))), ytau(:,:)) 
+				
+				u(1:nx1,1:ny,0) = 2.*utau(:,:) - u(:,:,1)
+				v(1:nx,1:ny1,0) = 2.*vtau(:,:) - v(:,:,1)  
+				w(:,:,0) = w(:,:,2)
+			endif
+
+			!Superfície Livre (k = nz ou nz1)
+			!Sempre na superfície livre será free-slip(em teste)
+			if (cczf.eq.1) then
+				u(:,:,nz+1)  = u(:,:,nz)
+				v(:,:,nz+1)  = v(:,:,nz)
+				w(:,:,nz1+1) = -w(:,:,nz1-1)
+			endif
+			
+			!Sempre na superfície livre será no-slip(em teste)
+			if (cczf.eq.2) then
+				u(:,:,nz+1)  = -u(:,:,nz)
+				v(:,:,nz+1)  = -v(:,:,nz)
+				w(:,:,nz1+1) = w(:,:,nz1-1)
+			endif
+
+			!Velocidade prescrita para manufaturada
+			if (cczf.eq.3) then
+				u(:,:,nz+1)  = bzxf(:,:)
+				v(:,:,nz+1)  = bzyf(:,:)
+				w(:,:,nz1+1) = bzzf1(:,:)
+			endif
+			
+
 			!Parede frente (i = 1)
 			!Periodica
 			if (ccx0.eq.0.and.ccxf.eq.0) then
 				u(0,:,:) = u(nx1-1,:,:)
 				v(0,:,:) = v(nx,:,:)
-				w(0,:,:) = w(nx,:,:)
+				w(0,:,:) = w(nx,:,:)		
 			endif
 			
 			!Free-slip condition
@@ -168,9 +263,35 @@ SUBROUTINE contorno(nlock)
 
 			!Prescrita
 			if (ccx0.eq.3) then
-				u(0,:,:) = bxx0(:,:)
+				!u(0,:,:) = bxx0(:,:)
 				v(0,:,:) = bxy0(:,:)
 				w(0,:,:) = bxz0(:,:)
+			
+				call interpx_cf(ls,nx,ny,nz,ls_x) !(nx1,ny1,nz)
+						
+				!Validação bottom friction (Zampiron, 2022)********************
+				!Condições de contorno				
+				ik = 0
+				umed = 0.
+					
+				i = 0
+				do k = 1, nz
+				do j = 1, ny
+					if (ls_x(i,j,k)>=-dz) then
+						u(0,j,k) = bxx0(j,k)
+						call random_number(r)
+						r = 2.*(r-0.5)
+						u(i,j,k) = u(i,j,k)*(1.+r*iturb)
+						umed = u(i,j,k) + umed
+						ik   = 1 + ik
+						iik  = k			
+					else
+						u(i,j,k) = u(i,j,iik)*(1.+tanh(pi*(iik-k-1)/2.))
+					endif
+				enddo
+				enddo
+				!***************************************************************
+
 			endif
 			
 			!Para validação
@@ -227,54 +348,11 @@ SUBROUTINE contorno(nlock)
 				w(nx+1,:,:)  = w(nx,:,:)
 			endif
 
-			!Parede do fundo (k = 1)
-			!Free-slip
-			if (ccz0.eq.1) then
-				u(:,:,0) = u(:,:,1)
-				v(:,:,0) = v(:,:,1)
-				w(:,:,0) = -w(:,:,2)
-			endif
-
-			!No-slip condition
-			if (ccz0.eq.2) then
-				u(:,:,0) = -u(:,:,1)
-				v(:,:,0) = -v(:,:,1)
-				w(:,:,0) = w(:,:,2)
-			endif
-
-			!Velocidade prescrita para manufaturada
-			if (ccz0.eq.3) then
-				u(:,:,0) = bzx0(:,:)
-				v(:,:,0) = bzy0(:,:)
-				w(:,:,0) = bzz0(:,:)
-			endif
-
-			!Superfície Livre (k = nz ou nz1)
-			!Sempre na superfície livre será free-slip(em teste)
-			if (cczf.eq.1) then
-				u(:,:,nz+1)  = u(:,:,nz)
-				v(:,:,nz+1)  = v(:,:,nz)
-				w(:,:,nz1+1) = -w(:,:,nz1-1)
-			endif
-			
-			!Sempre na superfície livre será no-slip(em teste)
-			if (cczf.eq.2) then
-				u(:,:,nz+1)  = -u(:,:,nz)
-				v(:,:,nz+1)  = -v(:,:,nz)
-				w(:,:,nz1+1) = w(:,:,nz1-1)
-			endif
-
-			!Velocidade prescrita para manufaturada
-			if (cczf.eq.3) then
-				u(:,:,nz+1)  = bzxf(:,:)
-				v(:,:,nz+1)  = bzyf(:,:)
-				w(:,:,nz1+1) = bzzf1(:,:)
-			endif
 	endif
 
 	if (nlock == 2) then
 
-		if (ccx0 .eq. 3 .or. ccxf .eq. 3 .or. ccy0 .eq. 3 .or. ccyf .eq. 3 .or. ccz0 .eq. 3 .or. cczf .eq. 3) then
+		if (ccx0 .eq. 3 .or. ccxf .eq. 3 .or. ccy0 .eq. 3 .or. ccyf .eq. 3 .or. ccz0 .eq. 3 .or. cczf .eq. 3 .or. ccz0 .eq. 4) then
 			CALL prd_corr(dpdx,dpdy,dpdz)
 		endif
 
@@ -317,10 +395,50 @@ SUBROUTINE contorno(nlock)
 				v(:,ny1,:)   = byyf(:,:) + dpdy(:,ny1,:)
 			endif
 
+
+			!Parede do fundo (k = 1)
+			!Free-slip
+			if (ccz0.eq.1) then
+				w(:,:,1) = 0.
+			endif
+
+			!No-slip condition
+			if (ccz0.eq.2) then
+				w(:,:,1) = 0.
+			endif
+
+			!Velocidade prescrita para manufaturada
+			if (ccz0.eq.3) then
+				w(:,:,1) = bzz1(:,:) + dpdz(:,:,1)
+			endif
+			
+			!Semi-slip condition
+			if (ccz0.eq.4) then
+				w(:,:,1) = 0.
+			endif			
+			
+			!Superfície Livre (k = nz ou nz1)
+			!Sempre na superfície livre será free-slip(em teste)
+			if (cczf.eq.1) then
+				w(:,:,nz1)   = 0.
+			endif
+			
+			!Sempre na superfície livre será no-slip(em teste)
+			if (cczf.eq.2) then
+				w(:,:,nz1)   = 0.
+			endif
+
+			!Velocidade prescrita para manufaturada
+			if (cczf.eq.3) then
+				w(:,:,nz1)   = bzzf(:,:)    + dpdz(:,:,nz1)
+			endif
+		
+
+
 			!Parede frente (i = 1)
 			!Periodica
 			if (ccx0.eq.0.and.ccxf.eq.0) then
-				u(1,:,:) = u(nx1,:,:)
+				u(1,:,:) = u(nx1,:,:)			
 			endif
 			
 			!Free-slip condition
@@ -335,10 +453,36 @@ SUBROUTINE contorno(nlock)
 
 			!Prescrita
 			if (ccx0.eq.3) then
-				u(1,:,:) = bxx1(:,:) + dpdx(1,:,:)
+				!u(1,:,:) = bxx1(:,:) + dpdx(1,:,:)
+				
 				do k = 1, nz
-				ls(1,:,k) = blx1(1:ny,k)
+					ls(1,:,k) = blx1(:,k)
 				enddo 
+
+				call interpx_cf(ls,nx,ny,nz,ls_x) !(nx1,ny1,nz)
+
+				!Validação bottom friction (Zampiron, 2022)********************
+				ik = 0
+				umed = 0.
+					
+				i = 1
+				do k = 1, nz
+				do j = 1, ny
+					if (ls_x(i,j,k)>=-2*dz) then
+						u(1,j,k) = bxx1(j,k)						
+						call random_number(r)
+						r = 2.*(r-0.5)
+						u(i,j,k) = u(i,j,k)*(1.+r*iturb)							
+						umed = u(i,j,k) + umed
+						ik   = 1 + ik
+						iik  = k			
+					else
+						u(i,j,k) = u(i,j,iik)*(1.+tanh(pi*(iik-k-1)/2.))					
+					endif
+				enddo
+				enddo
+				!***************************************************************
+			
 			endif
 			
 			!Para validação
@@ -382,46 +526,15 @@ SUBROUTINE contorno(nlock)
 			if (ccxf.eq.4) then
 				u(nx1,:,:)   = u(nx1-1,:,:)
 			endif
-
-			!Parede do fundo (k = 1)
-			!Free-slip
-			if (ccz0.eq.1) then
-				w(:,:,1) = 0.
-			endif
-
-			!No-slip condition
-			if (ccz0.eq.2) then
-				w(:,:,1) = 0.
-			endif
-
-			!Velocidade prescrita para manufaturada
-			if (ccz0.eq.3) then
-				w(:,:,1) = bzz1(:,:) + dpdz(:,:,1)
-			endif
-
-			!Superfície Livre (k = nz ou nz1)
-			!Sempre na superfície livre será free-slip(em teste)
-			if (cczf.eq.1) then
-				w(:,:,nz1)   = 0.
-			endif
 			
-			!Sempre na superfície livre será no-slip(em teste)
-			if (cczf.eq.2) then
-				w(:,:,nz1)   = 0.
-			endif
+	elseif ((nlock == 3) .and. (ibm_t .ne. 0)) then
 
-			!Velocidade prescrita para manufaturada
-			if (cczf.eq.3) then
-				w(:,:,nz1)   = bzzf(:,:)    + dpdz(:,:,nz1)
-			endif
-		
+		if (ibm_t == 1) then
 
-
-	elseif ((nlock == 3) .and. (obst_t .ne. 0)) then
 			!Contorno para Level Set, o ideal é que o objeto seja representado por pelo menos dois grid por direção
 			do j = 1,ny
 			do i = 1,nx
-			do k = kw(i,j)-1, 1 
+			do k = 1, kw(i,j)-1
 
 				if ((kw(i-1,j) < k) .and. ((kw(i,j-1) < k)) ) then ! 5ª aqui faz interpolação 
 					ls(i,j,k) = (ls(i-1,j,k) + ls(i,j-1,k))*0.5
@@ -458,13 +571,149 @@ SUBROUTINE contorno(nlock)
 			enddo
 			enddo
 
-			CALL heaviside()
+		elseif (ibm_t == 2) then
+			!! IBM para Level-Set
+			CALL fantasmas_cf(ls,nx,ny,nz,ls_v) 
+			CALL ibm_images(obs_lss,ls_v,nx,ny,nz,id_ibm,2)
+			ls(1:nx,1:ny,1:nz) = ls_v(1:nx,1:ny,1:nz)	
+			CALL reinic_weno(ls,nx,ny,nz)
+		endif
+
+		CALL heaviside()
 	endif
 
-
-
-
 END SUBROUTINE contorno
+
+!##################################################################################################################
+
+SUBROUTINE contorno_les()
+
+	USE velpre
+	USE cond
+	USE les
+	USE obst
+	
+	IMPLICIT NONE	
+	
+	!EIXO Y	
+	
+	!Periodica
+	if (ccy0.eq.0.and.ccyf.eq.0) then
+		ka(:,ny+1,:) = ka(:,1,:)
+		ka(:,0,:) = ka(:,ny,:)
+	endif
+	
+	!Free-slip condition
+	if (ccy0.eq.1) then
+		ka(:,0,:) = ka(:,1,:)
+	endif
+	
+	!Free-slip
+	if (ccyf.eq.1) then
+		ka(:,ny+1,:) = ka(:,ny,:)
+	endif
+
+	!No-slip condition
+	if (ccy0.eq.2) then
+		ka(:,0,:) = -ka(:,1,:)
+	endif
+	
+	if (ccyf.eq.2) then
+		ka(:,ny+1,:) = -ka(:,ny,:)
+	endif
+	
+	!Preescrita
+	!if (ccy0.eq.3) then
+	!	ka(1:nx,0,1:nz) = (u(1:nx,0,1:nz)*u(1:nx,0,1:nz)+v(1:nx,0,1:nz)*v(1:nx,0,1:nz)+w(1:nx,0,1:nz)*w(1:nx,0,1:nz))/6.
+	!endif
+	
+	!if (ccyf.eq.3) then
+	!	ka(1:nx,ny+1,1:nz) = (u(1:nx,ny1+1,1:nz)*u(1:nx,ny1+1,1:nz)+v(1:nx,ny1+1,1:nz) &
+	!			     *v(1:nx,ny1+1,1:nz)+w(1:nx,ny1+1,1:nz)*w(1:nx,ny1+1,1:nz))/6.
+	!endif	
+
+	!EIXO Z
+	
+	!Free-slip condition
+	if (ccz0.eq.1) then
+		ka(:,:,0) = ka(:,:,1)
+	endif
+	
+	!Free-slip
+	if (cczf.eq.1) then
+		ka(:,:,nz+1) = ka(:,:,nz)
+	endif
+
+	!No-slip condition
+	if (ccz0.eq.2) then
+		ka(:,:,0) = -ka(:,:,1)
+	endif
+	
+	!Semi-slip condition
+	if (ccz0.eq.4) then
+		ka(:,:,0) = -ka(:,:,1)
+		!ka(1:nx,1:ny,1) = 0.02*0.02*uinicial*uinicial*1.5 
+	endif	
+	
+	!Preescrita
+	!if (ccy0.eq.3) then
+	!	ka(1:nx,1:ny,0) = (u(1:nx,1:ny,0)*u(1:nx,1:ny,0)+v(1:nx,1:ny,0)*v(1:nx,1:ny,0)+w(1:nx,1:ny,0)*w(1:nx,1:ny,0))/6.
+	!endif
+	
+	!if (ccyf.eq.3) then
+	!	ka(1:nx,1:ny,nz+1) = (u(1:nx,1:ny,nz1+1)*u(1:nx,1:ny,nz1+1)+v(1:nx,1:ny,nz1+1)* &
+	!			     v(1:nx,1:ny,nz1+1)+w(1:nx,1:ny,nz1+1)*w(1:nx,1:ny,nz1+1))/6.
+	!endif
+
+
+	!if (ibm_t == 2) then
+		!! IBM para o ka
+	!	CALL ibm_images(obs_lss,ka,nx,ny,nz,id_ibm,3)
+	!endif
+
+	!EIXO X
+	
+	!Periodica
+	if (ccx0.eq.0.and.ccxf.eq.0) then
+		ka(nx+1,:,:) = ka(1,:,:)
+		ka(0,:,:) = ka(nx,:,:)
+	endif
+	
+	!Free-slip condition
+	if (ccx0.eq.1) then
+		ka(0,:,:) = ka(1,:,:)
+	endif
+	
+	!Free-slip ou saída livre
+	if (ccxf.eq.1 .or. ccxf.eq.4) then
+		ka(nx+1,:,:) = ka(nx,:,:)
+	endif
+
+	!No-slip condition
+	if (ccx0.eq.2) then
+		ka(0,:,:) = -ka(1,:,:)
+	endif
+	
+	if (ccxf.eq.2) then
+		ka(nx+1,:,:) = -ka(nx,:,:)
+	endif
+	
+	!Preescrita
+	if (ccx0.eq.3) then
+		ka(0,1:ny,1:nz) = iturb*iturb*uinicial*uinicial*1.5 
+		!ka(0,:,:) = ka(1,:,:)
+		!(u(0,1:ny,1:nz)*u(0,1:ny,1:nz)+v(0,1:ny,1:nz)*v(0,1:ny,1:nz)+w(0,1:ny,1:nz)*w(0,1:ny,1:nz))/6.
+	endif
+	
+	if (ccxf.eq.3) then
+		ka(nx+1,:,:) = ka(nx,:,:)
+		!ka(nx+1,1:ny,1:nz) = (u(nx1+1,1:ny,1:nz)*u(nx1+1,1:ny,1:nz)+v(nx+1,1:ny,1:nz) &
+		!		     *v(nx+1,1:ny,1:nz)+w(nx+1,1:ny,1:nz)*w(nx+1,1:ny,1:nz))/6.
+	endif
+	
+END SUBROUTINE contorno_les
+
+!##################################################################################################################
 
 SUBROUTINE obstaculo()
 !Subrotina para definir o formato do obstáculo
@@ -482,296 +731,185 @@ SUBROUTINE obstaculo()
 	IMPLICIT NONE
 
 	real(8),save :: x, y, z,x0, y0, a, d, sigx, sigy, tgaux, aux1, aux2, dz_v, erro, raio		!x mostra a localização atual
-	real(8),dimension(-1:nx1*2+2,-1:ny1*2+2) :: auxx
-	integer :: i,j,k,nxx,nyy
+	real(8),dimension(-1:nx1*2+2,-1:ny1*2+2) :: auxx !!esse é o antigo
+	real(8),dimension(-1:nx1*2+2,-1:ny1*2+2,-1:nz1*2+2) :: auxx_ls !esse é o novo
+	real(8),dimension(nx,ny,nz) :: mod_ls !!esse é o antigo
+	integer :: i,j,k,nxx,nyy,nzz
 
 	nxx = nx1*2
 	nyy = ny1*2
-
+	nzz = nz1*2
+	
 	!ku, kv, kw indicam até que altura as velocidades tem que ser zeradas (até qual índice k)
 
 	!Desenhar um único objeto e fazer a divisão na hora de transformar em inteiro
 
-	if (obst_t == 0) then !Dunas (Daniel, Leonardo)
+	if (obst_t == 0) then
 		write(*,*) "Sem obstáculo."
 	return
 
-	elseif (obst_t == 1) then !Dunas (Daniel, Leonardo) ! Desativado
+	elseif (obst_t == 1) then !Rugosidade uniforme (Zampiron, 2022)
 
-	elseif (obst_t == 2) then !Duna de Yue et al. (2003) (Luisa, Leonardo)
-
+		do k = -1,nzz+2
 		do j = -1,nyy+2
-		do i = -1, nxx+2
-		x = (i-1.)*(dx*0.5)
-
-		if (x.le.0.01) then
-			auxx(i,j) = 0.02
-
-		elseif (x.le.0.05) then
-			tgaux=-tan(26.*pi/180.)
-			auxx(i,j)=tgaux*x+0.02
-
-		elseif (x.le.0.075) then
-			auxx(i,j)=0.0005
-
-		elseif (x.le.0.1375) then
-			tgaux=tan(1.8*pi/180.)
-			auxx(i,j)=tgaux*x+0.0005
-			aux1=auxx(i,j)
-
-		elseif (x.le.0.325) then
-			tgaux=tan(5.*pi/180.)
-			auxx(i,j)=tgaux*x+aux1
-			aux2=auxx(i,j)
-
-		elseif (x.le.0.39) then
-		   tgaux=tan(1.8*pi/180.)
-		   auxx(i,j)=tgaux*x+aux2
-		else
-			auxx(i,j)=0.02
-
-		endif
-		enddo
-		enddo
+		do i = -1,nxx+2
 		
-	elseif (obst_t == 3) then !gaussbump3D (Luisa, Leonardo)
+			x = (i-1.)*dx*0.5
+			y = (j-1.)*dy*0.5
+			z = (k-1.)*dz*0.5
 
-		d=0.2    !4.!0.1/dz1+1. !Base parte "plana"
+			auxx_ls(i,j,k)  = + 0.008*(1.+(abs(sin(pi*x/0.016))*abs(sin(pi*y/0.016)))**0.5)-z
 
-		x0 =3.       !3./dx!2.*nx/3. !Centro em x, do pico
-		y0 =ny/2.*dy !ny/2.          !Centro em y, do pico
-		a  = 2.0     !2./dz1!nz/5.   !Altura do pico
-		sigx = 0.5   !0.5/dx!nx/5.   !Largura em x do pico
-		sigy = 0.5   !0.5/dy!ny/5.   !Largura em y do pico
-
-		do j=-1,nyy+2
-			y = (j-1.)*(dy*0.5)
-			aux1=(y-y0)*(y-y0)/(2.*sigy*sigy) 
-
-		do i=-1,nxx+2
-			x = (i-1.)*(dx*0.5)
-			aux2=(x-x0)*(x-x0)/(2.*sigx*sigx)
-			aux2=-aux2-aux1
-			aux2=exp(aux2)
-			auxx(i,j)=aux2*a +d
+		enddo
 		enddo
 		enddo
 
-	elseif (obst_t == 4) then !Beji e Battjes,(1994) (Leonardo)
+	elseif (obst_t == 2) then !(bd_koshizuka, 1995 e Kleefsman, 2005)
 
-		do j = -1,nyy+2
+		!Condição inicial de barragem
+		tgaux = 0.0!5715 ! dam depth
+		sigx = 0.75!5715 ! dam x-length
+		sigy = 0.5 ! dam y-length
+		a = 0.16
+		d = 100
+		
+		do k = -1, nzz+2
+		do j = -1, nyy+2
 		do i = -1, nxx+2
-		x = (i-1)*(dx*0.5)
-
-		if (x < 6.) then !Antes de subir
-			auxx(i,j) = 0.
-
-		elseif (x < 12.) then !Final da subida
-			tgaux=tan(1./20.)
-			auxx(i,j)=tgaux*(x-6.)
-
-		elseif (x < 14.) then !Em cima do obstáculo
-			auxx(i,j)= 0.30
-
-		elseif (x < 17.) then !Descida
-			tgaux=-tan(1./10.)
-			auxx(i,j)=tgaux*(x-14.)+0.30
+		
+			x = (i-1.)*dx*0.5
+			y = (j-1.)*dy*0.5
+			z = (k-1.)*dz*0.5
 			
-		else !Resto
-			auxx(i,j) = 0.
-		endif
-		
-		enddo
-		enddo
-
-	elseif (obst_t == 5) then !(canal 0 - delft 1980)
-
-		do j = -1,nyy+2
-		do i = -1, nxx+2
-		x = (i-2)*(dx*0.5)
-		
-		if (x <= 1.0) then !Raso plano
-			auxx(i,j) = 0.2
+			if (x <= 0.75) then
+				tgaux = +x -0.75 + 0.08 
+			else
+				tgaux = -x +0.75 + 0.08 	
+			endif
 			
-		else !Ffundo plano
-			auxx(i,j) = 0.
-		endif
-		enddo
-		enddo
-
-	elseif (obst_t == 6) then !(canal 1_2 - delft 1980)
-
-		do j = -1,nyy+2
-		do i = -1, nxx+2
-		x = (i-1.)*dx*0.5
-
-		if (x < 1.) then !Antes de subir
-			auxx(i,j) = 0.2
-
-		elseif (x < 1.4) then !Final da subida
-			tgaux=-1./2.
-			auxx(i,j)=tgaux*(x-1.) + 0.2
-
-		elseif (x < 2.4) then !Em cima do obstáculo
-			auxx(i,j)= 0.
-
-		elseif (x < 2.8) then !Descida
-			tgaux=1./2.
-			auxx(i,j)=tgaux*(x-2.4)
+			if (y <= 0.5) then
+				aux1 = +y -0.5 + 0.20 
+			else
+				aux1 = -y +0.5 + 0.20 	
+			endif
 			
-		else !Resto
-		   auxx(i,j) = 0.2
-		endif
-		enddo
-		enddo
-
-	elseif (obst_t == 7) then !(SBRH - Buracos e calombos)
-
-		raio = 0.12
-
-		do j = -1,nyy+2
-		do i = -1, nxx+2
-		x = (i-1.)*dx*0.5
-
-		if (x < (1.-raio)) then !Antes de descer
-			auxx(i,j) = 0.
-
-		elseif (x < 1.) then !Final da descida
-
-			auxx(i,j) = sqrt(-(x-1.)**2. +(raio**2.))
-
-		else !Resto
-		   auxx(i,j) = raio
-	 endif
+			aux2 = -z +0. + 0.16
+			
+			auxx_ls(i,j,k) = min(tgaux,aux1,aux2)
 
 		enddo
 		enddo
-
-	elseif (obst_t == 8) then !(fennema, 1990)
-
-		do j = -1,nyy+2
-		do i = -1, nxx+2
-		x = (i-1.)*dx*0.5
-		y = (j-1.)*dy*0.5
-
-		if ((x >= 90.) .and. (x <= 100.)) then !Criando a parede
-			auxx(i,j) = (nz+1)*dz
-		endif
-		
-		if ((y > 95.) .and. (y < 170.)) then !Criando a parede
-			auxx(i,j) = -dz
-		endif
-		
 		enddo
-		enddo
-
-	elseif (obst_t == 9) then !(aureli, 2008)
-
-		do j = -1,nyy+2
-		do i = -1, nxx+2
-		x = (i-1.)*dx*0.5
-		y = (j-1.)*dy*0.5
-
-		if ((x >= 0.8) .and. (x <= 0.825)) then !Criando a parede
-			auxx(i,j) = (nz+1)*dz
-		endif
-		
-		if ((y > 0.45) .and. (y < 0.75)) then !Criando a parede
-			auxx(i,j) = -dz
-		endif
-
-		enddo
-		enddo
-
-	elseif (obst_t == 10) then !(bd_koshizuka, 1995 e Kleefsman, 2005)
-
-		auxx = -dz
-
-		do j = -1,nyy+2
-		do i = -1, nxx+2
-		x = (i-1.)*dx*0.5
-		y = (j-1.)*dy*0.5
-
-		if ((x >= (0.75-0.16*0.5) ) .and. (x <=(0.75+0.16*0.5) )) then !Criando a parede
-			auxx(i,j) = 0.16!(nz+1)*dz
-		endif
-		
-		if ((y > (0.5-0.4*0.5)) .and. (y < (0.5+0.4*0.5))) then !Criando a parede
-			auxx(i,j) = -dz
-		endif
-
-		enddo
-		enddo
-		
-	elseif (obst_t == 12) then !rio Felipe
-
-		auxx = -dz
-
-		do j = -1,nyy+2
-		do i = -1, nxx+2
-		x = (i-1.)*dx*0.5
-		y = (j-1.)*dy*0.5
-
-		if ((y >= 1.5 ) .or. (y <=0.5 )) then !Criando a parede
-			auxx(i,j) = 0.55!(nz+1)*dz
-		else
-			auxx(i,j) = 0.!(nz+1)*dz
-		endif
-		enddo
-		enddo
-		
-	elseif (obst_t == 13) then !zampiron2022 (Bruna)
-		
-		
-		do j = -1,nyy+2
-		do i = -1, nxx+2
-		x = (i-1.)*dx*0.5
-		y = (j-1.)*dy*0.5
-
-		auxx(i,j) = 0.008 + 0.008*(abs(sin(pi*x/0.016))*abs(sin(pi*y/0.016)))**0.5
-
-		enddo
-		enddo	
-		
 				
 	endif
 
-
-	do j = 0, ny+1
-	do i = 0, nx1+1
-		 ku(i,j) = nint(auxx(i*2-1,j*2)/dz+0.5)
-		if (ku(i,j) > nz) ku(i,j) = nz
-	enddo
-	enddo
-
-	do j = 0, ny1+1
-	do i = 0, nx+1
-		 kv(i,j) = nint(auxx(i*2,j*2-1)/dz+0.5)
-		if (kv(i,j) > nz) kv(i,j) = nz
-	enddo
-	enddo
-
-	do j = 0, ny+1
-	do i = 0, nx+1
-		 kw(i,j) = nint(auxx(i*2,j*2)/dz+1.)
-		if (kw(i,j) > nz1) kw(i,j) = nz1
-	enddo
-	enddo
-
-
+	! independente do IBM utilizado, este é o utilizado para plotar do paraview
+	! Aqui definimos o IBM submalha e depois marcamos as duas células que estão dentro do obstáculo perto da interface.
 	do k = 1, nz1
 	do j = 1, ny1
 	do i = 1, nx1
-		z = (k-1.0)*dz
-		auxx_ls(i,j,k) = nint(auxx(i*2-1,j*2-1)/dz)*dz - z !!ainda não está pegando a submalha
-		!auxx_ls(i,j,k) = auxx(i*2-1,j*2-1) - z !! esse seria com as discretização submalha em z
+		!z = (k-1.0)*dz
+		obs_ls(i,j,k) = auxx_ls(i*2-1,j*2-1,k*2-1) !- z
 	enddo
 	enddo
-	enddo	
+   	enddo		
+
+	
+	if (ibm_t == 1 ) then
+		auxx = -10
+		! converter a visão nova para a antiga (para manter o ibm antigo vivo)
+		do k = -1, nzz+1 !reduziu um por ser avaliado de forma progressiva
+		do j = -1, nyy+2
+		do i = -1, nxx+2
+			if (auxx_ls(i,j,k)*auxx_ls(i,j,k+1) < 0.) then !condição para definir a posição da interface
+				auxx(i,j) = dz*(k-1.)*0.5
+			endif
+		enddo
+		enddo
+		enddo
+
+		do j = 0, ny+1
+		do i = 0, nx1+1
+			 ku(i,j) = max(0,nint(auxx(i*2-1,j*2)/dz+0.5))
+			if (ku(i,j) > nz) ku(i,j) = nz
+		enddo
+		enddo
+
+		do j = 0, ny1+1
+		do i = 0, nx+1
+			 kv(i,j) = max(0,nint(auxx(i*2,j*2-1)/dz+0.5))
+			if (kv(i,j) > nz) kv(i,j) = nz
+		enddo
+		enddo
+
+		do j = 0, ny+1
+		do i = 0, nx+1
+			 kw(i,j) = max(0,nint(auxx(i*2,j*2)/dz+1.))
+			if (kw(i,j) > nz1) kw(i,j) = nz1
+		enddo
+		enddo
+
+	elseif (ibm_t == 2) then
+       
+		! em x   
+		do k = 1, nz
+		do j = 1, ny
+		do i = 1, nx1
+			!z = (k-0.5)*dz
+			obs_lsx(i,j,k) = auxx_ls(i*2-1,j*2,k*2) !- z
+		enddo
+		enddo
+	    	enddo			
+			
+		! em y
+		do k = 1, nz
+		do j = 1, ny1
+		do i = 1, nx
+			!z = (k-0.5)*dz
+			obs_lsy(i,j,k) = auxx_ls(i*2,j*2-1,k*2) !- z
+		enddo
+		enddo
+	    	enddo		
 		
-		
-		
+	  	! em z
+		do k = 1, nz1
+		do j = 1, ny
+		do i = 1, nx
+			!z = (k-1.0)*dz
+			obs_lsz(i,j,k) = auxx_ls(i*2,j*2,k*2-1) !- z
+		enddo
+		enddo
+	    	enddo			
+
+		! centro da célula
+		do k = 1, nz
+		do j = 1, ny
+		do i = 1, nx
+			!z = (k-0.5)*dz
+			obs_lss(i,j,k) = auxx_ls(i*2,j*2,k*2) !- z
+		enddo
+		enddo
+	    	enddo	
+
+	    	! para manter a função distância (muito provavelmente é desnecessário)
+	    	CALL reinic_weno(obs_ls,nx1,ny1,nz1)
+	    	CALL reinic_weno(obs_lsx,nx1,ny,nz)
+	    	CALL reinic_weno(obs_lsy,nx,ny1,nz)
+	    	CALL reinic_weno(obs_lsz,nx,ny,nz1)    
+	    	CALL reinic_weno(obs_lss,nx,ny,nz)
+	    
+	    	! cria marcadores que identificam as duas primeiras células para dentro do obstáculo
+		CALL ibm_posicoes(id_ibmx,obs_lsx,nx1,ny,nz)
+		CALL ibm_posicoes(id_ibmy,obs_lsy,nx,ny1,nz)
+		CALL ibm_posicoes(id_ibmz,obs_lsz,nx,ny,nz1)
+		CALL ibm_posicoes(id_ibm, obs_lss, nx,ny,nz)	
+		   
+		CALL mod_ls1(obs_lss,mod_ls,norm_xx,norm_yy,norm_zz,nx,ny,nz)   
+	endif	   
+
 END SUBROUTINE obstaculo
+
+!##################################################################################################################
 
 SUBROUTINE sponge_layer(epis_z)
 
@@ -881,6 +1019,8 @@ SUBROUTINE sponge_layer(epis_z)
 
 END SUBROUTINE sponge_layer
 
+!##################################################################################################################
+
 SUBROUTINE prd_corr(dpdx,dpdy,dpdz) !! arrumar rotina para eficiência!!
 !Derivadas das pressões para adicionar nas condições de contorno (aproximar o valor em u^n+1 ...)
 
@@ -961,7 +1101,7 @@ SUBROUTINE prd_corr(dpdx,dpdy,dpdz) !! arrumar rotina para eficiência!!
 
 END SUBROUTINE prd_corr
 
-
+!##################################################################################################################
 
 SUBROUTINE boundary_waves()
 
@@ -1095,6 +1235,8 @@ SUBROUTINE boundary_waves()
 
 END SUBROUTINE boundary_waves
 
+!##################################################################################################################
+
 SUBROUTINE waves_coef()
 	USE wave_c
 	USE param
@@ -1218,4 +1360,3 @@ SUBROUTINE waves_coef()
 	!Solitary wave
 
 END SUBROUTINE waves_coef
-

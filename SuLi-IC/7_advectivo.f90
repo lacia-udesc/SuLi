@@ -648,3 +648,61 @@ SUBROUTINE antissim(uint,vint,wint)
 
 !==================================================================================================================
 END SUBROUTINE antissim
+
+!##################################################################################################################
+
+SUBROUTINE adv_esc(e,dimx,dimy,dimz,adve) ! Advectivo genérico para variáveis escalares centralizadas
+
+	USE disc, only : nx,ny,nz,nx1,ny1,nz1
+	USE velpre, only : u, v, w
+	USE param
+
+	IMPLICIT NONE
+
+	integer :: i, j, k,dimx,dimy,dimz ! contadores
+	real(8),save :: aux1, aux2 ! auxiliares
+	real(8),intent(out),dimension(dimx,dimy,dimz) :: adve        ! termo advectivo
+	real(8),dimension(0:dimx+1,0:dimy+1,0:dimz+1) :: e           ! e = escalar
+	real(8),dimension(nx,ny,nz)  :: uc, vc, wc             ! c = centro
+	real(8),dimension(dimx,dimy,dimz)  :: udedx, dedxn, dedxp    ! n = negativo, p = positivo
+	real(8),dimension(dimx,dimy,dimz)  :: vdedy, dedyn, dedyp    ! n = negativo, p = positivo
+	real(8),dimension(dimx,dimy,dimz)  :: wdedz, dedzn, dedzp    ! n = negativo, p = positivo
+
+	! upwind 2nd order
+
+	call interpx_fc(u(1:nx1,1:ny,1:nz),nx1,ny,nz,uc) ! Interpolação de velocidades da face pro centro
+	call interpy_fc(v(1:nx,1:ny1,1:nz),nx,ny1,nz,vc)
+	call interpz_fc(w(1:nx,1:ny,1:nz1),nx,ny,nz1,wc)
+
+	CALL derivaxu2n(e,dimx,dimy,dimz,dedxn) ! Derivadas do escalar conforme método
+	CALL derivaxu2p(e,dimx,dimy,dimz,dedxp)
+	CALL derivayu2n(e,dimx,dimy,dimz,dedyn)
+	CALL derivayu2p(e,dimx,dimy,dimz,dedyp)
+	CALL derivazu2n(e,dimx,dimy,dimz,dedzn)
+	CALL derivazu2p(e,dimx,dimy,dimz,dedzp)
+
+	do k = 1, dimz
+	do j = 1, dimy
+	do i = 1, dimx
+
+		aux1 = max(uc(i,j,k),0.)
+		aux2 = min(uc(i,j,k),0.)
+		udedx(i,j,k) = aux1*dedxn(i,j,k) + aux2*dedxp(i,j,k)
+
+		aux1 = max(vc(i,j,k),0.)
+		aux2 = min(vc(i,j,k),0.)
+		vdedy(i,j,k) = aux1*dedyn(i,j,k) + aux2*dedyp(i,j,k)
+
+		aux1 = max(wc(i,j,k),0.)
+		aux2 = min(wc(i,j,k),0.)
+		wdedz(i,j,k) = aux1*dedzn(i,j,k) + aux2*dedzp(i,j,k)
+
+		adve(i,j,k) = udedx(i,j,k) + vdedy(i,j,k) + wdedz(i,j,k)
+
+	enddo
+	enddo
+	enddo
+
+END SUBROUTINE adv_esc
+
+

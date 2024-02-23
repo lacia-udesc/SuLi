@@ -268,8 +268,63 @@ endif
 
 END SUBROUTINE tempo
 
+!##################################################################################################################
 
-!!!!!!!!!!!!################################################
+SUBROUTINE tempo_esc(Fe,dimx,dimy,dimz,e,e0,fe0,fe1) ! Evolução temporal para variáveis escalares centralizadas
+
+	USE vartempo
+	USE velpre
+
+	IMPLICIT NONE
+
+	integer :: i, j, k, dimx,dimy,dimz ! contadores
+	real(8),save :: aux1 ! auxiliar
+
+	real(8),intent(OUT),dimension(dimx,dimy,dimz) :: e ! e = escalar
+	real(8),dimension(dimx,dimy,dimz) :: e0,fe0,fe1,Fe
+
+	! RK 3
+		if (tt == 1) then
+			aux1 = dt ! Já está modificado para ser 0.5 do dt original
+
+			do k = 1, dimz
+			do j = 1, dimy
+			do i = 1, dimx
+				e0(i,j,k)  = e(i,j,k)
+				fe0(i,j,k) = Fe(i,j,k)		
+				e(i,j,k)   = e(i,j,k) + aux1*Fe(i,j,k)
+			enddo
+			enddo	
+			enddo	
+					
+		elseif (tt == 2) then
+			aux1 = 2.*dt
+			
+			do k = 1, dimz
+			do j = 1, dimy
+			do i = 1, dimx
+				fe1(i,j,k) = Fe(i,j,k)		
+				e(i,j,k)   = e0(i,j,k) - dt*fe0(i,j,k) + aux1*Fe(i,j,k)	
+			enddo
+			enddo	
+			enddo
+
+		elseif (tt == 3) then
+			aux1 = dt/6.
+
+			do k = 1, dimz
+			do j = 1, dimy
+			do i = 1, dimx
+				e(i,j,k)   = e0(i,j,k) + aux1*(fe0(i,j,k) + 4.*fe1(i,j,k) + Fe(i,j,k)) 	
+			enddo
+			enddo	
+			enddo
+		endif
+
+END SUBROUTINE tempo_esc
+
+!##################################################################################################################
+
 SUBROUTINE complementos()
 
 	USE velpre
@@ -278,16 +333,19 @@ SUBROUTINE complementos()
 	USE vartempo
 	USE mms_m
 	USE obst
+	USE les
+	
 	IMPLICIT NONE
 
 
 	!Contadores
 	integer :: i, j, k
 	real(8),dimension(nx,ny,nz) :: aux
-	real(8),dimension(nx1,ny,nz) :: dhsdx
-	real(8),dimension(nx,ny1,nz) :: dhsdy
-	real(8),dimension(nx,ny,nz1) :: dhsdz, epis_z
+	real(8),dimension(nx1,ny,nz) :: dhsdx, xrho, vx
+	real(8),dimension(nx,ny1,nz) :: dhsdy, yrho, uy
+	real(8),dimension(nx,ny,nz1) :: dhsdz, zrho, epis_z
 	
+	real(8),dimension(0:nx+1,0:ny+1,0:nz+1) :: karho, rhof
 
 	!! tensão superficial, MMS, rugosidade, gravidade e camada esponja
 
@@ -310,36 +368,62 @@ SUBROUTINE complementos()
 	call interpz_cf(aux,nx,ny,nz,dhsdz) !(nx,ny,nz1)
 
 
-	do k = 1, nz
-	do j = 1, ny
-	do i = 1, nx1
-		Fu(i,j,k) = Fu(i,j,k) + gx &
-			    -sigma*dhsdx(i,j,k) +tf_u(i,j,k) - gz/(chezy*chezy)*sqrt(ub(i,j,k)*ub(i,j,k))*u(i,j,k)
-	enddo
-	enddo	
+	!Interpolação velocidades	
+	!CALL interpxy_ff(ub,nx,ny,nz,nx1,ny1,uy)
+	!CALL interpyx_ff(vb,nx,ny,nz,nx1,ny1,vx)
 	
-	do j = 1, ny1
-	do i = 1, nx
-		Fv(i,j,k) = Fv(i,j,k) &
-			    -sigma*dhsdy(i,j,k) +tf_v(i,j,k) - gz/(chezy*chezy)*sqrt(vb(i,j,k)*vb(i,j,k))*v(i,j,k)
-	enddo
-	enddo
-	enddo
+	!Energia cinética
+	call fantasmas_cf(rho,nx,ny,nz,rhof)
+	karho = ka*rhof
+	
+	call interpx_cf(rho,nx,ny,nz,xrho) !(nx1,ny,nz)
+	call interpy_cf(rho,nx,ny,nz,yrho) !(nx,ny1,nz)	
+	call interpz_cf(rho,nx,ny,nz,zrho) !(nx,ny,nz1)
 
+	
 
-	do k = 1, nz1
-	do j = 1, ny
-	do i = 1, nx
-		Fw(i,j,k) = Fw(i,j,k) - (w(i,j,k)-0.)* epis_z(i,j,k) - gz &
-			    -sigma*dhsdz(i,j,k) +tf_w(i,j,k) - gz/(chezy*chezy)*sqrt(wb(i,j,k)*wb(i,j,k))*w(i,j,k)
-	enddo
-	enddo
-	enddo
+		do k = 1, nz
+		do j = 1, ny
+		do i = 1, nx1
+			Fu(i,j,k) = Fu(i,j,k) & 
+				    + gx &  ! força da gravidade
+			    	    - sigma*dhsdx(i,j,k) &  ! tensão superficial
+			    	    + tf_u(i,j,k) &  ! MMS
+			    	    - 2./3.*(karho(i,j,k)-karho(i-1,j,k))/(dx*xrho(i,j,k)) !& ! energia cinética
+			    	    !- ((1./0.41)*log(dy/0.016)**(-2.) * sqrt( ub(i,j,k)*ub(i,j,k) + vx(i,j,k)*vx(i,j,k) ) * ub(i,j,k) ) /dz !*xrho(i,j,k) ! rugosidade do fundo (Ferziger et al., 2020)
+			    	    !- ( gz / (chezy*chezy) * sqrt( ub(i,j,k)*ub(i,j,k) + vx(i,j,k)*vx(i,j,k) ) * u(i,j,k) ) / dz  ! rugosidade do fundo (Casulli, Zanolli, 2022)
+		enddo
+		enddo	
+	
+		do j = 1, ny1
+		do i = 1, nx
+			Fv(i,j,k) = Fv(i,j,k) &
+				    - sigma*dhsdy(i,j,k) &  ! tensão superficial 
+				    + tf_v(i,j,k) &  ! MMS
+				    - 2./3.*(karho(i,j,k)-karho(i,j-1,k))/(dy*yrho(i,j,k)) !& ! energia cinética
+				    !- ((1./0.41)*log(dy/0.016)**(-2.) * sqrt( uy(i,j,k)*uy(i,j,k) + vb(i,j,k)*vb(i,j,k) ) * vb(i,j,k) ) /dz !*yrho(i,j,k) ! rugosidade do fundo (Ferziger et al., 2020)
+				    !- ( gz / (chezy*chezy) * sqrt( uy(i,j,k)*uy(i,j,k) + vb(i,j,k)*vb(i,j,k) ) * v(i,j,k) ) / dz  ! rugosidade do fundo (Casulli, Zanolli, 2022)
+		enddo
+		enddo
+		enddo
 
+		do k = 1, nz1
+		do j = 1, ny
+		do i = 1, nx
+			Fw(i,j,k) = Fw(i,j,k) &
+				    - gz &  ! força da gravidade
+				    - (w(i,j,k)-0.)*epis_z(i,j,k) & 
+				    - sigma*dhsdz(i,j,k) &  ! tensão superficial 
+			    	    + tf_w(i,j,k) &  ! MMS
+			    	    - 2./3.*(karho(i,j,k)-karho(i,j,k-1))/(dz*zrho(i,j,k)) ! energia cinética
+		enddo 
+		enddo
+		enddo
+	
 END SUBROUTINE complementos
 
+!##################################################################################################################
 
-!!!!!!!!!!!################################################
 SUBROUTINE restart_ini()
 
 	!Só deve rodar caso seja restart
@@ -348,12 +432,13 @@ SUBROUTINE restart_ini()
 	use tempo
 	use ls_param
 	use mms_m
-	use smag
+	use les
+
 	implicit none
 	open (unit=6662, action= 'read', file= 'dados//arquivorestart', status= 'old', form='formatted')
-	read(6662,*)  u,v,w,ku,kv,kw,prd0,prd1,prd,rho,ls_nu,ls,mod_ls,bxx0,bxx1,bxy0,bxz0,bxxf,bxxf1,bxyf,bxzf,byx0,byy0,&
+	read(6662,*)  u,v,w,ku,kv,kw,prd0,prd1,prd,rho,ls_mu,ls,bxx0,bxx1,bxy0,bxz0,bxxf,bxxf1,bxyf,bxzf,byx0,byy0,&
 	&byy1,byz0,byxf,byyf,byyf1,byzf,bzx0,bzy0,bzz0,bzz1,bzxf,bzyf,bzzf,bzzf1,ub,vb,wb,d_max,d_min,ls_m,&
-	hsx,hsy,hsz,hs,kurv,xnut,ynut,znut,tf_u,tf_v,tf_w,vol_ini,vol_ins
+	hsx,hsy,hsz,hs,kurv,xmu,ymu,zmu,tf_u,tf_v,tf_w,vol_ini,vol_ins
 	 close (unit=6662)
 
 	!Inicialização do código
@@ -397,12 +482,11 @@ SUBROUTINE restart_ini()
 
 	alpha1 = 1.5 		!Número de células que farão parte da espessura, pois é uma função suave
 	rho_f1 = 1.204		!kg/m³ ar (ls negativo) 20°C
-	mi_f1 = 0.000018253 !Pa/s  !0.00001516!m²/s ar (ls negativo) 20°C !!!$$$$$$$$$ no incompact3d tá como NI
-	rho_f2 =998.0		!kg/m³ água saturada (ls positivo) 20°C.
-	mi_f2 = 0.00100798  !Pa/s  !0.00000101!m²/s água saturada (ls positivo) 20°C !!!$$$$$$$$$$ no incompact3d tá como NI
-	sigma = 0.0728		!N/m tensão superficial da água 20°C
+	mu_f1  = 0.000018253 	!Pa/s  !0.00001516!m²/s ar (ls negativo) 20°C !!!$$$$$$$$$ no incompact3d tá como NI
+	rho_f2 = 998.0		!kg/m³ água saturada (ls positivo) 20°C.
+	mu_f2  = 0.00100798  	!Pa/s  !0.00000101!m²/s água saturada (ls positivo) 20°C !!!$$$$$$$$$$ no incompact3d tá como NI
+	sigma  = 0.0728		!N/m tensão superficial da água 20°C
 		
-	rho_m = abs(rho_f2-rho_f1)*0.5
 
 	!Coeficientes de integração RK3 TVD
 	adtl(1)=1.
@@ -419,21 +503,23 @@ SUBROUTINE restart_ini()
 
 END SUBROUTINE restart_ini
 
+!##################################################################################################################
+
 SUBROUTINE restart_salva()
 
 	use velpre
 	use obst
 	use ls_param
-	use smag
+	use les
 	use mms_m
 	implicit none
 	!u,v,w
 	!ku,kv,kw
-	!prd0,prd1,prd,rho,ls_nu,ls,mod_ls
+	!prd0,prd1,prd,rho,ls_mu,ls,mod_ls
 	open (unit=6661, action= 'write', file= 'dados//arquivorestart', status= 'unknown', form='formatted')
-	write(6661,*) u,v,w,ku,kv,kw,prd0,prd1,prd,rho,ls_nu,ls,mod_ls,bxx0,bxx1,bxy0,bxz0,bxxf,bxxf1,bxyf,bxzf,byx0,byy0,&
+	write(6661,*) u,v,w,ku,kv,kw,prd0,prd1,prd,rho,ls_mu,ls,bxx0,bxx1,bxy0,bxz0,bxxf,bxxf1,bxyf,bxzf,byx0,byy0,&
 	&byy1,byz0,byxf,byyf,byyf1,byzf,bzx0,bzy0,bzz0,bzz1,bzxf,bzyf,bzzf,bzzf1,ub,vb,wb,d_max,d_min,ls_m,&
-	hsx,hsy,hsz,hs,kurv,xnut,ynut,znut,tf_u,tf_v,tf_w,vol_ini,vol_ins
+	hsx,hsy,hsz,hs,kurv,xmu,ymu,zmu,tf_u,tf_v,tf_w,vol_ini,vol_ins
 	close (unit=6661)
 	print *, 'Salvou restart'
 

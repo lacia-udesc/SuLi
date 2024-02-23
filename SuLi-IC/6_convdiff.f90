@@ -15,7 +15,7 @@ SUBROUTINE convdiff()
 
 	USE velpre
 	USE param
-	USE smag
+	USE les
 	USE vartempo
 	IMPLICIT NONE
 
@@ -57,8 +57,6 @@ SUBROUTINE convdiff()
 	
 	!reinicializando a rotina
 	prd0 = prd1
-
-
 
 	!===================================================================================================================
 	!RESOLUÇÃO DO PROBLEMA
@@ -104,34 +102,34 @@ SUBROUTINE convdiff()
 !      vz(:,:,0)=vz(:,:,1)
 
 
-	call interpy_cf(xnut,nx1,ny,nz,bma) !(nx1,ny1,nz)
-	call interpz_cf(xnut,nx1,ny,nz,dma) !(nx1,ny,nz1)
+	call interpy_cf(xmu,nx1,ny,nz,bma) !(nx1,ny1,nz)
+	call interpz_cf(xmu,nx1,ny,nz,dma) !(nx1,ny,nz1)
 
-	call interpx_cf(ynut,nx,ny1,nz,amb) !(nx1,ny1,nz)
-	call interpz_cf(ynut,nx,ny1,nz,dmb) !(nx,ny1,nz1)
+	call interpx_cf(ymu,nx,ny1,nz,amb) !(nx1,ny1,nz)
+	call interpz_cf(ymu,nx,ny1,nz,dmb) !(nx,ny1,nz1)
 
-	call interpx_cf(znut,nx,ny,nz1,amd) !(nx1,ny,nz1)
-	call interpy_cf(znut,nx,ny,nz1,bmd) !(nx,ny1,nz1)
+	call interpx_cf(zmu,nx,ny,nz1,amd) !(nx1,ny,nz1)
+	call interpy_cf(zmu,nx,ny,nz1,bmd) !(nx,ny1,nz1)
 
-      ama(1:nx,1:ny,1:nz)=nut(1:nx,1:ny,1:nz)/dx
-      bma=bma/dy
-      dma=dma/dz
+	ama(1:nx,1:ny,1:nz)=mu(1:nx,1:ny,1:nz)/dx
+	bma=bma/dy
+	dma=dma/dz
 
-      amb=amb/dx
-      bmb(1:nx,1:ny,1:nz)=nut(1:nx,1:ny,1:nz)/dy
-      dmb=dmb/dz
+	amb=amb/dx
+	bmb(1:nx,1:ny,1:nz)=mu(1:nx,1:ny,1:nz)/dy
+	dmb=dmb/dz
 
-      amd=amd/dx
-      bmd=bmd/dy
-      dmd(1:nx,1:ny,1:nz)=nut(1:nx,1:ny,1:nz)/dz
+	amd=amd/dx
+	bmd=bmd/dy
+	dmd(1:nx,1:ny,1:nz)=mu(1:nx,1:ny,1:nz)/dz
 
-      ama(0,:,:)=ama(1,:,:)
-      bmb(:,0,:)=bmb(:,1,:)
-      dmd(:,:,0)=dmd(:,:,1)
+	ama(0,:,:)=ama(1,:,:)
+	bmb(:,0,:)=bmb(:,1,:)
+	dmd(:,:,0)=dmd(:,:,1)
 
-      ama(nx1,:,:)=ama(nx,:,:)
-      bmb(:,ny1,:)=bmb(:,ny,:)
-      dmd(:,:,nz1)=dmd(:,:,nz)
+	ama(nx1,:,:)=ama(nx,:,:)
+	bmb(:,ny1,:)=bmb(:,ny,:)
+	dmd(:,:,nz1)=dmd(:,:,nz)
 
 	do k = 1, nz
 	do j = 1, ny
@@ -173,7 +171,43 @@ SUBROUTINE convdiff()
 !==================================================================================================================
 END SUBROUTINE convdiff
 
+!##################################################################################################################
 
+SUBROUTINE convdiff_les(Fka) ! Termos convectivos e difusivos da energia cinética
+
+	USE velpre
+	USE param
+	USE les
+	USE vartempo
+	IMPLICIT NONE
+
+	integer :: i, j, k
+	real(8), dimension(nx,ny,nz) :: muaux, Fka, adv
+	
+	real(8),dimension(nx1,ny,nz) :: am
+	real(8),dimension(nx,ny1,nz) :: bm
+	real(8),dimension(nx,ny,nz1) :: dm
+	
+	call adv_esc(ka,nx,ny,nz,adv)  ! Termo advectivo 
+
+	muaux(1:nx,1:ny,1:nz) = ls_mu(1:nx,1:ny,1:nz) + nut(1:nx,1:ny,1:nz)*rho(1:nx,1:ny,1:nz)
+		 
+	call interpx_cf(muaux,nx,ny,nz,am)
+	call interpy_cf(muaux,nx,ny,nz,bm)
+	call interpz_cf(muaux,nx,ny,nz,dm)
+	 
+	do k = 1, nz
+	do j = 1, ny
+	do i = 1, nx
+		Fka(i,j,k) = - adv(i,j,k) + &
+			      ((am(i+1,j,k)*(ka(i+1,j,k)-ka(i,j,k))-am(i,j,k)*(ka(i,j,k)-ka(i-1,j,k)))/(dx*dx) + &
+			      (bm(i,j+1,k)*(ka(i,j+1,k)-ka(i,j,k))-bm(i,j,k)*(ka(i,j,k)-ka(i,j-1,k)))/(dy*dy)  + &
+			      (dm(i,j,k+1)*(ka(i,j,k+1)-ka(i,j,k))-dm(i,j,k)*(ka(i,j,k)-ka(i,j,k-1)))/(dz*dz)) /rho(i,j,k)
+	enddo
+	enddo
+	enddo
+
+END SUBROUTINE convdiff_les
 
 
 

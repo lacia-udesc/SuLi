@@ -13,7 +13,7 @@ SUBROUTINE parametros()
 	USE restart
 	USE cond
 	USE param
-	USE smag
+	USE les
 	USE ls_param
 
 implicit none
@@ -35,6 +35,7 @@ read (1,*) dt0
 read (1,*) dt_frame
 read (1,*) t_s 
 read (1,*) uinicial
+read (1,*) iturb
 read (1,1000) a 
 read (1,1000) a 
 read (1,1000) a 
@@ -43,6 +44,7 @@ read (1,*) t_tempo
 read (1,*) t_tempo_var 
 read (1,*) der 
 read (1,*) adv_type 
+read (1,*) ibm_t 
 read (1,*) obst_t 
 read (1,*) m_turb 
 read (1,*) esp_type
@@ -69,15 +71,19 @@ read (1,1000) a
 read (1,1000) a 
 read (1,*) chezy
 read (1,*) decliv
+read (1,*) z0
+read (1,*) cka
 read (1,*) csmag
+read (1,*) cmu
+read (1,*) cdes
 read (1,1000) a 
 read (1,1000) a 
 read (1,1000) a 
 read (1,*) alpha1
 read (1,*) rho_f1
-read (1,*) mi_f1
+read (1,*) mu_f1
 read (1,*) rho_f2
-read (1,*) mi_f2
+read (1,*) mu_f2
 read (1,*) sigma
 read (1,*) tipo 
 read (1,*) ampl
@@ -87,6 +93,7 @@ read (1,*) prof
 read (1,*) m
 read (1,1000) a 
 read (1,*) numb_threads
+read (1,*) omp_t
 
 close(1) 
 
@@ -100,6 +107,9 @@ nz1=nz+1
 ts = ceiling(t_s/dt0)	
 gx = 9.80665 * sin(atan(decliv)); gz = 9.80665 * cos(atan(decliv))
 
+delta = max(dx,dy,dz)
+deltai = (dx*dy*dz)**(1./3.)
+
 CALL init_variables1()
 CALL init_variables2()
 CALL init_variables3()
@@ -110,6 +120,7 @@ CALL init_variables7()
 
 END SUBROUTINE parametros
 
+!##################################################################################################################
 
 SUBROUTINE iniciais()
 
@@ -119,13 +130,17 @@ SUBROUTINE iniciais()
 	USE tempo
 	USE cond
 	USE mms_m
+	USE les
 	USE ls_param
 	
 	IMPLICIT NONE
 
-	integer :: i, j, k
+	integer :: i, j, k, ik,iik
+	real(8) :: umed, aux1
+	real(8), dimension(nx1,ny,nz) :: ls_x
+	real(8),dimension(nx,ny,nz)  :: uc
 	
-	write(*,*) "tamanho do domínio", nx*ny*nz
+	write(*,'(A,I10)') "Tamanho do domínio:", nx*ny*nz
 		
 	if (nx*ny*nz > 30000000) then
 		write(*,*) "Verifique se o seu computador tem capacidade para a simulação, se sim, cancele esta condicional no código."
@@ -148,7 +163,7 @@ SUBROUTINE iniciais()
 
 	t = 0.
 	dt = dt0
-	u = uinicial
+
 	v = 0.
 	w = 0.
 	prd0 = 0.
@@ -159,9 +174,49 @@ SUBROUTINE iniciais()
 	d_max = 0.
 	d_min = 0.
 
-    hsx = 0
-    hsy = 0
-    hsz = 0
+    	hsx = 0
+    	hsy = 0
+    	hsz = 0
+
+	CALL level_set_ini()
+
+	if (ccx0.eq.0 .or. ccx0.eq.3) then
+		!Validação bottom friction (Zampiron, 2022)********************
+		!Velocidade de entrada
+
+		CALL interpx_cf(ls,nx,ny,nz,ls_x)
+		
+		do k = 1, nz
+		do j = 1, ny
+		do i = 1, nx1
+			if (ls_x(i,j,k)>=-2*dz) then
+				call random_number(r)
+				r = 2.*(r-0.5)
+				u(i,j,k) = uinicial*(1.+r*iturb)				
+				umed = u(i,j,k) + umed
+				ik   = 1 + ik
+				iik  = k		
+			else
+				u(i,j,k) = u(i,j,iik)*(1.+tanh(pi*(iik-k-1)/2.))
+			endif
+		enddo
+		enddo
+		enddo
+		
+	else
+		u = uinicial
+	endif
+		!***************************************************************
+
+	!Utilizado para o modelo de turbulência DES
+	if (m_turb .ge. 2) then
+		!call interpx_fc(u(1:nx1,1:ny,1:nz),nx1,ny,nz,uc)
+		aux1 = iturb*iturb*uinicial*uinicial*1.5 ! ka = turbulence kinetic energy
+		ka(1:nx,1:ny,1:nz) = aux1 
+		
+		call contorno_les()
+	endif
+
 	!Utilizado para definir obstáculos de fundo
 	CALL obstaculo()
 
@@ -173,18 +228,17 @@ SUBROUTINE iniciais()
 		write(*,*) "Sem entrada de onda."
 		bxx1(:,:) = uinicial
 		bxx0(:,:) = uinicial
-		
-		if (obst_t .ne. 0) then
-			do j = 0, ny+1
-			bxx1(:,0:ku(1,j)) = 0.
-			bxx0(:,0:ku(0,j)) = 0.
-			enddo
-		endif	
+	
+	! condição antiga que não lembro mais pra que servia.	
+	!	if (obst_t .ne. 0) then
+	!		do j = 0, ny+1
+	!		bxx1(:,0:ku(1,j)) = 0.
+	!		bxx0(:,0:ku(0,j)) = 0.
+	!		enddo
+	!	endif	
 		bxy0 = 0.
 		bxz0 = 0.
 	endif
-
-	CALL level_set_ini()
 
 	if (mms_t == 0) then
 	   tf_p = 0.
@@ -201,37 +255,37 @@ SUBROUTINE iniciais()
 
 END SUBROUTINE iniciais
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!##################################################################################################################
 
 SUBROUTINE coef_tempo()
 
 	USE disc
-	!Método da integração temporal
-	if (it < 1) write(*,*) "Esquema temporal: "
+	!Método da integração temporal para velocidades
+	!if (it < 1) write(*,*) "Esquema temporal: "
 	if (t_tempo == 0) then
-	if (it < 1) 		write(*,*) "Euler."
+	if (it < 1) 		write(*,*) "Esquema temporal: Euler."
 		ntt = 1
 		a_dt = 1.0*dt
 		
 	elseif (t_tempo == 1) then
-	if (it < 1) write(*,*) "RK2."
+	if (it < 1) write(*,*) "Esquema temporal: RK2."
 		ntt = 2
 		a_dt(1) = 0.5*dt
 		a_dt(2) = 1.0*dt
 		a_dt(3) = 1.0*dt
 		
 	elseif (t_tempo == 2) then
-	if (it < 1) write(*,*) "RK3."
+	if (it < 1) write(*,*) "Esquema temporal: RK3."
 		ntt = 3
 		a_dt(1) = 0.5*dt
 		a_dt(2) = 1.0*dt
 		a_dt(3) = 1.0*dt
 	elseif (t_tempo == 3) then
-	if (it < 1) write(*,*) "AB2."
+	if (it < 1) write(*,*) "Esquema temporal: AB2."
 		ntt = 1
 		a_dt = 1.0*dt
-    elseif (t_tempo == 4) then
-	if (it < 1) write(*,*) "AB3."
+    	elseif (t_tempo == 4) then
+	if (it < 1) write(*,*) "Esquema temporal: AB3."
 		ntt = 1
 		a_dt = 1.0*dt
 	endif

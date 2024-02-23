@@ -216,3 +216,8 @@ layout1 = GetLayout()
 
 # layout/tab size in pixels
 layout1.SetSize(984, 477)
+
+
+
+
+

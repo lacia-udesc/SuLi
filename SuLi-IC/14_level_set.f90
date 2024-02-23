@@ -10,6 +10,9 @@
 SUBROUTINE level_set_ini()
 
 	USE ls_param
+	USE cond, only: ccx0
+	USE velpre, only: blx1
+	
 	IMPLICIT NONE
 
 	!Declarado também no programa
@@ -21,8 +24,6 @@ SUBROUTINE level_set_ini()
 	real(8),dimension(ny) :: y
 	real(8),dimension(nz) :: z
 	real(8),save :: dist, lsaux, aux1, xaux1, xaux2, xaux3, xaux4, erro1, erro2, erro3, erro4
-
-	rho_m = abs(rho_f2-rho_f1)*0.5
 
 	!Coeficientes de integração RK3 TVD
 	adtl(1)=1.
@@ -55,10 +56,10 @@ SUBROUTINE level_set_ini()
 	if (tipo == 1) then
 		!CALL waves_coef()
 		!Condição inicial de onda
-		!ampl = 0. 	 !Amplitude da onda
+		!ampl = 0.    !Amplitude da onda
 		!lambdax = 2. !Comprimento da onda na direção x
 		!lambday = 2. !Wave length
-		!prof = 0.5   !Profundidade do escoamento sem a onda
+		!prof = 0.127 !Profundidade do escoamento sem a onda 
 
 		!Calcula efetivamente o ls
 		if (lambday .ne. 0.) then
@@ -161,17 +162,21 @@ SUBROUTINE level_set_ini()
 		CALL mms_i()
 	elseif (tipo == 7) then
 		!Condição inicial de barragem
-		prof    = 0.0!5715 ! dam depth
+		prof    = 0.!5715 ! dam depth
 		lambdax = 3.22!5715 ! dam x-length
 		lambday = 0.0 ! dam y-length
 		ampl = 1.22
+		
 		m = 30
+		
 		do k = 1, nz
 		do j = 1, ny
 		do i = 1, nx
-		lsaux = (z(k)-prof)**m/(0.450819672**m)  + (-x(i) +lambdax)**m
+		
+		lsaux = (z(k)-prof)**m/(0.450819672**m)  + (x(i) -lambdax)**m
 		ls(i,j,k) = -lsaux**(1./m)
 		ls(i,j,k) = ls(i,j,k) + ampl 
+		
 		enddo
 		enddo
 		enddo
@@ -188,6 +193,9 @@ SUBROUTINE level_set_ini()
 	enddo
 	enddo
 
+	if (ccx0==3) then
+		blx1(:,:) = ls(1,:,:)
+	endif
 
 END SUBROUTINE level_set_ini
 
@@ -201,7 +209,7 @@ SUBROUTINE level_set()
 	IMPLICIT NONE
 	
 	real(8),dimension(nx,ny,nz) :: dlsdxa,dlsdya,dlsdza
-	real(8),dimension(nx,ny,nz) :: sy7_ls,gx_ls,ta1_ls,sy7_ls1,gx_ls1,ta1_ls1
+	real(8),dimension(nx,ny,nz) :: sy7_ls,gx_ls,ta1_ls,sy7_ls1,gx_ls1,ta1_ls1,mod_ls
 	integer :: i, j, k, itrl
 	real(8),save :: aux1, aux2, dtaux
 
@@ -233,9 +241,9 @@ SUBROUTINE level_set()
 	
 	! verifica se o volume está variando de acordo com o primeiro volume de todos. Tomar cuidado se volume for acrescentado no modelo, como uma adição de onda!
 	do while ((abs(vol_ins-vol_ini)/vol_ins > 0.1) .and. (mms_t .ne. 2)) !Erro aceitável de 1 % para conservação de volume e se não tiver obstáculos
-
-		CALL mod_ls1(ls,dlsdxa,dlsdya,dlsdza,nx,ny,nz) !calcula o mod_ls
-  
+	
+		CALL mod_ls1(ls,mod_ls,dlsdxa,dlsdya,dlsdza,nx,ny,nz) !Função para plotagem e cálculo da curvatura
+		
 		! correção do volume, evolui por euler explícito
 		do k = 1, nz
 		do j = 1, ny
@@ -258,8 +266,8 @@ SUBROUTINE level_set()
 		enddo
 	enddo
 
-	CALL mod_ls1(ls,dlsdxa,dlsdya,dlsdza,nx,ny,nz) !Função para plotagem e cálculo da curvatura
-	if (t_tens ==1) CALL curv_ls1(dlsdxa,dlsdya,dlsdza)
+	CALL mod_ls1(ls,mod_ls,dlsdxa,dlsdya,dlsdza,nx,ny,nz) !Função para plotagem e cálculo da curvatura
+	if (t_tens == 1) CALL curv_ls1(dlsdxa,dlsdya,dlsdza)
 	
 	
 END SUBROUTINE level_set
@@ -269,7 +277,7 @@ END SUBROUTINE level_set
 SUBROUTINE intt_ls(hx,gx,ta1,itrl,ls1,dimx,dimy,dimz)
 !rotina para fazer a integração temporal do Level-Set
 
-	USE ls_param
+	USE ls_param, only : dt1, adtl, bdtl, gdtl
 
 	implicit none
 
@@ -355,7 +363,7 @@ SUBROUTINE der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs,dimx,dimy,dimz)
 	call wenoy(ls,dimx,dimy,dimz,dy,tb1,te1,ihs)
 
     	! em cima em baixo vai ser sempre ihs 1!
-	ihs = 1
+	ihs = 2
 	
 	call wenoz(ls,dimx,dimy,dimz,dz,tc1,tf1,ihs)
 
@@ -366,7 +374,7 @@ END SUBROUTINE der_weno
 SUBROUTINE reinic_weno(ls1,dimx,dimy,dimz)
 !cálculo da reinicialização da função distância
 
-	USE ls_param
+	USE ls_param, only : dx1, alpha1, dt1
 
 	IMPLICIT NONE
     
@@ -375,7 +383,7 @@ SUBROUTINE reinic_weno(ls1,dimx,dimy,dimz)
 	real(8),intent(inout),dimension(dimx,dimy,dimz) :: ls1
 	real(8),dimension(dimx,dimy,dimz) :: sy7_ls1,gx_ls1,ta1_ls1
 	real(8) :: error
-	real(8),save :: mod_ls1, aux1, aux2
+	real(8),save :: mod_ls, aux1, aux2
 
 	ls0 = ls1
 	l = 3 ! número máximo de iterações
@@ -411,8 +419,8 @@ SUBROUTINE reinic_weno(ls1,dimx,dimy,dimz)
 			aux2 = -min(tf1(i,j,k),0.00000001)
 			tc1(i,j,k) = max(aux1, aux2)
 		endif
-			mod_ls1 = sqrt(ta1(i,j,k)*ta1(i,j,k) + tb1(i,j,k)*tb1(i,j,k) + tc1(i,j,k)*tc1(i,j,k))
-			func_s(i,j,k) = ls1(i,j,k) / sqrt(ls1(i,j,k)*ls1(i,j,k) + mod_ls1*mod_ls1*dx1*dx1)
+			mod_ls = sqrt(ta1(i,j,k)*ta1(i,j,k) + tb1(i,j,k)*tb1(i,j,k) + tc1(i,j,k)*tc1(i,j,k))
+			func_s(i,j,k) = ls1(i,j,k) / sqrt(ls1(i,j,k)*ls1(i,j,k) + mod_ls*mod_ls*dx1*dx1)
 	enddo
 	enddo
 	enddo
@@ -458,8 +466,8 @@ SUBROUTINE reinic_weno(ls1,dimx,dimy,dimz)
 				tc1(i,j,k) = max(aux1, aux2)
 			endif
     
-			mod_ls1      = sqrt(ta1(i,j,k)*ta1(i,j,k) + tb1(i,j,k)*tb1(i,j,k) + tc1(i,j,k)*tc1(i,j,k))
-			sy7_ls1(i,j,k) = func_s(i,j,k) * (1.-mod_ls1 )
+			mod_ls      = sqrt(ta1(i,j,k)*ta1(i,j,k) + tb1(i,j,k)*tb1(i,j,k) + tc1(i,j,k)*tc1(i,j,k))
+			sy7_ls1(i,j,k) = func_s(i,j,k) * (1.-mod_ls )
 			lsaux(i,j,k)  = ls1(i,j,k)
 
 		enddo
@@ -496,121 +504,6 @@ SUBROUTINE reinic_weno(ls1,dimx,dimy,dimz)
 END SUBROUTINE reinic_weno
 
 !!!####################################################################################
-!! subrotina antiga, não é mais utilizada
-!! subrotina antiga, não é mais utilizada
-!! subrotina antiga, não é mais utilizada
-SUBROUTINE weno1(dphidxp,dphidxn,nx1,dx1,phi0,ihs)
-!cálculo da derivada de WENO
-
-	IMPLICIT NONE
-	
-	integer :: i,kk, ii,nx1, ihs
-	real(8),intent(in) :: dx1
-			
-	real(8),intent(inout),dimension(nx1) :: dphidxp,dphidxn,phi0
-	real(8),dimension(3) ::isup, isun, auxx
-	real(8),dimension(3) ::alpup, omgup,alpun, omgun
-
-	real(8),save :: mod_phi1,aux1,aux2,aux3,aux4,aux5,aux6,aux,aux11, aux12
-	
-	real(8),dimension(-2:nx1+3) :: phi1
-	real(8),dimension(nx1+4)    :: un
-	real(8),dimension(-3:nx1)   :: up
-	real(8),dimension(nx1)   :: phiaux
-	
-	
-	aux1 = 13./12.
-	aux2 = 1./4.
-	aux3 = 1./6.
-	auxx(1) = 0.1
-	auxx(2) = 0.6
-	auxx(3) = 0.3
-	aux6 = 0.00000001
-	phi1(1:nx1) = phi0(1:nx1)
-
-	if (ihs == 0) then !Contorno periódico
-		phi1(0)  = phi1(nx1-1)
-		phi1(-1) = phi1(nx1-2)
-		phi1(-2) = phi1(nx1-3)
-
-
-		phi1(nx1+1) = phi1(2)
-		phi1(nx1+2) = phi1(3)
-		phi1(nx1+3) = phi1(4)
-	elseif (ihs == 1) then !Distance extrapolation
-		!phi1(0)     = 2*phi1(1)     - phi1(2)
-		!phi1(-1)    = 2*phi1(0)     - phi1(1)
-		!phi1(-2)    = 2*phi1(-1)    - phi1(0)
-		!phi1(nx1+1) = 2*phi1(nx1)   - phi1(nx1-1)
-		!phi1(nx1+2) = 2*phi1(nx1+1) - phi1(nx1)
-		!phi1(nx1+3) = 2*phi1(nx1+2) - phi1(nx1+1)
-		phi1(0)  = 1./5. * (12.*phi1(1)  - 9.*phi1(2) + 2.*phi1(3) )
-		phi1(-1) = 1./5. * (12.*phi1(0)  - 9.*phi1(1) + 2.*phi1(2) )
-		phi1(-2) = 1./5. * (12.*phi1(-1) - 9.*phi1(0) + 2.*phi1(1) )
-		!phi1(nx1+1) = 1./5. * (12.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
-		!phi1(nx1+2) = 1./5. * (12.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
-		!phi1(nx1+3) = 1./5. * (12.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
-		phi1(nx1+1) = 1./11. * (18.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
-		phi1(nx1+2) = 1./11. * (18.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
-		phi1(nx1+3) = 1./11. * (18.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
-	elseif (ihs == 2) then !Dderivative zero
-		!phi1(0)     = phi1(1)
-		!phi1(nx1+1) = phi1(nx1)
-		!phi1(-1)    = phi1(2)
-		!phi1(nx1+2) = phi1(nx1-1)
-		!phi1(-2)    = phi1(3)
-		!phi1(nx1+3) = phi1(nx1-2)
-		phi1(0)  = 1./11. * (18.*phi1(1)  - 9.*phi1(2) + 2.*phi1(3) )
-		phi1(-1) = 1./11. * (18.*phi1(0)  - 9.*phi1(1) + 2.*phi1(2) )
-		phi1(-2) = 1./11. * (18.*phi1(-1) - 9.*phi1(0) + 2.*phi1(1) )
-		phi1(nx1+1) = 1./11. * (18.*phi1(nx1)   - 9.*phi1(nx1-1) + 2.*phi1(nx1-2))
-		phi1(nx1+2) = 1./11. * (18.*phi1(nx1+1) - 9.*phi1(nx1)   + 2.*phi1(nx1-1))
-		phi1(nx1+3) = 1./11. * (18.*phi1(nx1+2) - 9.*phi1(nx1+1) + 2.*phi1(nx1)  )
-	endif
-
-	do i=-3,nx1
-	up(i)=(phi1(i+3)-phi1(i+2))/dx1
-	enddo
-
-	do i=1,nx1+4
-	un(i)=(phi1(i-2)-phi1(i-3))/dx1
-	enddo
-
-	do i=1,nx1
-	isup(1) = aux1 * (up(i)-2*up(i-1)+up(i-2))*(up(i)-2*up(i-1)+up(i-2)) &
-	+ aux2 * (up(i)-4*up(i-1)+3*up(i-2))*(up(i)-4*up(i-1)+3*up(i-2))
-	isun(1) = aux1 * (un(i)-2*un(i+1)+un(i+2))*(un(i)-2*un(i+1)+un(i+2)) &
-	+ aux2 * (un(i)-4*un(i+1)+3*un(i+2))*(un(i)-4*un(i+1)+3*un(i+2))
-
-	isup(2) = aux1 * (up(i-1)-2*up(i-2)+up(i-3))*(up(i-1)-2*up(i-2)+up(i-3)) + aux2 * (up(i-1)-up(i-3))*(up(i-1)-up(i-3))
-	isun(2) = aux1 * (un(i+1)-2*un(i+2)+un(i+3))*(un(i+1)-2*un(i+2)+un(i+3)) + aux2 * (un(i+1)-un(i+3))*(un(i+1)-un(i+3))
-
-	isup(3) = aux1 * (up(i-2)-2*up(i-3)+up(i-4))*(up(i-2)-2*up(i-3)+up(i-4)) &
-	+ aux2 * (3*up(i-2)-4*up(i-3)+up(i-4))*(3*up(i-2)-4*up(i-3)+up(i-4))
-	isun(3) = aux1 * (un(i+2)-2*un(i+3)+un(i+4))*(un(i+2)-2*un(i+3)+un(i+4)) &
-	+ aux2 * (3*un(i+2)-4*un(i+3)+un(i+4))*(3*un(i+2)-4*un(i+3)+un(i+4))
-
-	do kk = 1, 3
-	alpup(kk) = auxx(kk) / ((aux6 + isup(kk))*(aux6 + isup(kk)))
-	alpun(kk) = auxx(kk) / ((aux6 + isun(kk))*(aux6 + isun(kk)))
-	enddo
-
-	do kk = 1, 3
-	omgup(kk) = alpup(kk) / (alpup(1)+alpup(2)+alpup(3))
-	omgun(kk) = alpun(kk) / (alpun(1)+alpun(2)+alpun(3))
-	enddo
-
-	dphidxp(i) = aux3* (omgup(1) * (2*up(i)-7*up(i-1)+11*up(i-2)) + &
-	omgup(2) * (-up(i-1)+5*up(i-2)+2*up(i-3)) + omgup(3) * (2*up(i-2)+5*up(i-3)-up(i-4)) )
-	dphidxn(i) = aux3* (omgun(1) * (2*un(i)-7*un(i+1)+11*un(i+2)) + &
-	omgun(2) * (-un(i+1)+5*un(i+2)+2*un(i+3)) + omgun(3) * (2*un(i+2)+5*un(i+3)-un(i+4)) )
-	enddo
-	
-END SUBROUTINE weno1
-!! subrotina antiga, não é mais utilizada
-!! subrotina antiga, não é mais utilizada
-!! subrotina antiga, não é mais utilizada
-!!!####################################################################################
 
 SUBROUTINE heaviside()
 ! cálculo da função heaviside e atualização das propriedades físicas
@@ -622,8 +515,8 @@ SUBROUTINE heaviside()
 	integer :: i, j, k, coefa1,ihs
 	real(8),dimension(nx,ny,nz) :: sy60, sy61,ta1,tb1,tc1,td1,te1,tf1
 
-    if (t_tens ==1) then
-    
+
+	if (t_tens == 1) then 
 		CALL der_weno(ls,ta1,tb1,tc1,td1,te1,tf1,ihs,nx,ny,nz)
 
 		do k = 1, nz
@@ -647,16 +540,14 @@ SUBROUTINE heaviside()
 			tc1(i,j,k) = tf1(i,j,k)
 		endif
 
-	    	hsx(i,j,k) = 0.	
+		hsx(i,j,k) = 0.	
 		hsy(i,j,k) = 0.	
 		hsz(i,j,k) = 0.	
 
 		enddo
 		enddo
-       	        enddo
-
-    endif    
-    
+		enddo
+	endif
 
 	do k = 1, nz
 	do j = 1, ny
@@ -666,20 +557,35 @@ SUBROUTINE heaviside()
 
 	elseif (ls(i,j,k) > alpha1 * dx1) then
 		hs(i,j,k) = 1.
-
 	else
 		hs(i,j,k) = 0.5*(1.+ls(i,j,k)/(alpha1*dx1) + 1./pi * sin(pi*ls(i,j,k)/(alpha1*dx1)))
-        
-        if (t_tens ==1) then
+		
+		if (t_tens == 1) then 
 			hsx(i,j,k) = 0.5*ta1(i,j,k)*(1. + cos(pi*ls(i,j,k)/(alpha1*dx1)))/(alpha1*dx1)
 			hsy(i,j,k) = 0.5*tb1(i,j,k)*(1. + cos(pi*ls(i,j,k)/(alpha1*dx1)))/(alpha1*dx1)
 			hsz(i,j,k) = 0.5*tc1(i,j,k)*(1. + cos(pi*ls(i,j,k)/(alpha1*dx1)))/(alpha1*dx1)
-        endif
+		endif
+		
+		!if (t_hs == 0) then
+			!drhodx(i,j,1) =  0.5* (rho_f2-rho_f1)*sy60(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1) 
+			!drhody(i,j,1) =  0.5* (rho_f2-rho_f1)*sy61(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1)
+			!dmidx(i,j,1) =  0.5* (mi_f2-mi_f1)*sy60(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1) 
+			!dmidy(i,j,1) =  0.5* (mi_f2-mi_f1)*sy61(i,j,1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) / (alpha1*dx1)
+		!else
+			!drhodx(i,j,1) = (-rho_f1**(1.-hs(i,j,1))*log(rho_f1) + rho_f2**hs(i,j,1)*log(rho_f2)) * &
+			!	        sy60(i,j,1)/(alpha1*dx1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) 
+			!drhody(i,j,1) = (-rho_f1**(1.-hs(i,j,1))*log(rho_f1) + rho_f2**hs(i,j,1)*log(rho_f2)) * &
+			!	        sy61(i,j,1)/(alpha1*dx1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) 
 
+			!dmidx(i,j,1) = (-mi_f1**(1.-hs(i,j,1))*log(mi_f1) + mi_f2**hs(i,j,1)*log(mi_f2)) * &
+			!	        sy60(i,j,1)/(alpha1*dx1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) 
+			!dmidy(i,j,1) = (-mi_f1**(1.-hs(i,j,1))*log(mi_f1) + mi_f2**hs(i,j,1)*log(mi_f2)) * &
+			!	        sy61(i,j,1)/(alpha1*dx1) * ( 1. + cos(pi*phi(i,j,1)/(alpha1*dx1)) ) 
+		!endif
 	endif
 
     rho(i,j,k) = rho_f1 * (1.-hs(i,j,k)) + rho_f2 * hs(i,j,k)
-    ls_nu(i,j,k) = mi_f1  * (1.-hs(i,j,k)) + mi_f2  * hs(i,j,k)
+    ls_mu(i,j,k) = mu_f1  * (1.-hs(i,j,k)) + mu_f2  * hs(i,j,k)
 
 	enddo
 	enddo
@@ -689,16 +595,14 @@ END SUBROUTINE heaviside
 
 !!!####################################################################################
 
-SUBROUTINE mod_ls1(ls1,dlsdxa,dlsdya,dlsdza,dimx,dimy,dimz)
+SUBROUTINE mod_ls1(ls1,mod_ls,dlsdxa,dlsdya,dlsdza,dimx,dimy,dimz)
 ! cálculo do vetor normal e da curvatura
- 
-	USE ls_param, only : mod_ls
-	
+ 	
 	IMPLICIT NONE
 
 	integer :: i, j, k,ihs,dimx,dimy,dimz
 	real(8),save :: aux1, aux2
-	real(8),dimension(dimx,dimy,dimz) :: ta1,tb1,tc1,td1,te1,tf1,dlsdxa,dlsdya,dlsdza,ls1
+	real(8),dimension(dimx,dimy,dimz) :: ta1,tb1,tc1,td1,te1,tf1,dlsdxa,dlsdya,dlsdza,ls1,mod_ls
 
 	!cálculo das derivadas
 	CALL der_weno(ls1,ta1,tb1,tc1,td1,te1,tf1,ihs,dimx,dimy,dimz)
