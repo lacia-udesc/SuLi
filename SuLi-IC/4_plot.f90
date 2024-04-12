@@ -64,7 +64,7 @@ if (it == 0) then
 	!Terminal inicial
 	write(*,*) " "
 	write(*,*) "Parâmetros:"
-	write(*,'(A,F10.4,A, A,F10.4,A, A,I5,A)') "  dt= ", dt, ";", "  dt_frame= ", dt_frame, ";", "  ts= ", ts, ";"
+	write(*,'(A,F10.4,A, A,F10.4,A, A,I10,A)') "  dt= ", dt, ";", "  dt_frame= ", dt_frame, ";", "  ts= ", ts, ";"
 	write(*,'(A,I5,A, A,I5,A, A,I5,A)') "  nx= ", nx, ";", "  ny= ", ny, ";", "  nz= ", nz, ";"
 	write(*,'(A,F10.4,A, A,F10.4,A, A,F10.4,A)') "  dx= ", dx, ";", "  dy= ", dy, ";", "  dz= ", dz, ";"
 	write(*,'(A,F10.4,A, A,F10.4,A, A,F10.4,A)') "  Lx= ", dx*nx, ";", "  Ly= ", dy*ny, ";", "  Lz= ", dz*nz, ";"
