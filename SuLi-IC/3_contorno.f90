@@ -1001,20 +1001,6 @@ SUBROUTINE sponge_layer(epis_z)
 		enddo
 		enddo
 
-	elseif (esp_type == 3) then !Método da Tangente Hiperbólica
-
-		do k = 1, nz
-		do j = 1, ny
-		do i = nint(x_inicial/dx)+1, nx
-		xp(i) = real(i-0.5)*dx
-		aux1 = (xp(i)-x_inicial)/l_sponge
-
-		epis_z(i,j,k) = alfa* tanh(aux1*pi)
-
-		enddo
-		enddo
-		enddo
-
 	endif
 
 END SUBROUTINE sponge_layer
