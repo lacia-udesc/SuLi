@@ -1,11 +1,12 @@
 !Subrotina: definir as condições de contorno das velocidades e suas influências
 !Referência: Gotoh, 2013
 
-!Implementação em 15/04/2014
+!!!Implementação em 15/04/2014
 !Leonardo Romero Monteiro
 
-!Modificações
+!!!Modificações
 !Leonardo Romero Monteiro em 13/01/2022
+!Bruna Fernanda Soares em 23/02/2024
 
 SUBROUTINE parametros()
 
@@ -181,9 +182,8 @@ SUBROUTINE iniciais()
 	CALL level_set_ini()
 
 	if (ccx0.eq.0 .or. ccx0.eq.3) then
-		!Validação bottom friction (Zampiron, 2022)********************
-		!Velocidade de entrada
-
+		!Velocidade de entrada com incremento de turbulência 
+	
 		CALL interpx_cf(ls,nx,ny,nz,ls_x)
 		
 		do k = 1, nz
@@ -206,14 +206,12 @@ SUBROUTINE iniciais()
 	else
 		u = uinicial
 	endif
-		!***************************************************************
 
 	!Utilizado para o modelo de turbulência DES
 	if (m_turb .ge. 2) then
-		!call interpx_fc(u(1:nx1,1:ny,1:nz),nx1,ny,nz,uc)
 		aux1 = iturb*iturb*uinicial*uinicial*1.5 ! ka = turbulence kinetic energy
-		ka(1:nx,1:ny,1:nz) = aux1 
-		
+		ka(1:nx,1:ny,1:nz) = aux1
+
 		call contorno_les()
 	endif
 
@@ -261,9 +259,8 @@ SUBROUTINE coef_tempo()
 
 	USE disc
 	!Método da integração temporal para velocidades
-	!if (it < 1) write(*,*) "Esquema temporal: "
 	if (t_tempo == 0) then
-	if (it < 1) 		write(*,*) "Esquema temporal: Euler."
+	if (it < 1) write(*,*) "Esquema temporal: Euler."
 		ntt = 1
 		a_dt = 1.0*dt
 		
@@ -280,10 +277,12 @@ SUBROUTINE coef_tempo()
 		a_dt(1) = 0.5*dt
 		a_dt(2) = 1.0*dt
 		a_dt(3) = 1.0*dt
+
 	elseif (t_tempo == 3) then
 	if (it < 1) write(*,*) "Esquema temporal: AB2."
 		ntt = 1
 		a_dt = 1.0*dt
+
     	elseif (t_tempo == 4) then
 	if (it < 1) write(*,*) "Esquema temporal: AB3."
 		ntt = 1

@@ -1,17 +1,17 @@
 #
 # Características básicas do domínio e escoamento 
 #
-0.1  	#= dx  		#Discretizações espaciais em x [m]
-0.1  	#= dy 		#Discretizações espaciais em y [m]
-0.1  	#= dz  		#Discretizações espaciais em z [m]
-100  	#= nx  		#Número de pontos em x
-100  	#= ny  		#Número de pontos em y
-100  	#= nz  		#Número de pontos em z
-0.01   #= dt0  	#Discretização temporal [s]
-0.05	#= dt_frame  	#Número de tempo por arquivo plotado [s]
-2.   	#= t_s		#Tempo a ser simulado [s]: ts = ceiling(t_s/dt0) 
-0  	#= uinicial  	#Velocidade inicial na direção x [m/s]
-0.0	#= iturb        #Intensidade turbulenta inicial [adimensional]
+0.035  	#= dx  		#Discretizações espaciais em x [m]
+0.035  	#= dy 		#Discretizações espaciais em y [m]
+0.020  	#= dz  		#Discretizações espaciais em z [m]
+286  	#= nx  		#Número de pontos em x
+34  	#= ny  		#Número de pontos em y
+20  	#= nz  		#Número de pontos em z
+0.004   #= dt0  	#Discretização temporal [s]
+0.4  	#= dt_frame  	#Número de tempo por arquivo plotado [s]
+20.   	#= t_s		#Tempo a ser simulado [s]: ts = ceiling(t_s/dt0) 
+0.49  	#= uinicial  	#Velocidade inicial na direção x [m/s]
+0.02	#= iturb        #Intensidade turbulenta inicial [adimensional]
 #
 # Método numérico e ferramentas
 #
@@ -21,9 +21,9 @@
 3  	#= der	       #Derivada Espacial para velocidades #1 = upwind, 2 = centrado, 3 = upwind 2nd order (centrado só para advectivo clássico)
 1  	#= adv_type    #Termo Advectivo #1 = advectivo clássico, 2 = rotacional, 3 = antissimétrico
 0	#= ibm_t       #Tipo de ibm utilizado # 0 = sem ibm e sem obst, 1 = ibm forçado (zera velocidade), 2 = ibm induzido (Auguste, 2019) 
-0  	#= obst_t      #Obstáculos #0 = sem obst, 1 = rugosidade uniforme (Zampiron, 2022), 2 = barragem (bd_koshizuka,1995 e Kleefsman, 2005)
-1  	#= m_turb      #Modelo de Turbulência #0 = sem modelo, 1 = LES Smagorinsky-Lilly Clássico, 2 = LES com energia cinemática turbulenta (Heinz, 2020), 3 = DES (Heinz, 2020)
-0  	#= esp_type    #Camada Esponja #0 = sem camada esponja, 1 = leva em consideração a profundidade, 2 = não leva em consideração a profundidade, 3 = Método da Tangente Hiperbólica
+0  	#= obst_t      #Obstáculos #0 = sem obst, 1 = rugosidade uniforme (Zampiron et al., 2022), 2 = barragem (bd_koshizuka,1995 e Kleefsman, 2005), 3 = degrau T1 (Delft, 1980)
+3  	#= m_turb      #Modelo de Turbulência #0 = sem modelo, 1 = LES Smagorinsky-Lilly Clássico, 2 = RANS com energia cinemática turbulenta (Heinz, 2020), 3 = DES (Heinz, 2020)
+0  	#= esp_type    #Camada Esponja #0 = sem camada esponja, 1 = leva em consideração a profundidade, 2 = não leva em consideração a profundidade
 0  	#= wave_t      #Ondas #0 = sem onda, 1 = Stokes I, 2 = Stokes II, 5 = Stokes V
 1  	#= t_press     #Tipo de pressão #0 = aproximção hidrostática de pressão, 1 = aproximação não-hidrostática (1 mais indicado)
 0  	#= mms_t       #Método da Solução Manufaturada #0 = sem MMS, 1 = MMS permanente, 2 = MMS não permanente
@@ -36,40 +36,40 @@
 #
 # Condições de contorno das paredes
 #
-1 	#= ccx0  #x=0 --> 0 é periódico, 1 é free-slip, 2 é no-slip, 3 é prescrita, 4 é fluxo validação
-1	#= ccxf  #x=xf --> 0 é periódico, 1 é free-slip, 2 é no-slip, 3 é prescrita, 4 é saida livre
-1	#= ccy0  #y=0 --> 0 é periódico, 1 é free-slip e 2 é no-slip, 3 é prescrita
-1 	#= ccyf  #y=yf --> 0 é periódico, 1 é free-slip e 2 é no-slip, 3 é prescrita
-1 	#= ccz0  #z=0 --> 1 é free-slip, 2 é no-slip, 3 é prescrita
+3  	#= ccx0  #x=0 --> 0 é periódico, 1 é free-slip, 2 é no-slip, 3 é prescrita, 4 é fluxo validação
+4  	#= ccxf  #x=xf --> 0 é periódico, 1 é free-slip, 2 é no-slip, 3 é prescrita, 4 é saida livre
+2  	#= ccy0  #y=0 --> 0 é periódico, 1 é free-slip e 2 é no-slip, 3 é prescrita
+2  	#= ccyf  #y=yf --> 0 é periódico, 1 é free-slip e 2 é no-slip, 3 é prescrita
+2  	#= ccz0  #z=0 --> 1 é free-slip, 2 é no-slip, 3 é prescrita, 4 é semi-slip
 1  	#= cczf  #z=zf --> 1 é free-slip, 3 é prescrita
 #
 # Parâmetros do escoamento
 #
-9999999.9 #39.3423	 #= chezy  #Coeficiente de chezy [m^(1/2)/s]
-0.00	 #= decliv #Declividade [m/m]
+39.3423	 #= chezy  #Coeficiente de chezy [m^(1/2)/s]
+0.001484 #= decliv #Declividade [m/m]
 0.016	 #= z0     #Altura da rugosidade de fundo [m]
 0.41     #= cka    #Constante de Kármán [adimensional]
 0.13	 #= csmag  #Coeficiente de Smagorinsky [adimensional]
-0.0	 #= cmu    #Coeficiente do modelo LES/RANS [adimensional]
-0.0	 #= cdes   #Coeficiente do modelo DES [adimensional]
+0.05	 #= cmu    #Coeficiente do modelo LES/RANS [adimensional]
+0.65	 #= cdes   #Coeficiente do modelo DES [adimensional]
 #
 # Inicialização das variáveis que implementa o método level set
 #
 1.5  		#= alpha1  #Número de células que farão parte da espessura da interface entre fluidos
 1.204  		#= rho_f1  #Massa específica do ar (ls negativo) a 20°C [kg/m³] 
-0.000018253 	#= mu_f1   #Viscosidade dinâmica do ar (ls negativo) a 20°C [Pa/s] = 0.00001516 m²/s (no incompact3d tá como NI)
+0.000018253	#= mu_f1   #Viscosidade dinâmica do ar (ls negativo) a 20°C [Pa/s] = 0.00001516 m²/s (no incompact3d tá como NI)
 998.0 		#= rho_f2  #Massa específica da água saturada (ls positivo) a 20°C [kg/m³] 
 0.00100798  	#= mu_f2   #Viscosidade dinâmica da água saturada (ls positivo) a 20°C [Pa/s] = 0.00000101 m²/s (no incompact3d tá como NI)
-0.0  	#= sigma   #Tensão superficial da água a 20°C [N/m] 
+0.0728  	#= sigma   #Tensão superficial da água a 20°C [N/m] 
 1  		#= tipo    #Definição da interface entre o ar e a água #1 = Onda; 2 = Onda 2 (Criação de onda no início do domínio baseado em Higuera et al. (2013)); 3 = Barragem; 4 = Gota; 5 = Fennema and Chaudhry (1990) ou Aureli, Maranzoni, Mignosa, and Ziveri (2008); 6 = MMS = Wang et al. (2009); 7 = Koshizuka, Oka, and Tamako (1995)
-0.1	#= ampl    #Amplitude da onda (tipo 1), fator de adição do comprimento em todas as direções (tipo 3), raio da gota ou metade de uma aresta (tipo 4) [m]
-20.	#= lambdax #Comprimento da onda na direção x [m]
-20.	#= lambday #Comprimento da onda na direção y [m]
-6.   #= prof    #Profundidade do escoamento sem a onda (tipo 1), comprimento da onda na direção z (tipo 3) [m]
-0     #= m       #Curvatura do chanfro entre planos na barragem (tipo 3) e na gota (tipo 4) [adimensional]
+0.      	#= ampl    #Amplitude da onda (tipo 1), fator de adição do comprimento em todas as direções (tipo 3), raio da gota ou metade de uma aresta (tipo 4) [m]
+0.      	#= lambdax #Comprimento da onda na direção x [m]
+0.      	#= lambday #Comprimento da onda na direção y [m]
+0.127   	#= prof    #Profundidade do escoamento sem a onda (tipo 1), comprimento da onda na direção z (tipo 3) [m]
+30.     	#= m       #Curvatura do chanfro entre planos na barragem (tipo 3) e na gota (tipo 4) [adimensional]
 #
-4   # Número de núcleos para a paralelização em OpemMP
-0     #= omp_t # Representa o desempenho da paralelização, omp_t = 0 - precisão dos cálculos, omp_t = 1 - maior desempenho e menos precisão
+4   	# Número de núcleos para a paralelização em OpemMP
+0       #= omp_t # Representa o desempenho da paralelização, omp_t = 0 - precisão dos cálculos, omp_t = 1 - maior desempenho e menos precisão
   
   
   

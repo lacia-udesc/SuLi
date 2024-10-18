@@ -1,16 +1,12 @@
-!Subrotina visco --> viscosidade por Smagorinsky-Lilly
+!Subrotina visco --> viscosidade por modelo de turbulência
 
 !!! Implementação 19/07/16
 ! Luísa Vieira Lucchese
 
-!!! Modificação 18/09/16
-! Leonardo Romero Monteiro
-
-!! Modificação 2 31/12/16
-! Luísa V. Lucchese
-
-!!! Modificação 3 15/08/23
-! Bruna Fernanda Soares
+!!! Modificação 
+! Leonardo Romero Monteiro em 18/09/16
+! Luísa V. Lucchese em 31/12/16
+! Bruna Fernanda Soares em 15/08/23
 
 SUBROUTINE visco()
 
@@ -100,8 +96,10 @@ SUBROUTINE visco()
 						
 				nut  = cmu*ka(1:nx,1:ny,1:nz)**(0.5)*delta
 
-				diss = ka(1:nx,1:ny,1:nz)**(1.5)/prof ! taxa de dissipação
-				
+				diss = ka(1:nx,1:ny,1:nz)**(1.5)/prof ! taxa de dissipação > denominador = comprimento caracteristico
+					! sem obstáculo > comprimento caracteristico = prof
+					! com obstáculo > comprimento caracteristico = 0.2m altura do degrau (backward facing step/T1 - Delft, 1980)
+
 				if (m_turb == 3) then
 					des = ka(1:nx,1:ny,1:nz)**(1.5)/(cdes*delta*diss)  
 					des = max(1.,des) ! modificação da equação k para DES

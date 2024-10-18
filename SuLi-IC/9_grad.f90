@@ -2,10 +2,10 @@
 !Referencia: Casulli (1992 e 1999)
 
 !!! Implementação 15/04/2014
-! Leonardo Romero Monteiro
+!Leonardo Romero Monteiro
 
 !!! Modificações
-! Leonardo Romero Monteiro - 13/01/2015
+!Leonardo Romero Monteiro em 13/01/2015
 
 SUBROUTINE graddin()
 
@@ -44,7 +44,7 @@ SUBROUTINE graddin()
 
 
 
-	    if (obst_t .ne. 0) then
+	    if (obst_t .ne. 0 .and. ibm_t == 2) then
 		!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) 
 			do k = 1, nz
 			do j = 1, ny
@@ -151,7 +151,7 @@ SUBROUTINE graddin()
 	!$OMP END PARALLEL DO 
 
 
-	if (obst_t .ne. 0) then
+	if (obst_t .ne. 0 .and. ibm_t == 2) then
 		!$OMP PARALLEL DO PRIVATE(i,j,k) 
 		do k = 1, nz
 		do j = 1, ny

@@ -1,11 +1,12 @@
 !Subrotina definir as condições de contorno das velocidades e suas influências
 !Referência: Gotoh, 2013
 
-!Implementação em 15/04/2014
+!!!Implementação em 15/04/2014
 !Leonardo Romero Monteiro
 
-!Modificações
+!!!Modificações
 !Leonardo Romero Monteiro em 18/08/2016
+!Bruna Fernanda Soares em 23/02/2024
 
 SUBROUTINE contorno(nlock)
 
@@ -24,8 +25,8 @@ SUBROUTINE contorno(nlock)
 	real(8),dimension(nx1,ny,nz) :: ls_x, vx
 	real(8),dimension(nx,ny1,nz) :: uy
 	
-	real(8),dimension(nx1,ny) :: xtau, utau
-	real(8),dimension(nx,ny1) :: ytau, vtau
+	real(8),dimension(nx1,ny) :: xtau, utau, xtau2, utau2
+	real(8),dimension(nx,ny1) :: ytau, vtau, ytau2, vtau2
 
 	real(8),dimension(0:nx1+1,0:ny+1,0:nz+1) :: dpdx
 	real(8),dimension(0:nx+1,0:ny1+1,0:nz+1) :: dpdy
@@ -53,21 +54,23 @@ SUBROUTINE contorno(nlock)
 	!elseif (ibm_t == 1) then
 		
 	if (ibm_t == 1) then
-		do j=0,ny+1
-		do i=0,nx+1
-			u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
-			v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
-			w(i,j,0:kw(i,j))=0. !+ dpdz(i,j,0:kw(i,j))
-		!Rugosidade Interna
-			ub(i,j,ku(i,j)) = u(i,j,ku(i,j)+1)
-			vb(i,j,kv(i,j)) = v(i,j,kv(i,j)+1)
-			wb(i,j,kw(i,j)) = w(i,j,kw(i,j)+1)
-			!ub(i,j,ku(i,j)+1) = 0.
-			!vb(i,j,kv(i,j)+1) = 0.
-			!wb(i,j,kw(i,j)+1) = 0.
-
-		enddo
-		enddo
+		if (ccz0.eq.4) then
+			do j=0,ny+1
+			do i=0,nx+1
+				u(i,j,0:ku(i,j)-2)=0. !+ dpdx(i,j,0:ku(i,j))
+				v(i,j,0:kv(i,j)-2)=0. !+ dpdy(i,j,0:kv(i,j))
+				w(i,j,0:kw(i,j))=0.   !+ dpdz(i,j,0:kw(i,j))
+			enddo
+			enddo
+		else
+			do j=0,ny+1
+			do i=0,nx+1
+				u(i,j,0:ku(i,j))=0. !+ dpdx(i,j,0:ku(i,j))
+				v(i,j,0:kv(i,j))=0. !+ dpdy(i,j,0:kv(i,j))
+				w(i,j,0:kw(i,j))=0. !+ dpdz(i,j,0:kw(i,j))
+			enddo
+			enddo
+		endif
 			
 		i = nx1+1 !j=todos
 		do j=0,ny+1
@@ -194,26 +197,59 @@ SUBROUTINE contorno(nlock)
 
 			!Semi-slip condition (Ferziger et al., 2020; Chow et al., 2005)
 			!Rugosidade sendo aplicada apenas no fundo do canal
-			!Sem obstáculo
 			if (ccz0.eq.4) then									
 				!Interpolação velocidades	
 				CALL interpxy_ff(u,nx,ny,nz,nx1,ny1,uy)
 				CALL interpyx_ff(v,nx,ny,nz,nx1,ny1,vx)
 				
 				!Coeficiente de arrasto
-				cd = (1./cka * log((dx/2. + z0) / z0))**(-2.)  
+				cd = (1./cka * log((dx/2. + z0) / z0))**(-2.) 
+									 							
+				!Obstáculo (ibm forçado)
+				if (ibm_t == 1) then
+						
+					do j=1,ny		
+					do i=1,nx1											
+						if (ku(i,j) == 0) then					
+							!Cisalhamento de fundo (Ferziger et al., 2020) 
+							xtau(i,j) = cd * u(i,j,1) * sqrt( u(i,j,1)*u(i,j,1) + vx(i,j,1)*vx(i,j,1) )
 				
-				!Cisalhamento de fundo (Ferziger et al., 2020) 
-				xtau(:,:) = cd * u(1:nx1,1:ny,1) * sqrt( u(1:nx1,1:ny,1)*u(1:nx1,1:ny,1) + vx(1:nx1,1:ny,1)*vx(1:nx1,1:ny,1) )
-				ytau(:,:) = cd * v(1:nx,1:ny1,1) * sqrt( uy(1:nx,1:ny1,1)*uy(1:nx,1:ny1,1) + v(1:nx,1:ny1,1)*v(1:nx,1:ny1,1) ) 
+							!Velocidade de cisalhamento
+							utau(i,j) = sign(sqrt(abs(xtau(i,j))), xtau(i,j))										
+					
+							u(i,j,0) = 2.*utau(i,j) - u(i,j,1)										
+						endif
+					enddo
+					enddo					
+					
+					do j=1,ny1		
+					do i=1,nx
+						if (kv(i,j) == 0) then
+							!Cisalhamento de fundo (Ferziger et al., 2020) 
+							ytau(i,j) = cd * v(i,j,1) * sqrt( uy(i,j,1)*uy(i,j,1) + v(i,j,1)*v(i,j,1) ) 
+					
+							!Velocidade de cisalhamento
+							vtau(i,j) = sign(sqrt(abs(ytau(i,j))), ytau(i,j)) 
+						
+							v(i,j,0) = 2.*vtau(i,j) - v(i,j,1) 																		
+						endif
+					enddo
+					enddo
+					
+					w(:,:,0) = w(:,:,2)									
+				else				
+					!Cisalhamento de fundo (Ferziger et al., 2020) 
+					xtau(:,:) = cd * u(1:nx1,1:ny,1) * sqrt( u(1:nx1,1:ny,1)*u(1:nx1,1:ny,1) + vx(1:nx1,1:ny,1)*vx(1:nx1,1:ny,1) )
+					ytau(:,:) = cd * v(1:nx,1:ny1,1) * sqrt( uy(1:nx,1:ny1,1)*uy(1:nx,1:ny1,1) + v(1:nx,1:ny1,1)*v(1:nx,1:ny1,1) ) 
 				
-				!Velocidade de cisalhamento
-				utau(:,:) = sign(sqrt(abs(xtau(:,:))), xtau(:,:))
-				vtau(:,:) = sign(sqrt(abs(ytau(:,:))), ytau(:,:)) 
+					!Velocidade de cisalhamento
+					utau(:,:) = sign(sqrt(abs(xtau(:,:))), xtau(:,:))
+					vtau(:,:) = sign(sqrt(abs(ytau(:,:))), ytau(:,:)) 
 				
-				u(1:nx1,1:ny,0) = 2.*utau(:,:) - u(:,:,1)
-				v(1:nx,1:ny1,0) = 2.*vtau(:,:) - v(:,:,1)  
-				w(:,:,0) = w(:,:,2)
+					u(1:nx1,1:ny,0) = 2.*utau(:,:) - u(1:nx1,1:ny,1)
+					v(1:nx,1:ny1,0) = 2.*vtau(:,:) - v(1:nx,1:ny1,1)  
+					w(:,:,0) = w(:,:,2)
+				endif								
 			endif
 
 			!Superfície Livre (k = nz ou nz1)
@@ -266,18 +302,17 @@ SUBROUTINE contorno(nlock)
 				!u(0,:,:) = bxx0(:,:)
 				v(0,:,:) = bxy0(:,:)
 				w(0,:,:) = bxz0(:,:)
-			
+								
+				!Velocidade com incremento de turbulência *********************		
 				call interpx_cf(ls,nx,ny,nz,ls_x) !(nx1,ny1,nz)
-						
-				!Validação bottom friction (Zampiron, 2022)********************
-				!Condições de contorno				
+				
 				ik = 0
 				umed = 0.
 					
 				i = 0
 				do k = 1, nz
 				do j = 1, ny
-					if (ls_x(i,j,k)>=-dz) then
+					if (ls_x(i,j,k)>=-dz .and. k > ku(1,j)) then
 						u(0,j,k) = bxx0(j,k)
 						call random_number(r)
 						r = 2.*(r-0.5)
@@ -285,7 +320,7 @@ SUBROUTINE contorno(nlock)
 						umed = u(i,j,k) + umed
 						ik   = 1 + ik
 						iik  = k			
-					else
+					elseif (ls_x(i,j,k)<0) then
 						u(i,j,k) = u(i,j,iik)*(1.+tanh(pi*(iik-k-1)/2.))
 					endif
 				enddo
@@ -432,8 +467,50 @@ SUBROUTINE contorno(nlock)
 			if (cczf.eq.3) then
 				w(:,:,nz1)   = bzzf(:,:)    + dpdz(:,:,nz1)
 			endif
-		
 
+			!Semi-slip condition (Ferziger et al., 2020; Chow et al., 2005)
+			!Rugosidade sendo aplicada apenas no fundo do canal
+			if (ccz0.eq.4) then									
+				!Interpolação velocidades	
+				CALL interpxy_ff(u,nx,ny,nz,nx1,ny1,uy)
+				CALL interpyx_ff(v,nx,ny,nz,nx1,ny1,vx)
+				
+				!Coeficiente de arrasto
+				cd = (1./cka * log((dx/2. + z0) / z0))**(-2.) 
+									 							
+				!Obstáculo (ibm forçado)
+				if (ibm_t == 1) then						
+					do j=1,ny		
+					do i=1,nx1											
+						if (ku(i,j) > 0) then					
+							!Cisalhamento de fundo (Ferziger et al., 2020) 
+							xtau2(i,j) = cd * u(i,j,ku(i,j)) * sqrt( u(i,j,ku(i,j))*u(i,j,ku(i,j)) + vx(i,j,ku(i,j))*vx(i,j,ku(i,j)) )
+				
+							!Velocidade de cisalhamento
+							utau2(i,j) = sign(sqrt(abs(xtau2(i,j))), xtau2(i,j))										
+					
+							u(i,j,ku(i,j)-1) = 2.*utau2(i,j) - u(i,j,ku(i,j))
+							!u(i,j,ku(i,j)-2) = 0. 	
+						endif
+					enddo
+					enddo					
+					
+					do j=1,ny1		
+					do i=1,nx
+						if (kv(i,j) > 0) then
+							!Cisalhamento de fundo (Ferziger et al., 2020) 
+							ytau2(i,j) = cd * v(i,j,kv(i,j)) * sqrt( uy(i,j,kv(i,j))*uy(i,j,kv(i,j)) + v(i,j,kv(i,j))*v(i,j,kv(i,j)) ) 
+					
+							!Velocidade de cisalhamento
+							vtau2(i,j) = sign(sqrt(abs(ytau2(i,j))), ytau2(i,j)) 
+						
+							v(i,j,kv(i,j)-1) = 2.*vtau2(i,j) - v(i,j,kv(i,j)) 
+							!v(i,j,kv(i,j)-2) = 0.															
+						endif
+					enddo
+					enddo					
+				endif								
+			endif
 
 			!Parede frente (i = 1)
 			!Periodica
@@ -454,21 +531,21 @@ SUBROUTINE contorno(nlock)
 			!Prescrita
 			if (ccx0.eq.3) then
 				!u(1,:,:) = bxx1(:,:) + dpdx(1,:,:)
-				
+
 				do k = 1, nz
 					ls(1,:,k) = blx1(:,k)
 				enddo 
-
+				
+				!Velocidade com incremento de turbulência *********************	
 				call interpx_cf(ls,nx,ny,nz,ls_x) !(nx1,ny1,nz)
-
-				!Validação bottom friction (Zampiron, 2022)********************
+				
 				ik = 0
 				umed = 0.
 					
 				i = 1
 				do k = 1, nz
 				do j = 1, ny
-					if (ls_x(i,j,k)>=-2*dz) then
+					if (ls_x(i,j,k)>=-2*dz .and. k > ku(1,j)) then
 						u(1,j,k) = bxx1(j,k)						
 						call random_number(r)
 						r = 2.*(r-0.5)
@@ -476,7 +553,7 @@ SUBROUTINE contorno(nlock)
 						umed = u(i,j,k) + umed
 						ik   = 1 + ik
 						iik  = k			
-					else
+					elseif (ls_x(i,j,k)<0) then
 						u(i,j,k) = u(i,j,iik)*(1.+tanh(pi*(iik-k-1)/2.))					
 					endif
 				enddo
@@ -593,7 +670,9 @@ SUBROUTINE contorno_les()
 	USE les
 	USE obst
 	
-	IMPLICIT NONE	
+	IMPLICIT NONE
+	
+	integer :: i, j, k	
 	
 	!EIXO Y	
 	
@@ -701,14 +780,11 @@ SUBROUTINE contorno_les()
 	!Preescrita
 	if (ccx0.eq.3) then
 		ka(0,1:ny,1:nz) = iturb*iturb*uinicial*uinicial*1.5 
-		!ka(0,:,:) = ka(1,:,:)
-		!(u(0,1:ny,1:nz)*u(0,1:ny,1:nz)+v(0,1:ny,1:nz)*v(0,1:ny,1:nz)+w(0,1:ny,1:nz)*w(0,1:ny,1:nz))/6.
+		
 	endif
 	
 	if (ccxf.eq.3) then
 		ka(nx+1,:,:) = ka(nx,:,:)
-		!ka(nx+1,1:ny,1:nz) = (u(nx1+1,1:ny,1:nz)*u(nx1+1,1:ny,1:nz)+v(nx+1,1:ny,1:nz) &
-		!		     *v(nx+1,1:ny,1:nz)+w(nx+1,1:ny,1:nz)*w(nx+1,1:ny,1:nz))/6.
 	endif
 	
 END SUBROUTINE contorno_les
@@ -748,7 +824,7 @@ SUBROUTINE obstaculo()
 		write(*,*) "Sem obstáculo."
 	return
 
-	elseif (obst_t == 1) then !Rugosidade uniforme (Zampiron, 2022)
+	elseif (obst_t == 1) then !Rugosidade uniforme experimento GS_H128 (Zampiron et al., 2022)
 
 		do k = -1,nzz+2
 		do j = -1,nyy+2
@@ -801,6 +877,27 @@ SUBROUTINE obstaculo()
 		enddo
 		enddo
 				
+	elseif (obst_t == 3) then !Degrau experimento T1 (Delft, 1980)
+
+		do k = -1, nzz+2
+		do j = -1, nyy+2
+		do i = -1, nxx+2
+		
+			x = (i-1.)*dx*0.5
+			y = (j-1.)*dy*0.5
+			z = (k-1.)*dz*0.5
+				
+			if (x <= (1.0+0.2)) then         ! +0.2m camada esponja
+				auxx_ls(i,j,k) = 0.2 -z  !Raso plano
+			
+			else 
+				auxx_ls(i,j,k) = -1. -z  !Fundo plano
+			endif
+		
+		enddo
+		enddo
+		enddo
+	
 	endif
 
 	! independente do IBM utilizado, este é o utilizado para plotar do paraview
@@ -816,12 +913,12 @@ SUBROUTINE obstaculo()
 
 	
 	if (ibm_t == 1 ) then
-		auxx = -10
+		auxx = -10.
 		! converter a visão nova para a antiga (para manter o ibm antigo vivo)
 		do k = -1, nzz+1 !reduziu um por ser avaliado de forma progressiva
 		do j = -1, nyy+2
 		do i = -1, nxx+2
-			if (auxx_ls(i,j,k)*auxx_ls(i,j,k+1) < 0.) then !condição para definir a posição da interface
+			if ((auxx_ls(i,j,k)*auxx_ls(i,j,k+1)) <= 0.) then !condição para definir a posição da interface
 				auxx(i,j) = dz*(k-1.)*0.5
 			endif
 		enddo
@@ -830,21 +927,21 @@ SUBROUTINE obstaculo()
 
 		do j = 0, ny+1
 		do i = 0, nx1+1
-			 ku(i,j) = max(0,nint(auxx(i*2-1,j*2)/dz+0.5))
+		 	ku(i,j) = max(0,nint(auxx(i*2-1,j*2)/dz+0.5)) 
 			if (ku(i,j) > nz) ku(i,j) = nz
 		enddo
 		enddo
 
 		do j = 0, ny1+1
 		do i = 0, nx+1
-			 kv(i,j) = max(0,nint(auxx(i*2,j*2-1)/dz+0.5))
+			kv(i,j) = max(0,nint(auxx(i*2,j*2-1)/dz+0.5))
 			if (kv(i,j) > nz) kv(i,j) = nz
 		enddo
 		enddo
 
 		do j = 0, ny+1
 		do i = 0, nx+1
-			 kw(i,j) = max(0,nint(auxx(i*2,j*2)/dz+1.))
+			kw(i,j) = max(0,nint(auxx(i*2,j*2)/dz+1.))
 			if (kw(i,j) > nz1) kw(i,j) = nz1
 		enddo
 		enddo
@@ -944,8 +1041,8 @@ SUBROUTINE sponge_layer(epis_z)
 	l_sponge  = 1. !Comprimento da camada esponja
 	x_inicial = nx*dx - l_sponge
 
-	alfa = 60. !A ser calibrado
-	alfa0 = 0. !A ser calibrado
+	alfa  = 60.          !A ser calibrado
+	alfa0 = 0.           !A ser calibrado
 	alfa1 = 30. !2.*alfa !A ser calibrado
 
 	!Resolução do problema

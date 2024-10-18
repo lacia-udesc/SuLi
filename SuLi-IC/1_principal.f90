@@ -14,10 +14,10 @@
 !Ambiente tri-dimensional, x, y (horizontais) e z (vertical);
 !Método semi implícito e com correção quasi-implícita (theta) em diferenças finitas com a grade deslocada;
 
-!Implementação em 15/11/2014
+!!!Implementação em 15/11/2014
 !Leonardo Romero Monteiro
 
-!Modificações
+!!!Modificações
 !Leonardo Romero Monteiro em 15/05/2015
 
 PROGRAM PNH
@@ -48,8 +48,9 @@ PROGRAM PNH
 	!$ CALL OMP_set_nested(.FALSE.)
 
 	!Adicionar os contornos na plotagem inicial
-	CALl contorno(1)
-	CALl contorno(3)
+	CALL contorno(1)
+	CALL contorno(2)
+	CALL contorno(3)
 
 	!Solução manufaturada
 	if (mms_t > 0) CALL mms()
@@ -76,7 +77,7 @@ PROGRAM PNH
 
 
 		CALL level_set()
-		CALl contorno(3)
+		CALL contorno(3)
 		
 		
 		CALL visco()
@@ -90,7 +91,7 @@ PROGRAM PNH
 
 			if (wave_t > 0) call boundary_waves() !For wave propagation
 
-			CALl contorno(2)
+			CALL contorno(2)
 
 			if (mms_t .eq. 0) then
 				if (t_press .eq. 0) then

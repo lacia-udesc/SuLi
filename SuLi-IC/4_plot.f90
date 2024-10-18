@@ -1,14 +1,14 @@
 !Subrotina definir as condições de contorno das velocidades e suas influências
 !Referência: Gotoh, 2013
 
-!Implementação em 15/04/2014
+!!!Implementação em 15/04/2014
 !Leonardo Romero Monteiro
 
-!Modificações
+!!!Modificações
 !Felipe Augusto R. Silva em 09/01/2022
+!Bruna Fernanda Soares em 15/02/2023
+!Karol Rocha Araújo em 20/02/2024
 
-!Modificações
-!Em 20/02/2024
 
 !Para sondas, nomear como: SNOME & unit=10000x...
 !Para conservação de massa, nomear como: CONMASSA & unit=20000x...
@@ -16,6 +16,7 @@
 !Para contaegem temporal, nomear como: CONTEMP & unit=40000x...
 !Para plotagens de planos (paraview), nomear como: PRTSCR & unit=50000x...
 !Para o plot dos atributos, nomear como: PATRIB & unit=60000x...
+
 
 SUBROUTINE PLOT()
 
@@ -38,7 +39,7 @@ if (it == 0) then
 	elseif (m_turb == 1) then		
 		write(*,*) "Modelo de turbulência: LES Smagorinsky-Lilly Clássico."
 	elseif (m_turb == 2) then		
-		write(*,*) "Modelo de turbulência: LES com energia cinemática turbulenta."		
+		write(*,*) "Modelo de turbulência: RANS com energia cinemática turbulenta."		
 	else	
 		write(*,*) "Modelo de turbulência: DES."	
 	endif
@@ -71,7 +72,8 @@ if (it == 0) then
 	write(*,'(A,I2,A, A,I2,A, A,I2,A, A,I2,A, A,I2,A, A,I2,A)') "  ccx0= ", ccx0 , ";", "  ccxf= ", ccxf, ";", &
 	"  ccy0= ", ccy0, ";", "  ccyf= ", ccyf, ";", "  ccz0= ", ccz0, ";", "  cczf= ", cczf, ";"
 	!write(*,'(A,I2,A, A,I2,A)') "  der= ", der, ";", "  advectivo= ", adv_type, ";" !, "modelo de turb. = ", m_turb
-else
+
+	else
 
 	!Cálculo para o a estimativa do tempo restante
 	ciclo = (agora(5)-agora1(5)) * 60 * 60 + (agora(6)-agora1(6)) * 60 + (agora(7)-agora1(7)) + real(agora(8)-agora1(8))/1000
@@ -81,27 +83,34 @@ else
 	call cpu_time(t_a)
 	!$ t_a = omp_get_wtime()
 
-endif
+	endif
 
 ! a pressão é normalizada por um ponto
 
 	
 !sondas
-CALL SXH20() !Sonda x/H=20 [Mariana, Bruna, Leonardo 15/02/2023] 
-CALL SXH31() !Sonda x/H=31 [Bruna 30/03/2023]
-CALL SXH51() !Sonda x/H=51 [Bruna 23/03/2023]
 CALL SPLONGDESH1() !Plot perfil longitudinal do desnível level-set-WENO-tests Wave
 CALL SPLONGDESH2() !Plot perfil longitudinal do desnível
 CALL SPLONGDESH3() !Plot perfil longitudinal do desnível level-set-WENO-tests DamBreak
-CALL SUMED() !Velocidade média (umed) para Reynolds
+CALL SUMED()       !Velocidade média (umed) para Reynolds
+!*******************************************************************************
+!Validação bottom friction (fundo plano/GS_H128 - Zampiron et al., 2022) [Bruna]
+CALL SXH20() !Sonda x/H=20
+CALL SXH31() !Sonda x/H=31
+CALL SXH51() !Sonda x/H=51
+!*******************************************************************************
+
 
 !Conservação de massa
 CALL CONMASSA()
 
+
 !CALL NCOURANT() !! não está criando dados para o arquivo. Arrumar se necessário
 
-!Contaegem temporal
+
+!Contagem temporal
 CALL CONTEMP()
+
 
 !Plotagens de planos (paraview)
 CALL PRTSCR()
@@ -110,10 +119,12 @@ CALL PRTSCR()
 if (it == ts) CALL PATRIB()
 
 ENDSUBROUTINE PLOT
+
 !#######################################################################################
 
-SUBROUTINE SXH20()
-!Sonda x/H=20 [Mariana, Bruna, Leonardo 15/02/2023] 
+
+SUBROUTINE SXH20() !Validação bottom friction (fundo plano/GS_H128 - Zampiron et al., 2022) [Bruna]
+!Sonda x/H=20
 
 USE ls_param
 USE velpre
@@ -125,7 +136,6 @@ real(8),dimension(nz) :: celula
 integer :: i, j, k, nza
 	
 if (it == 0) open (unit=100001, action= 'write', file= 'dados//sondaxH20', status= 'unknown')
-
 
 i = int(2.54/dx)
 j = int(0.5/dy)   
@@ -145,8 +155,9 @@ ENDSUBROUTINE SXH20
 
 !#######################################################################################
 
-SUBROUTINE SXH31()
-!Sonda x/H=31 [Bruna 30/03/2023]
+
+SUBROUTINE SXH31() !Validação bottom friction (fundo plano/GS_H128 - Zampiron et al., 2022) [Bruna]
+!Sonda x/H=31
 
 USE ls_param
 USE velpre
@@ -177,8 +188,9 @@ ENDSUBROUTINE SXH31
 
 !#######################################################################################
 
-SUBROUTINE SXH51()
-!Sonda x/H=51 [Bruna 23/03/2023]
+
+SUBROUTINE SXH51() !Validação bottom friction (fundo plano/GS_H128 - Zampiron et al., 2022) [Bruna]
+!Sonda x/H=51
 
 USE ls_param
 USE velpre
@@ -210,6 +222,7 @@ ENDSUBROUTINE SXH51
 
 !#######################################################################################
 
+
 SUBROUTINE SPLONGDESH1() !Plot level-set-WENO-tests Wave
 !Perfil longitudinal do desnível 
 
@@ -239,6 +252,7 @@ if (it == ts) 	close (unit=100004)
 ENDSUBROUTINE SPLONGDESH1
 
 !#######################################################################################
+
 
 SUBROUTINE SPLONGDESH2() 
 !Perfil longitudinal do desnível 
@@ -270,6 +284,7 @@ ENDSUBROUTINE SPLONGDESH2
 
 !#######################################################################################
 
+
 SUBROUTINE SPLONGDESH3() !Plot do DamBreak
 !Perfil longitudinal do desnível 
 
@@ -300,6 +315,7 @@ if (it == ts) 	close (unit=100006)
 ENDSUBROUTINE SPLONGDESH3
 
 !#######################################################################################
+
 
 SUBROUTINE SUMED() 
 !Velocidade média (umed) para Reynolds
@@ -337,6 +353,7 @@ if (it == ts) 	close (unit=100007)
 ENDSUBROUTINE SUMED
 
 !#######################################################################################
+
 
 SUBROUTINE CONMASSA()
 !Conservação de massa [20000x...]
@@ -396,6 +413,7 @@ ENDSUBROUTINE CONMASSA
 
 !#######################################################################################
 
+
 SUBROUTINE NCOURANT()
 !Número de Courant [30000x...]
 
@@ -412,6 +430,7 @@ if (it == ts) 	close (unit=300001)
 ENDSUBROUTINE NCOURANT
 
 !#######################################################################################
+
 
 SUBROUTINE CONTEMP()
 !Contaegem temporal [40000x...]
@@ -466,6 +485,7 @@ ENDSUBROUTINE CONTEMP
 
 !#######################################################################################
 
+
 SUBROUTINE PRTSCR()
 !Plotagens de planos (escolher um por simulação, fazer alterações dependendo do plano a ser extraído) [50000x...]
 
@@ -494,7 +514,6 @@ SUBROUTINE PRTSCR()
 
 	!Nome do arquivo de saída
 	character(5) chits
-
 
 	if (t > (cont-9)*dt_frame .or. it == 0) then
 	
@@ -605,6 +624,7 @@ ENDSUBROUTINE PRTSCR
 
 !#######################################################################################
 
+
 SUBROUTINE PATRIB()
 
 	USE velpre
@@ -619,6 +639,6 @@ SUBROUTINE PATRIB()
 	write(600001,*) "dt = ", dt, "ts = ", ts, "duração da sim =", (t_a-t_i)/60.
 	close (unit=600001)
 
-END SUBROUTINE PATRIB
+ENDSUBROUTINE PATRIB
 
 
