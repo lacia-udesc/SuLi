@@ -13,6 +13,7 @@ SUBROUTINE graddin()
 	USE param
 	USE cond
 	USE obst
+	USE ls_param, only: rho_f1
 	!$ USE omp_lib
 	
 	IMPLICIT NONE
@@ -40,9 +41,6 @@ SUBROUTINE graddin()
 	!===================================================================================================================
 	!RESOLUÇÃO DO PROBLEMA
 	!===================================================================================================================
-
-
-
 
 	    if (obst_t .ne. 0 .and. ibm_t == 2) then
 		!$OMP PARALLEL DO COLLAPSE(2) PRIVATE(i,j,k) 
@@ -92,7 +90,7 @@ SUBROUTINE graddin()
    
 	!%%%!-- Método do Gradiente Conjugado - Para Pressão Dinâmica --!%%%!
 
-!$OMP PARALLEL SECTIONS
+	!$OMP PARALLEL SECTIONS
 	!$OMP  SECTION
 	aux1 = dt / (dx*dx)
 	!$OMP  SECTION
@@ -101,12 +99,23 @@ SUBROUTINE graddin()
 	aux3 = dt / (dz*dz)
 	!$OMP END PARALLEL SECTIONS
 
-	call interpx_cf(rho,nx,ny,nz,rhox) !(nx1,ny,nz)
-	call interpy_cf(rho,nx,ny,nz,rhoy) !(nx,ny1,nz)
-	call interpz_cf(rho,nx,ny,nz,rhoz) !(nx,ny,nz1)
+
+	if  (t_press .eq. 1) then !Projection Method
+	
+		call interpx_cf(rho,nx,ny,nz,rhox) !(nx1,ny,nz)
+		call interpy_cf(rho,nx,ny,nz,rhoy) !(nx,ny1,nz)
+		call interpz_cf(rho,nx,ny,nz,rhoz) !(nx,ny,nz1)
+
+	else !Implicit Pressure Algorithm (IPA) 
+	!! obs.: seria possível reduzir o tempo do IPA deixando o matspr, matdpr e matapr... como constantes, calculando-os apenas uma vez (ver código do IPA do artigo). Caso precise de mais desempenho (estimado em 1%) fazer a modificação. Assim, optou-se em fazer uma mudança pouco eficiente, mas mais fácil de trabalhar.
+	
+		rhox=rho_f1
+		rhoy=rho_f1
+		rhoz=rho_f1
+	
+	endif
 
 	!$OMP PARALLEL 
-
 	!$OMP DO PRIVATE(i,j,k) 
 		do k = 1, nz
 		do j = 1, ny

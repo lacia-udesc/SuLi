@@ -153,7 +153,7 @@ module velpre
 	real(8), allocatable, dimension(:,:) :: bzx0, bzy0, bzz0, bzz1, bzxf, bzyf, bzzf, bzzf1
 
 	!Pressão não-hidrostática (m²/s²)
-	real(8), allocatable, dimension(:,:,:) :: prd1, prd0, prd, rho, ls_mu, div
+	real(8), allocatable, dimension(:,:,:) :: prd1, prd0, prd, rho, ls_mu, div, px, py, pz
 
 	real(8) :: d_max, d_min, b_eta0, b_eta1
 
@@ -185,6 +185,8 @@ subroutine init_variables2
 	
 	allocate(prd1(0:nx+1,0:ny+1,0:nz+1), prd0(0:nx+1,0:ny+1,0:nz+1), prd(0:nx+1,0:ny+1,0:nz+1))
 	allocate(rho(nx,ny,nz), ls_mu(nx,ny,nz))
+
+	allocate(px(nx1,ny,nz), py(nx,ny1,nz), pz(nx,ny,nz1))
 
 end subroutine init_variables2
 

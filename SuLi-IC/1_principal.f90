@@ -79,10 +79,11 @@ PROGRAM PNH
 		CALL level_set()
 		CALL contorno(3)
 		
-		
+		if ((t_press .eq. 2) .and. (mms_t .eq. 0)) CALL exp_press()
+				
 		CALL visco()
 			
-		do tt = 1, ntt
+		do tt = 1, ntt  !inicio loop RK
 			dt = a_dt(tt)
 			
 			CALL convdiff()
@@ -96,17 +97,19 @@ PROGRAM PNH
 			if (mms_t .eq. 0) then
 				if (t_press .eq. 0) then
 					CALL pressh()	!Condições de Contorno para a parte Hidrostática
-				else
+					CALL posdin()
+				elseif (t_press .eq. 1) then
 					CALL graddin()
+					CALL posdin()
 				endif
-
-				CALL posdin()
+				
 				CALl contorno(1)
+						
+			endif			
+		 enddo !fim loop RK
 
-			endif
-
-		 enddo
-
+		if ((t_press .eq. 2) .and. (mms_t .eq. 0)) CALL graddin()
+		
 
 		!Solução manufaturada; cálculo do erro
 		if (mms_t > 0) CALL mms()

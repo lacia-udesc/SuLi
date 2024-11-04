@@ -169,6 +169,9 @@ SUBROUTINE iniciais()
 	w = 0.
 	prd0 = 0.
 	prd1 = 0.
+	px = 0.
+	py = 0.
+	pz = 0.
 	ub = 0.
 	vb = 0.
 	wb = 0.

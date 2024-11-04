@@ -25,7 +25,7 @@
 3  	#= m_turb      #Modelo de Turbulência #0 = sem modelo, 1 = LES Smagorinsky-Lilly Clássico, 2 = RANS com energia cinemática turbulenta (Heinz, 2020), 3 = DES (Heinz, 2020)
 0  	#= esp_type    #Camada Esponja #0 = sem camada esponja, 1 = leva em consideração a profundidade, 2 = não leva em consideração a profundidade
 0  	#= wave_t      #Ondas #0 = sem onda, 1 = Stokes I, 2 = Stokes II, 5 = Stokes V
-1  	#= t_press     #Tipo de pressão #0 = aproximção hidrostática de pressão, 1 = aproximação não-hidrostática (1 mais indicado)
+1  	#= t_press     #Tipo de pressão #0 = aproximção hidrostática de pressão, 1 = aproximação não-hidrostática pelo método da Projeção, 2 = aproximação não-hidrostática pelo método IPA (ver Monteiro 2024; obs.: nunca testado p/ AB)
 0  	#= mms_t       #Método da Solução Manufaturada #0 = sem MMS, 1 = MMS permanente, 2 = MMS não permanente
 0	#= t_tens      #Ativação do cálculo do termo de tensão superficial #0 = sem tensão, 1 = com tensão superficial
 #

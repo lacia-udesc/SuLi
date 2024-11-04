@@ -62,6 +62,16 @@ if (it == 0) then
 		write(*,*) "Upwind 2nd order."			
 	endif
 
+
+	!Método de pressão
+	if (t_press == 0) then
+		write(*,*) "Aproximação Hidrostática - não indicado para escoamentos complexos"		
+	elseif (t_press == 1) then		
+		write(*,*) "Aproximação Não-Hidrostática com Método da Projeção"	
+	elseif (t_press == 2) then		
+		write(*,*) "Aproximação Não-Hidrostática com IPA"		
+	endif
+	
 	!Terminal inicial
 	write(*,*) " "
 	write(*,*) "Parâmetros:"
@@ -558,7 +568,7 @@ SUBROUTINE PRTSCR()
 			obs_ls = 0
 		endif
 
-		prdaux(1:nx,1:ny,1:nz) = prd1(1:nx,1:ny,1:nz) - prd1(nx,1,nz)
+		prdaux(1:nx,1:ny,1:nz) = prd0(1:nx,1:ny,1:nz) + prd1(1:nx,1:ny,1:nz) - (prd0(nx,1,nz) + prd1(nx,1,nz))
 		kaaux(1:nx,1:ny,1:nz) = ka(1:nx,1:ny,1:nz)
 
 

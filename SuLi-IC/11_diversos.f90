@@ -18,6 +18,33 @@ SUBROUTINE tempo()
 	integer :: i, j, k
 	real(8),save :: aux1
 
+	if ((t_press .eq. 2) .and. (mms_t .eq. 0)) then
+	
+		do k = 1, nz
+		do j = 1, ny
+		do i = 1, nx1
+			Fu(i,j,k) = Fu(i,j,k) + px(i,j,k)
+		enddo
+		enddo	
+
+		do j = 1, ny1
+		do i = 1, nx
+			Fv(i,j,k) = Fv(i,j,k) + py(i,j,k)
+		enddo
+		enddo
+		enddo
+
+		do k = 1, nz1
+		do j = 1, ny
+		do i = 1, nx
+			Fw(i,j,k) = Fw(i,j,k) + pz(i,j,k)
+		enddo
+		enddo
+		enddo
+	
+	endif
+
+
 	if ((t_tempo == 0) .or. ((t_tempo == 3) .or. (t_tempo == 4) .and. (it == 1))) then !Euler e primeiro do AB2 e AB3
 		do k = 1, nz
 		do j = 1, ny
@@ -421,6 +448,52 @@ SUBROUTINE complementos()
 		enddo
 	
 END SUBROUTINE complementos
+
+!##################################################################################################################
+
+
+SUBROUTINE exp_press() ! apenas para IPA !
+
+USE velpre
+
+implicit none
+	real(8),dimension(nx1,ny,nz) :: prdx, rhox, drhodx
+	real(8),dimension(nx,ny1,nz) :: prdy, rhoy, drhody
+	real(8),dimension(nx,ny,nz1) :: prdz, rhoz, drhodz
+	real(8),dimension(0:nx+1,0:ny+1,0:nz+1) :: prdaux
+	integer :: i, j, k
+	
+	prd0 = prd1 + prd0  !inscremento da pressão
+	prdaux = prd1 + prd0  !variável para alterar px,py e pz, com um incremento penalizado
+	
+	call interpx_cf(rho,nx,ny,nz,rhox) !(nx1,ny,nz)
+	call interpy_cf(rho,nx,ny,nz,rhoy) !(nx,ny1,nz)
+	call interpz_cf(rho,nx,ny,nz,rhoz) !(nx,ny,nz1)
+
+	do k = 1, nz
+	do j = 1, ny
+	do i = 1, nx1
+		px(i,j,k) = -(prdaux(i,j,k)-prdaux(i-1,j,k))/dx/rhox(i,j,k)
+	enddo
+	enddo	
+
+	do j = 1, ny1
+	do i = 1, nx
+		py(i,j,k) = -(prdaux(i,j,k)-prdaux(i,j-1,k))/dy/rhoy(i,j,k)
+	enddo
+	enddo
+	enddo
+
+	do k = 1, nz1
+	do j = 1, ny
+	do i = 1, nx
+		pz(i,j,k) = -(prdaux(i,j,k)-prdaux(i,j,k-1))/dz/rhoz(i,j,k)
+	enddo
+	enddo
+	enddo	
+	
+END SUBROUTINE exp_press
+
 
 !##################################################################################################################
 
