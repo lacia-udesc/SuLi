@@ -41,6 +41,7 @@ read (1,1000) a
 read (1,1000) a 
 read (1,1000) a 
 read (1,*) t_plot 
+read (1,*) t_sonda
 read (1,*) t_tempo 
 read (1,*) t_tempo_var 
 read (1,*) der 

@@ -23,6 +23,8 @@ module disc
 
 	integer :: t_plot	! 0 = modo simples (velocidade, Level Set e IBM), 1 = modo completo (pressão, vorticidade, viscosidade)
 
+	integer :: t_sonda	! Ativação de sondas #0 = sem sondas, 1 = com sondas
+	
 	integer :: t_tempo 	! 0 = Euler Explícito, 1 = RK 2, 2 = RK 3, 3 = AB2, 4 = AB3
 	integer :: t_tempo_var  ! 0 = dt constante, 1 = dt adaptativo
 

@@ -97,19 +97,21 @@ if (it == 0) then
 
 ! a pressão é normalizada por um ponto
 
+if (t_sonda == 1) then
 	
-!sondas
-CALL SPLONGDESH1() !Plot perfil longitudinal do desnível level-set-WENO-tests Wave
-CALL SPLONGDESH2() !Plot perfil longitudinal do desnível
-CALL SPLONGDESH3() !Plot perfil longitudinal do desnível level-set-WENO-tests DamBreak
-CALL SUMED()       !Velocidade média (umed) para Reynolds
-!*******************************************************************************
-!Validação bottom friction (fundo plano/GS_H128 - Zampiron et al., 2022) [Bruna]
-CALL SXH20() !Sonda x/H=20
-CALL SXH31() !Sonda x/H=31
-CALL SXH51() !Sonda x/H=51
-!*******************************************************************************
+	!sondas
+	CALL SPLONGDESH1() !Plot perfil longitudinal do desnível level-set-WENO-tests Wave
+	CALL SPLONGDESH2() !Plot perfil longitudinal do desnível
+	CALL SPLONGDESH3() !Plot perfil longitudinal do desnível level-set-WENO-tests DamBreak
+	CALL SUMED()       !Velocidade média (umed) para Reynolds
+	!*******************************************************************************
+	!Validação bottom friction (fundo plano/GS_H128 - Zampiron et al., 2022) [Bruna]
+	CALL SXH20() !Sonda x/H=20
+	CALL SXH31() !Sonda x/H=31
+	CALL SXH51() !Sonda x/H=51
+	!*******************************************************************************
 
+endif
 
 !Conservação de massa
 CALL CONMASSA()
