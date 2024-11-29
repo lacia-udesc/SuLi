@@ -19,7 +19,7 @@ SUBROUTINE visco()
 	
 	integer :: i, j, k
 
-	real(8),save :: p1, p2, p3
+	real(8),save :: p1, p2, p3, lcar
 	
 	real(8),dimension(nx,ny,nz) :: Fka, diss, des, e0, fe0, fe1
 
@@ -90,13 +90,16 @@ SUBROUTINE visco()
 		!===================================================================================================================
 		elseif (m_turb .ge. 2) then ! 2 = LES - energia cinemática turbulenta, 3 = DES (Heinz, 2020)
 			
+		! comprimento característico	
+		lcar = max(prof,ampl)
+			
 			do tt = 1, ntt
 		
 				dt   = a_dt(tt)
 						
 				nut  = cmu*ka(1:nx,1:ny,1:nz)**(0.5)*delta
 
-				diss = ka(1:nx,1:ny,1:nz)**(1.5)/prof ! taxa de dissipação > denominador = comprimento caracteristico
+				diss = ka(1:nx,1:ny,1:nz)**(1.5)/lcar ! taxa de dissipação > denominador = comprimento caracteristico
 					! sem obstáculo > comprimento caracteristico = prof
 					! com obstáculo > comprimento caracteristico = 0.2m altura do degrau (backward facing step/T1 - Delft, 1980)
 

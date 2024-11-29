@@ -139,8 +139,9 @@ SUBROUTINE iniciais()
 
 	integer :: i, j, k, ik,iik
 	real(8) :: umed, aux1
-	real(8), dimension(nx1,ny,nz) :: ls_x
+	real(8),dimension(nx1,ny,nz) :: ls_x
 	real(8),dimension(nx,ny,nz)  :: uc
+	real(8),dimension(3):: rr
 	
 	write(*,'(A,I10)') "Tamanho do domínio:", nx*ny*nz
 		
@@ -213,9 +214,24 @@ SUBROUTINE iniciais()
 
 	!Utilizado para o modelo de turbulência DES
 	if (m_turb .ge. 2) then
-		aux1 = iturb*iturb*uinicial*uinicial*1.5 ! ka = turbulence kinetic energy
-		ka(1:nx,1:ny,1:nz) = aux1
+		aux1 = iturb*iturb*(uinicial*uinicial+10.**(-6))*1.5 ! ka = turbulence kinetic energy ! ruído (10-6) adicionado para casos sem velocidade inicial.
+		
+		do k = 1, nz
+		do j = 1, ny
+		do i = 1, nx
+		
+			ka(i,j,k) = aux1
+			
+			call random_number(rr)
 
+			
+			u(i,j,k) = u(i,j,k)+ aux1**0.5*rr(1)
+			v(i,j,k) = v(i,j,k)+ aux1**0.5*rr(2)
+			w(i,j,k) = w(i,j,k)+ aux1**0.5*rr(3)		
+			
+		enddo
+		enddo
+		enddo
 		call contorno_les()
 	endif
 
