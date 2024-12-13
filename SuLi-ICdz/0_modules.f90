@@ -5,10 +5,10 @@ module disc
 	real(8),parameter ::  pi = acos(-1.) 
 
 	!Discretizações espaciais em x e y (metros), discretização temporal (segundos)
-	real(8) :: dx, dy, dza, lx, ly, lz, delta, deltai, dzmin, dzmax
+	real(8) :: dx, dy, dza, lx, ly, lz, delta, dzmin, dzmax
 	
 	! x é a distância até o centro da célula e xx é a distância considerando +1/2
-	real(8), allocatable, dimension(:) :: dz, dzz, x, xx, y, yy, z, zz
+	real(8), allocatable, dimension(:) :: dz, dzz, x, xx, y, yy, z, zz, deltai
 	
 	integer :: nx, ny, nz
 	integer :: nx1, ny1, nz1, nxx, nyy, nzz
@@ -71,6 +71,7 @@ implicit none
 
 	allocate(dz(0:nz+1))
 	allocate(dzz(0:nz+1))
+	allocate(deltai(0:nz+1))
 	allocate(x(nx))
 	allocate(xx(-1:2*nx1+2))
 	allocate(y(ny))

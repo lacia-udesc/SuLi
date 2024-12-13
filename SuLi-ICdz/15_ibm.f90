@@ -32,11 +32,8 @@ SUBROUTINE ibm_posicoes(id_ibm,obs_lsg,dimx,dimy,dimz)
 	do k = 1, dimz
 	do j = 1, dimy
 	do i = 1, dimx-2
-
 		if(obs_lsg(i,j,k)>0) then ! garante que apenas as células de dentro do obstáculo serão marcadas
-			if(obs_lsg(i,j,k)*obs_lsg(i+1,j,k)<0.) then ! mudança de sinal representa presença da interface
-				id_ibm(i,j,k) =  1
-			elseif(obs_lsg(i,j,k)*obs_lsg(i+2,j,k)<0.) then
+			if(obs_lsg(i,j,k)*obs_lsg(i+1,j,k)<0. .or. obs_lsg(i,j,k)*obs_lsg(i+2,j,k)<0.) then ! mudança de sinal representa presença da interface
 				id_ibm(i,j,k) =  1
 			endif
 		endif	
@@ -48,15 +45,11 @@ SUBROUTINE ibm_posicoes(id_ibm,obs_lsg,dimx,dimy,dimz)
 	do k = 1, dimz
 	do j = 1, dimy
 	do i = 3, dimx
-				
 		if(obs_lsg(i,j,k)>0) then
-			if(obs_lsg(i,j,k)*obs_lsg(i-1,j,k)<0.) then
-				id_ibm(i,j,k) =  1
-			elseif(obs_lsg(i,j,k)*obs_lsg(i-2,j,k)<0.) then
+			if(obs_lsg(i,j,k)*obs_lsg(i-1,j,k)<0. .or. obs_lsg(i,j,k)*obs_lsg(i-2,j,k)<0.) then
 				id_ibm(i,j,k) =  1
 			endif
 		endif	
-
 	enddo
 	enddo
 	enddo
@@ -65,15 +58,11 @@ SUBROUTINE ibm_posicoes(id_ibm,obs_lsg,dimx,dimy,dimz)
 	do k = 1, dimz
 	do j = 1, dimy-2
 	do i = 1, dimx
-
 		if(obs_lsg(i,j,k)>0) then
-			if(obs_lsg(i,j,k)*obs_lsg(i,j+1,k)<0.) then
-				id_ibm(i,j,k) =  1
-			elseif(obs_lsg(i,j,k)*obs_lsg(i,j+2,k)<0.) then
+			if(obs_lsg(i,j,k)*obs_lsg(i,j+1,k)<0. .or. obs_lsg(i,j,k)*obs_lsg(i,j+2,k)<0.) then
 				id_ibm(i,j,k) =  1
 			endif
 		endif	
-
 	enddo
 	enddo
 	enddo
@@ -81,15 +70,11 @@ SUBROUTINE ibm_posicoes(id_ibm,obs_lsg,dimx,dimy,dimz)
 	do k = 1, dimz
 	do j = 3, dimy
 	do i = 1, dimx
-				
 		if(obs_lsg(i,j,k)>0) then
-			if(obs_lsg(i,j,k)*obs_lsg(i,j-1,k)<0.) then
-				id_ibm(i,j,k) =  1
-			elseif(obs_lsg(i,j,k)*obs_lsg(i,j-2,k)<0.) then
+			if(obs_lsg(i,j,k)*obs_lsg(i,j-1,k)<0. .or. obs_lsg(i,j,k)*obs_lsg(i,j-2,k)<0.) then
 				id_ibm(i,j,k) =  1
 			endif
 		endif	
-
 	enddo
 	enddo
 	enddo
@@ -99,15 +84,11 @@ SUBROUTINE ibm_posicoes(id_ibm,obs_lsg,dimx,dimy,dimz)
 	do k = 1, dimz-2
 	do j = 1, dimy
 	do i = 1, dimx
-
 		if(obs_lsg(i,j,k)>0) then
-			if(obs_lsg(i,j,k)*obs_lsg(i,j,k+1)<0.) then
-				id_ibm(i,j,k) =  1
-			elseif(obs_lsg(i,j,k)*obs_lsg(i,j,k+2)<0.) then
+			if(obs_lsg(i,j,k)*obs_lsg(i,j,k+1)<0. .or. obs_lsg(i,j,k)*obs_lsg(i,j,k+2)<0.) then
 				id_ibm(i,j,k) =  1
 			endif
 		endif	
-
 	enddo
 	enddo
 	enddo
@@ -117,9 +98,7 @@ SUBROUTINE ibm_posicoes(id_ibm,obs_lsg,dimx,dimy,dimz)
 	do i = 1, dimx
 				
 		if(obs_lsg(i,j,k)>0) then
-			if(obs_lsg(i,j,k)*obs_lsg(i,j,k-1)<0.) then
-				id_ibm(i,j,k) =  1
-			elseif(obs_lsg(i,j,k)*obs_lsg(i,j,k-2)<0.) then
+			if(obs_lsg(i,j,k)*obs_lsg(i,j,k-1)<0. .or. obs_lsg(i,j,k)*obs_lsg(i,j,k-2)<0.) then
 				id_ibm(i,j,k) =  1
 			endif
 		endif	
@@ -133,7 +112,7 @@ END SUBROUTINE ibm_posicoes
 !############################################################
 SUBROUTINE ibm_images(obs_lsg,a1,dimx,dimy,dimz,id_ibm,der_t)
 
-	USE disc, only : nx,ny,nz,dx,dy,dz,deltai
+	USE disc, only : nx,ny,nz,dx,dy,dz,dzz,deltai
 
 	IMPLICIT NONE
 	
@@ -154,14 +133,15 @@ SUBROUTINE ibm_images(obs_lsg,a1,dimx,dimy,dimz,id_ibm,der_t)
 	real(8) :: v_sol, lg, li1, li2, sumlint,er, xl, yl, zl
 
 	
+
 	
 	ll = 2 ! número de camadas imaginárias
-	er = deltai *0.01 ! erro de aproximação da célula
+	er = minval(deltai)*0.01 ! erro de aproximação da célula
 	
 	v_sol = 0. !velocidade alvo
 	
-	!calcula a normal em todo o domínio
-	CALL mod_ls1(obs_lsg,mod_ls,norm_x,norm_y,norm_z,dimx,dimy,dimz)
+	!calcula a normal em todo o domínio ! coloquei o menos para que a normal saia da superfície.
+	CALL mod_ls1(-obs_lsg,mod_ls,norm_x,norm_y,norm_z,dimx,dimy,dimz)
 	
 	!if (der_t == 2) then
 	!	a1_v(1:dimx,1:dimy,1:dimz) = a1(1:dimx,1:dimy,1:dimz) ! ativado para o level_set, retira os fantasmas
@@ -195,7 +175,7 @@ SUBROUTINE ibm_images(obs_lsg,a1,dimx,dimy,dimz,id_ibm,der_t)
 	if (dimz == nz) then
 		z(1) = 0.5*dz(1)
 		do k = 2, dimz
-			z(k) = z(k-1)+(dz(k-1)+dz(k))*0.5
+			z(k) = z(k-1)+dzz(k)
 		enddo
 	else
 		z(1) = 0.
@@ -209,41 +189,40 @@ SUBROUTINE ibm_images(obs_lsg,a1,dimx,dimy,dimz,id_ibm,der_t)
 	do k = 1, dimz
 	do j = 1, dimy
 	do i = 1, dimx
-        
+
         ! inicia zerando tudo dentro do obstáculo !! não está parecendo ser necesssário
         if (obs_lsg(i,j,k) > 0. .and. id_ibm(i,j,k) .ne. 1 .and. der_t ==1) a1(i,j,k) = 0.
-        !if (obs_lsg(i,j,k) > 0. .and. id_ibm(i,j,k) .ne. 1 .and. der_t ==2) a1(i,j,k) = deltai    
+        !if (obs_lsg(i,j,k) > 0. .and. id_ibm(i,j,k) .ne. 1 .and. der_t ==2) a1(i,j,k) = -deltai(k)*2.    
         
         
-        ! identifica que está nas primeiras células perto da interface do obstáculo
+        ! identifica que está nas primeiras células dentro da interface do obstáculo
 	if (id_ibm(i,j,k) == 1) then 
 
-		! se a posição da célular for muito próxima da interface do obstáculo, existe esta condição especial.
+		! se a posição da célular for muito próxima da interface do obstáculo, existe esta condição especial, sen ão a interpoação pode dar problema
 		if (obs_lsg(i,j,k) < er) then
 			a1_image(i,j,k) = a1(i,j,k)
-         	else	
+         	else
          	
          	! está querendo ir para baixo
 		if (k == 1) norm_z(i,j,k) = norm_z(i,j,k+1)  	
 		
 			! cria as duas imagens que servirão para a extrapolação
 			do l = 1, ll
-			
+				lint = 0.
+				sumlint = 0.
 			! cálculo da variável interpolada para as posições imaginárias 1 e 2
-			!aqui, se o ponto  interno ao obstáculo
 			
-				!distâncias em que os valores imaginários estão localizados. O valor negativo é necessário pois a normal é para dentro do negativo (fora do obstáculo)
-				xl = x(i) - (l*dx+obs_lsg(i,j,k))*norm_x(i,j,k)
-				yl = y(j) - (l*dy+obs_lsg(i,j,k))*norm_y(i,j,k) 
-				zl = z(k) - (l*dz(k)+obs_lsg(i,j,k))*norm_z(i,j,k)
+				!distâncias em que os valores imaginários estão localizados com relação ao ponto dentro do IBM (Figura 2)
+				xl = x(i) + (l*dx   +obs_lsg(i,j,k))*norm_x(i,j,k)
+				yl = y(j) + (l*dy   +obs_lsg(i,j,k))*norm_y(i,j,k) 
+				zl = z(k) + (l*dz(k)+obs_lsg(i,j,k))*norm_z(i,j,k)
 				
 				!arredondou para baixo. Assim sabemos que a média deve ser feita com o +1
 				ii = floor((xl-x(i))/dx)+i
 				jj = floor((yl-y(j))/dy)+j
 				kk = floor((zl-z(k))/dz(k))+k
-		    		
-		    		! escolheu-se em fazer o cálculo da varipavel pelo método das distâncias.
-		    		! cálculo da distância efetiva do ponto imaginário com as células em volta, verifica se está ou não dentro do ibm e usa a variável.
+		    		! escolheu-se em fazer o cálculo da varipavel pelo método das distâncias invertidas! (Eq. 18 e texto posteriro no artigo)
+		    		! cálculo da distância efetiva do ponto imaginário com as células em volta. A multiplicação verifica se está ou não dentro do ibm e usa a variável caso esteja fora do IBM.
 				lint(1) = 1./(sqrt((xl-x(ii))**2.  +(yl-y(jj))**2.  +(zl-z(kk))**2.  ))*(1.-id_ibm(ii,jj,kk)      )
 				lint(2) = 1./(sqrt((xl-x(ii+1))**2.+(yl-y(jj))**2.  +(zl-z(kk))**2.  ))*(1.-id_ibm(ii+1,jj,kk)    )
 				lint(3) = 1./(sqrt((xl-x(ii))**2.  +(yl-y(jj+1))**2.+(zl-z(kk))**2.  ))*(1.-id_ibm(ii,jj+1,kk)    )
@@ -256,7 +235,7 @@ SUBROUTINE ibm_images(obs_lsg,a1,dimx,dimy,dimz,id_ibm,der_t)
 			    	! soma as distância para fazer a ponderação depois
 				sumlint = sum(lint(:))
 	
-				! usa a distância e define a variável	
+				! usa a distância e define a variável ! eq. 17 do artigo
 				lint(1) = lint(1)*a1(ii,jj,kk)
 				lint(2) = lint(2)*a1(ii+1,jj,kk)
 				lint(3) = lint(3)*a1(ii,jj+1,kk)			
@@ -266,43 +245,44 @@ SUBROUTINE ibm_images(obs_lsg,a1,dimx,dimy,dimz,id_ibm,der_t)
 				lint(7) = lint(7)*a1(ii,jj+1,kk+1)
 				lint(8) = lint(8)*a1(ii+1,jj+1,kk+1)
 			     
-				!interpolação para obter a imagem
+				!interpolação para obter a imagem !fecha a equação 18.
 				a1_imagep(l) = sum(lint(:))/sumlint
+
 				if (sumlint == 0) a1_imagep(l) = 0.
 
 			enddo
 			
-			!!@@## interpolador a
-			li1 = (2.*deltai - obs_lsg(i,j,k))/deltai * (2.*obs_lsg(i,j,k))/(deltai + obs_lsg(i,j,k))
-			li2 = (obs_lsg(i,j,k) - deltai)/deltai * (2.*obs_lsg(i,j,k))/(2.*deltai + obs_lsg(i,j,k))
-			lg  = (obs_lsg(i,j,k) - deltai)/(obs_lsg(i,j,k) + deltai)*(obs_lsg(i,j,k)-2.*deltai)/(obs_lsg(i,j,k)+2.*deltai)
+			!!@@## interpolador a (eq. 14 do artigo)
+			li1 = (2.*deltai(k) - obs_lsg(i,j,k))/deltai(k) * (2.*obs_lsg(i,j,k))/(deltai(k) + obs_lsg(i,j,k))
+			li2 = (obs_lsg(i,j,k) - deltai(k))/deltai(k) * (2.*obs_lsg(i,j,k))/(2.*deltai(k) + obs_lsg(i,j,k))
+			lg  = (obs_lsg(i,j,k) - deltai(k))/(obs_lsg(i,j,k) + deltai(k))*(obs_lsg(i,j,k)-2.*deltai(k))/(obs_lsg(i,j,k)+2.*deltai(k))
 		
-			! cálculo das imagens que juntam as imagens 1 e 2
-			if (der_t == 1) a1_image(i,j,k) = (2.*lg*v_sol + li1*a1_imagep(1) + li2*a1_imagep(2))/(1.+lg)
+			! cálculo das imagens que juntam as imagens 1 e 2 (eq. 12 do artigo)
+			if (der_t == 1) a1_image(i,j,k) = (2.*lg*v_sol        + li1*a1_imagep(1) + li2*a1_imagep(2))/(1.+lg)
 			if (der_t == 2) a1_image(i,j,k) = (2.*lg*a1_imagep(1) + li1*a1_imagep(1) + li2*a1_imagep(2))/(1.+lg)
 			
 			!!@@## interpolador b
-			!li1 = (2.*deltai - obs_lsg(i,j,k))/deltai*obs_lsg(i,j,k)/deltai
-			!li2 = (obs_lsg(i,j,k) - deltai)/deltai * (obs_lsg(i,j,k))/(2.*deltai)
-			!lg  = (obs_lsg(i,j,k))/deltai *(obs_lsg(i,j,k)-2.*deltai)/(2.*deltai)
+			!li1 = (2.*deltai(k) - obs_lsg(i,j,k))/deltai(k)*obs_lsg(i,j,k)/deltai(k)
+			!li2 = (obs_lsg(i,j,k) - deltai(k))/deltai(k) * (obs_lsg(i,j,k))/(2.*deltai(k))
+			!lg  = (obs_lsg(i,j,k))/deltai(k) *(obs_lsg(i,j,k)-2.*deltai(k))/(2.*deltai(k))
 		
 			! cálculo das imagens que juntam as imagens 1 e 2
 			!if (der_t == 1) a1_image(i,j,k) = lg*v_sol + li1*a1_imagep(1) + li2*a1_imagep(2)
 			!if (der_t == 2) a1_image(i,j,k) = lg*a1_imagep(1) + li1*a1_imagep(1) + li2*a1_imagep(2)
 			
 			!!@@## interpolador c
-			!li1 = 1./(deltai    -obs_lsg(i,j,k))
-			!li2 = 1./(2.*deltai -obs_lsg(i,j,k))
+			!li1 = 1./(deltai(k)    -obs_lsg(i,j,k))
+			!li2 = 1./(2.*deltai(k) -obs_lsg(i,j,k))
 			!lg  = 1./obs_lsg(i,j,k) 
 		
 			! cálculo das imagens que juntam as imagens 1 e 2
 			!if (der_t == 1)	a1_image(i,j,k) = (lg*v_sol + li1*a1_imagep(1) + li2*a1_imagep(2))/(li1+li2+lg)
-			!if (der_t == 2) a1_image(i,j,k) = (lg*a1(i,j,k) + li1*a1_imagep(1) + li2*a1_imagep(2))/(li1+li2+lg)
+			!if (der_t == 2) a1_image(i,j,k) = (lg*a1_imagep(1) + li1*a1_imagep(1) + li2*a1_imagep(2))/(li1+li2+lg)
     		endif
 
-
+		! eq. 21 do artigo
 		if (der_t == 1) a1(i,j,k) =  2.*v_sol - a1_image(i,j,k)
-		if (der_t == 2) a1(i,j,k) =  a1_image(i,j,k)	! simplifiquei o Neumann para evitar o cálculo da derivada (eq. 21 do artigo do Auguste)
+		if (der_t == 2) a1(i,j,k) =  a1_image(i,j,k) !+ 2.*obs_lsg(i,j,k)*1.	! simplifiquei o Neumann para evitar o cálculo da derivada (eq. 21 do artigo do Auguste)
 !		if (der_t == 2) then
 !			norm_x1(i,j,k) = (norm_x1(i,j,k)*mod_lsa(i,j,k)*obs_lsg(i,j,k))*norm_x(i,j,k)
 !			norm_y1(i,j,k) = (norm_y1(i,j,k)*mod_lsa(i,j,k)*obs_lsg(i,j,k))*norm_y(i,j,k)

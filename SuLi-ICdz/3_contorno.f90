@@ -847,46 +847,40 @@ SUBROUTINE obstaculo()
 		a = 0.08+er 
 		b = 0.2 +er
 		c = 0.16+er
-		mm = 1000
+		mm = 50
 		
-!		do k = -1, nzz+2
-!		do j = -1, nyy+2
-!		do i = -1, nxx+2
-			
-!			if (xx(i) <= 0.75) then
-!				tgaux = +xx(i) -0.75 + 0.08
-!			else
-!				tgaux = -xx(i) +0.75 + 0.08
-!			endif
-			
-!			if (yy(j) <= 0.5) then
-!				aux1 = +yy(j) -0.5 + 0.20
-!			else
-!				aux1 = -yy(j) +0.5 + 0.20	
-!			endif
-			
-!			aux2 = -zz(k) +0. + 0.16
-			
-!			auxx_ls(i,j,k) = min(tgaux,aux1,aux2)
-			
-!		enddo
-!		enddo
-!		enddo
-
 		do k = -1, nzz+2
 		do j = -1, nyy+2
 		do i = -1, nxx+2
-		auxx_ls(i,j,k) = -((((xx(i)-sigx)/a)**mm + ((yy(j)-sigy)/b)**mm  + ((zz(k)-sigz)/c)**mm))**(1./mm)+1
-		if (auxx_ls(i,j,k) .gt. 0) then 
-			auxx_ls(i,j,k) = 1
-		elseif (auxx_ls(i,j,k) == 0) then
-		
-		else
-			auxx_ls(i,j,k) = -1	
-		endif
+			
+			if (xx(i) <= 0.75) then
+				tgaux = +xx(i) -0.75 + 0.08
+			else
+				tgaux = -xx(i) +0.75 + 0.08
+			endif
+			
+			if (yy(j) <= 0.5) then
+				aux1 = +yy(j) -0.5 + 0.20
+			else
+				aux1 = -yy(j) +0.5 + 0.20	
+			endif
+			
+			aux2 = -zz(k) +0. + 0.16
+			
+			auxx_ls(i,j,k) = min(tgaux,aux1,aux2)
+			
 		enddo
 		enddo
 		enddo
+
+		! tentei criar o obstáculo com uma elipse, mas ela não cria uma função distância.
+		!do k = -1, nzz+2
+		!do j = -1, nyy+2
+		!do i = -1, nxx+2
+		!auxx_ls(i,j,k) = -((((xx(i)-sigx)/a)**mm + ((yy(j)-sigy)/b)**mm  + ((zz(k)-sigz)/c)**mm))**(1./mm)+1
+		!enddo
+		!enddo
+		!enddo
 		
 
 				
@@ -1052,8 +1046,8 @@ SUBROUTINE obstaculo()
 		CALL ibm_posicoes(id_ibmy,obs_lsy,nx,ny1,nz)
 		CALL ibm_posicoes(id_ibmz,obs_lsz,nx,ny,nz1)
 		CALL ibm_posicoes(id_ibm, obs_lss, nx,ny,nz)	
-		   
-		CALL mod_ls1(obs_lss,mod_ls,norm_xx,norm_yy,norm_zz,nx,ny,nz)   
+
+		!CALL mod_ls1(obs_lss,mod_ls,norm_xx,norm_yy,norm_zz,nx,ny,nz)   !deletar depois 
 	endif	   
 
 END SUBROUTINE obstaculo

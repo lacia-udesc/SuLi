@@ -120,7 +120,7 @@ ts = ceiling(t_s/dt0)
 gx = 9.80665 * sin(atan(decliv)); gz = 9.80665 * cos(atan(decliv))
 
 delta = max(dx,dy,dza)
-deltai = (dx*dy*dza)**(1./3.)
+deltai(0:nz+1) = (dx*dy*dz(0:nz+1))**(1./3.)
  
 CALL init_variables1()
 CALL init_variables2()
