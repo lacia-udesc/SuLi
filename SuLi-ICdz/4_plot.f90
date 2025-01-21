@@ -149,7 +149,7 @@ ENDSUBROUTINE PLOT
 !#######################################################################################
 
 
-SUBROUTINE SXH20() !Validação bottom friction (fundo plano/GS_H128 - Zampiron et al., 2022) [Bruna]
+SUBROUTINE SXH20() !Simulação canal com rugosidade uniforme experimento GS_H128 (Zampiron et al., 2022) [Bruna]
 !Sonda x/H=20
 
 USE ls_param
@@ -182,7 +182,7 @@ ENDSUBROUTINE SXH20
 !#######################################################################################
 
 
-SUBROUTINE SXH31() !Validação bottom friction (fundo plano/GS_H128 - Zampiron et al., 2022) [Bruna]
+SUBROUTINE SXH31() !Simulação canal com rugosidade uniforme experimento GS_H128 (Zampiron et al., 2022) [Bruna]
 !Sonda x/H=31
 
 USE ls_param
@@ -215,7 +215,7 @@ ENDSUBROUTINE SXH31
 !#######################################################################################
 
 
-SUBROUTINE SXH51() !Validação bottom friction (fundo plano/GS_H128 - Zampiron et al., 2022) [Bruna]
+SUBROUTINE SXH51() !Simulação canal com rugosidade uniforme experimento GS_H128 (Zampiron et al., 2022) [Bruna]
 !Sonda x/H=51
 
 USE ls_param
