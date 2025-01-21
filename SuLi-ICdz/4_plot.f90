@@ -113,13 +113,13 @@ if (it == 0) then
 
 if (t_sonda == 1) then
 	
-	!sondas
+	!Sondas
 	CALL SPLONGDESH1() !Plot perfil longitudinal do desnível level-set-WENO-tests Wave
 	CALL SPLONGDESH2() !Plot perfil longitudinal do desnível
 	CALL SPLONGDESH3() !Plot perfil longitudinal do desnível level-set-WENO-tests DamBreak
 	CALL SUMED()       !Velocidade média (umed) para Reynolds
 	!*******************************************************************************
-	!Validação bottom friction (fundo plano/GS_H128 - Zampiron et al., 2022) [Bruna]
+	!Simulação canal com rugosidade uniforme experimento GS_H128 (Zampiron et al., 2022)
 	CALL SXH20() !Sonda x/H=20
 	CALL SXH31() !Sonda x/H=31
 	CALL SXH51() !Sonda x/H=51
@@ -149,7 +149,7 @@ ENDSUBROUTINE PLOT
 !#######################################################################################
 
 
-SUBROUTINE SXH20() !Simulação canal com rugosidade uniforme experimento GS_H128 (Zampiron et al., 2022) [Bruna]
+SUBROUTINE SXH20() !Simulação canal com rugosidade uniforme experimento GS_H128 (Zampiron et al., 2022)
 !Sonda x/H=20
 
 USE ls_param
@@ -182,7 +182,7 @@ ENDSUBROUTINE SXH20
 !#######################################################################################
 
 
-SUBROUTINE SXH31() !Simulação canal com rugosidade uniforme experimento GS_H128 (Zampiron et al., 2022) [Bruna]
+SUBROUTINE SXH31() !Simulação canal com rugosidade uniforme experimento GS_H128 (Zampiron et al., 2022)
 !Sonda x/H=31
 
 USE ls_param
@@ -215,7 +215,7 @@ ENDSUBROUTINE SXH31
 !#######################################################################################
 
 
-SUBROUTINE SXH51() !Simulação canal com rugosidade uniforme experimento GS_H128 (Zampiron et al., 2022) [Bruna]
+SUBROUTINE SXH51() !Simulação canal com rugosidade uniforme experimento GS_H128 (Zampiron et al., 2022)
 !Sonda x/H=51
 
 USE ls_param
