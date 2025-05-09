@@ -203,7 +203,7 @@ SUBROUTINE contorno(nlock)
 				CALL interpyx_ff(v,nx,ny,nz,nx1,ny1,vx)
 				
 				!Coeficiente de arrasto
-				cd = (1./cka * log((dx/2. + z0) / z0))**(-2.) 
+				cd = (1./cka * log((dzmin*0.5 + z0) / z0))**(-2.) 
 									 							
 				!Obstáculo (ibm forçado)
 				if (ibm_t == 1) then
@@ -476,7 +476,7 @@ SUBROUTINE contorno(nlock)
 				CALL interpyx_ff(v,nx,ny,nz,nx1,ny1,vx)
 				
 				!Coeficiente de arrasto
-				cd = (1./cka * log((dx/2. + z0) / z0))**(-2.) 
+				cd = (1./cka * log((dzmin*0.5 + z0) / z0))**(-2.) 
 									 							
 				!Obstáculo (ibm forçado)
 				if (ibm_t == 1) then						
